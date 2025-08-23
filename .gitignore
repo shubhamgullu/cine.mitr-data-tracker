@@ -91,3 +91,8 @@ src/main/resources/static/node_modules/
 # Application logs
 logs/
 spring.log
+
+
+#AI Tools
+.claude
+.claude/*
