@@ -112,10 +112,52 @@ function initializeTabSwitching() {
             if (targetTab) {
                 setTimeout(() => {
                     targetTab.classList.add('active');
+                    // Load data for the newly activated tab
+                    loadTabData(tabName);
                 }, 50);
             }
         });
     });
+}
+
+// Load data when tabs are activated
+function loadTabData(tabName) {
+    switch (tabName) {
+        case 'movies':
+            // Media catalog tab - refresh recent media records
+            if (typeof window.safeRefreshRecentMedia === 'function') {
+                window.safeRefreshRecentMedia();
+            } else if (typeof window.refreshRecentMedia === 'function') {
+                window.refreshRecentMedia();
+            }
+            break;
+            
+        case 'content-status':
+            // Content catalog tab - refresh recent content records
+            if (typeof window.safeRefreshRecentContent === 'function') {
+                window.safeRefreshRecentContent();
+            } else if (typeof window.refreshRecentContent === 'function') {
+                window.refreshRecentContent();
+            }
+            break;
+            
+        case 'add-entry':
+            // Upload catalog tab - refresh recent upload records
+            if (typeof refreshRecentUpload === 'function') {
+                refreshRecentUpload();
+            }
+            break;
+            
+        case 'states-catalog':
+            // States catalog tab - could refresh states data if needed
+            console.log('States catalog tab activated');
+            break;
+            
+        case 'dashboard':
+            // Dashboard tab - could refresh dashboard data if needed
+            console.log('Dashboard tab activated');
+            break;
+    }
 }
 
 // Form submission with loading state

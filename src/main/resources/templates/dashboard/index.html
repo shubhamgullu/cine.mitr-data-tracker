@@ -319,12 +319,13 @@
                                 </div>
                             </div>
                         </div>
-                        <form class="entry-form">
+                        <form class="entry-form" action="/dashboard/content-catalog" method="post" id="contentCatalogForm" style="display: none;">
                             <div class="form-group">
                                 <label for="contentLink" class="form-label">Link</label>
                                 <input type="url" 
                                        class="form-control" 
                                        id="contentLink" 
+                                       name="link"
                                        placeholder="Enter content URL or link" 
                                        required>
                             </div>
@@ -334,6 +335,7 @@
                                     <label for="mediaCatalogType" class="form-label">Media Catalog Type</label>
                                     <select class="form-control" 
                                             id="mediaCatalogType" 
+                                            name="mediaCatalogType"
                                             required>
                                         <option value="">Select Type</option>
                                         <option value="movie">Movie</option>
@@ -345,11 +347,23 @@
 
                                 <div class="form-group">
                                     <label for="mediaCatalogName" class="form-label">Media Catalog Name</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="mediaCatalogName" 
-                                           placeholder="Enter media catalog name" 
-                                           required>
+                                    <div class="position-relative">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="mediaCatalogName" 
+                                               name="mediaCatalogName"
+                                               placeholder="Type to search or enter new name" 
+                                               autocomplete="off"
+                                               required>
+                                        <div id="mediaCatalogNameDropdown" class="dropdown-menu" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1000;"></div>
+                                    </div>
+                                    <small class="form-text text-muted">Start typing to see existing names or enter a new one</small>
+                                    <div id="mediaCatalogNameStatus" class="mt-1" style="display: none;">
+                                        <small class="text-info">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            <span id="statusMessage"></span>
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
 
@@ -358,6 +372,7 @@
                                     <label for="contentStatus" class="form-label">Status</label>
                                     <select class="form-control" 
                                             id="contentStatus" 
+                                            name="status"
                                             required>
                                         <option value="">Select Status</option>
                                         <option value="new">New</option>
@@ -370,7 +385,8 @@
                                 <div class="form-group">
                                     <label for="contentPriority" class="form-label">Priority</label>
                                     <select class="form-control" 
-                                            id="contentPriority">
+                                            id="contentPriority"
+                                            name="priority">
                                         <option value="low">Low</option>
                                         <option value="medium" selected>Medium</option>
                                         <option value="high">High</option>
@@ -383,6 +399,7 @@
                                 <input type="text" 
                                        class="form-control" 
                                        id="contentLocation" 
+                                       name="location"
                                        placeholder="Storage location or file path">
                             </div>
 
@@ -390,6 +407,7 @@
                                 <label for="metadata" class="form-label">Metadata</label>
                                 <textarea class="form-control" 
                                           id="metadata" 
+                                          name="metadata"
                                           placeholder="Additional metadata information..."
                                           rows="3"></textarea>
                             </div>
@@ -398,7 +416,8 @@
                                 <div class="form-group">
                                     <label for="likeStates" class="form-label">Like States</label>
                                     <select class="form-control" 
-                                            id="likeStates">
+                                            id="likeStates"
+                                            name="likeStates">
                                         <option value="">Select Like State</option>
                                         <option value="liked">Liked</option>
                                         <option value="disliked">Disliked</option>
@@ -409,7 +428,8 @@
                                 <div class="form-group">
                                     <label for="uploadContentStatus" class="form-label">Upload Content Status</label>
                                     <select class="form-control" 
-                                            id="uploadContentStatus">
+                                            id="uploadContentStatus"
+                                            name="uploadContentStatus">
                                         <option value="" selected>Default (null)</option>
                                         <option value="pending">Pending Upload</option>
                                         <option value="uploading">Uploading</option>
@@ -423,13 +443,15 @@
                                 <label for="commentStates" class="form-label">Comment States</label>
                                 <textarea class="form-control" 
                                           id="commentStates" 
+                                          name="commentStates"
                                           placeholder="Default (null) - Enter comments if needed..."
                                           rows="3"></textarea>
                             </div>
 
-                            <button type="submit" class="btn-save">
-                                Save Content Catalog Entry
-                            </button>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary me-2" onclick="hideContentForm()">Cancel</button>
+                                <button type="submit" class="btn-save">Save Content Catalog Entry</button>
+                            </div>
                         </form>
 
                         <!-- Recent Records Section -->
@@ -457,11 +479,13 @@
                                             <td th:text="${content.mediaCatalogName}">Sample Content</td>
                                             <td><span class="badge bg-secondary" th:text="${content.mediaCatalogType}">MOVIE</span></td>
                                             <td>
-                                                <span class="badge" th:classappend="${content.status == 'DOWNLOADED'} ? 'bg-success' : (${content.status == 'NEW'} ? 'bg-info' : (${content.status == 'ERROR'} ? 'bg-danger' : 'bg-warning'))"
+                                                <span class="badge" 
+                                                      th:class="${'badge ' + (content.status == 'DOWNLOADED' ? 'bg-success' : content.status == 'NEW' ? 'bg-info' : content.status == 'ERROR' ? 'bg-danger' : 'bg-warning')}"
                                                       th:text="${content.status}">NEW</span>
                                             </td>
                                             <td>
-                                                <span class="badge" th:classappend="${content.priority == 'HIGH'} ? 'bg-danger' : (${content.priority == 'MEDIUM'} ? 'bg-warning' : 'bg-secondary')"
+                                                <span class="badge" 
+                                                      th:class="${'badge ' + (content.priority == 'HIGH' ? 'bg-danger' : content.priority == 'MEDIUM' ? 'bg-warning' : 'bg-secondary')}"
                                                       th:text="${content.priority}">MEDIUM</span>
                                             </td>
                                             <td th:text="${#temporals.format(content.createdOn, 'dd-MM HH:mm')}">24-08 14:30</td>
@@ -541,19 +565,28 @@
                         <div id="uploadFormContainer" style="display: none;">
                         <form th:action="@{/dashboard/upload-catalog}" method="post" class="entry-form" id="uploadForm">
                             <div class="form-group">
-                                <label for="contentCatalogLink" class="form-label">Content Catalog Link</label>
-                                <input type="url" 
-                                       class="form-control" 
-                                       id="contentCatalogLink" 
-                                       placeholder="Enter content catalog link" 
-                                       required>
+                                <label for="contentCatalogLink" class="form-label">Content Catalog Link / Description</label>
+                                <textarea class="form-control" 
+                                          id="contentCatalogLink" 
+                                          name="contentCatalogLink"
+                                          placeholder="Enter content catalog link or text description..." 
+                                          rows="3"
+                                          required></textarea>
+                                <div class="mt-1">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        You can enter a URL link or any text description for the content catalog
+                                    </small>
+                                </div>
                             </div>
 
+                            <!-- Media Catalog Fields (Moved Above Content ID) -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="uploadMediaCatalogType" class="form-label">Media Catalog Type</label>
                                     <select class="form-control" 
                                             id="uploadMediaCatalogType" 
+                                            name="mediaCatalogType"
                                             required>
                                         <option value="">Select Type</option>
                                         <option value="movie">Movie</option>
@@ -565,11 +598,67 @@
 
                                 <div class="form-group">
                                     <label for="uploadMediaCatalogName" class="form-label">Media Catalog Name</label>
+                                    <div class="position-relative">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="uploadMediaCatalogName" 
+                                               name="mediaCatalogName"
+                                               placeholder="Type name or initials to search..." 
+                                               autocomplete="off"
+                                               required>
+                                        <div id="uploadMediaCatalogNameDropdown" class="dropdown-menu"></div>
+                                    </div>
+                                    <div id="uploadMediaCatalogNameStatus" class="mt-1" style="display: none;">
+                                        <small class="text-info"><span id="uploadStatusMessage"></span></small>
+                                    </div>
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Search by full name or initials (e.g., "AB" for "Avengers Endgame")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Linked Content Display (New Feature) -->
+                            <div id="linkedContentSection" class="form-group" style="display: none;">
+                                <label class="form-label">
+                                    <i class="fas fa-link me-2"></i>Linked Content for Selected Media
+                                </label>
+                                <div id="linkedContentList" class="linked-content-container">
+                                    <!-- Linked content will be populated here -->
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Content records linked to the selected media catalog will appear above
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Content ID Field (Moved Below Media Catalog) -->
+                            <div class="form-group">
+                                <label for="contentBlock" class="form-label">
+                                    Content ID / Content Block 
+                                    <span class="text-muted">(Optional)</span>
+                                </label>
+                                <div class="position-relative">
                                     <input type="text" 
                                            class="form-control" 
-                                           id="uploadMediaCatalogName" 
-                                           placeholder="Enter media catalog name" 
-                                           required>
+                                           id="contentBlock" 
+                                           name="contentBlock"
+                                           placeholder="Type to search from Content Catalog or leave empty..." 
+                                           autocomplete="off">
+                                    <div id="contentBlockDropdown" class="dropdown-menu"></div>
+                                </div>
+                                <div id="contentBlockStatus" class="mt-1" style="display: none;">
+                                    <small class="text-info"><span id="contentBlockMessage"></span></small>
+                                </div>
+                                <div class="mt-1">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        You can leave this empty to upload without linking to specific content
+                                    </small>
                                 </div>
                             </div>
 
@@ -579,6 +668,7 @@
                                     <input type="text" 
                                            class="form-control" 
                                            id="contentCatalogLocation" 
+                                           name="contentCatalogLocation"
                                            placeholder="Content storage location">
                                 </div>
 
@@ -587,6 +677,7 @@
                                     <input type="text" 
                                            class="form-control" 
                                            id="uploadCatalogLocation" 
+                                           name="uploadCatalogLocation"
                                            placeholder="Upload destination location">
                                 </div>
                             </div>
@@ -595,6 +686,7 @@
                                 <label for="uploadStatus" class="form-label">Upload Status</label>
                                 <select class="form-control" 
                                         id="uploadStatus" 
+                                        name="uploadStatus"
                                         required>
                                     <option value="">Select Status</option>
                                     <option value="completed">Completed</option>
@@ -607,6 +699,7 @@
                                 <label for="uploadCatalogCaption" class="form-label">Upload Catalog Caption</label>
                                 <textarea class="form-control" 
                                           id="uploadCatalogCaption" 
+                                          name="uploadCatalogCaption"
                                           placeholder="Enter caption for the upload catalog..."
                                           rows="4"></textarea>
                             </div>
@@ -615,6 +708,30 @@
                                 Save Upload Catalog Entry
                             </button>
                         </form>
+                        </div>
+
+                        <!-- Recent Records -->
+                        <div id="uploadRecordsContainer" class="records-container">
+                            <h3 class="records-title">Recent Upload Records</h3>
+                            <div class="table-container">
+                                <table class="records-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Content Block</th>
+                                            <th>Content Link/Description</th>
+                                            <th>Media Type</th>
+                                            <th>Media Name</th>
+                                            <th>Upload Status</th>
+                                            <th>Updated</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentUploadRecords">
+                                        <!-- Upload records will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1090,8 +1207,32 @@
 
         // Content Catalog Functions
         function showAddContentForm() {
-            document.querySelector('#content-status form').reset();
-            document.querySelector('#content-status .entry-form').scrollIntoView({ behavior: 'smooth' });
+            hideRecentRecordsSections();
+            const form = document.getElementById('contentCatalogForm');
+            form.style.display = 'block';
+            form.reset();
+            form.scrollIntoView({ behavior: 'smooth' });
+            initializeMediaCatalogNameAutocomplete();
+        }
+
+        function hideContentForm() {
+            const form = document.getElementById('contentCatalogForm');
+            form.style.display = 'none';
+            
+            // Reset form to add mode
+            form.action = '/dashboard/content-catalog';
+            form.reset();
+            
+            // Reset button text
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.textContent = 'Save Content Catalog Entry';
+            }
+            
+            // Clear status message
+            clearStatusMessage();
+            
+            showRecentRecordsSections();
         }
 
         function showUpdateContentForm() {
@@ -1130,8 +1271,45 @@
 
         function editContentRecord(button) {
             const id = button.getAttribute('data-id');
-            // Similar to editMediaRecord but for content
-            alert(`Edit content record ${id} - Implementation needed`);
+            
+            // Fetch the content record data
+            fetch(`/api/content-catalog/${id}`)
+                .then(response => response.json())
+                .then(content => {
+                    // Show the form
+                    showAddContentForm();
+                    
+                    // Populate form fields with existing data
+                    document.getElementById('contentLink').value = content.link || '';
+                    document.getElementById('mediaCatalogType').value = content.mediaCatalogType?.toLowerCase().replace('_', '-') || '';
+                    document.getElementById('mediaCatalogName').value = content.mediaCatalogName || '';
+                    document.getElementById('contentStatus').value = content.status?.toLowerCase().replace('_', '-') || '';
+                    document.getElementById('contentPriority').value = content.priority?.toLowerCase() || 'medium';
+                    document.getElementById('contentLocation').value = content.location || '';
+                    document.getElementById('metadata').value = content.metadata || '';
+                    document.getElementById('likeStates').value = content.likeStates?.toLowerCase() || '';
+                    document.getElementById('commentStates').value = content.commentStates || '';
+                    document.getElementById('uploadContentStatus').value = content.uploadContentStatus?.toLowerCase().replace('_', '-') || '';
+                    
+                    // Update form to edit mode
+                    const form = document.getElementById('contentCatalogForm');
+                    form.action = `/dashboard/content-catalog/${id}/edit`;
+                    
+                    // Update button text
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        submitButton.textContent = 'Update Content Catalog Entry';
+                    }
+                    
+                    // Update status message
+                    updateStatusMessage(`Editing: "${content.mediaCatalogName}"`, 'info');
+                    
+                    showNotification(`Loaded content record for editing: ${content.mediaCatalogName}`, 'info');
+                })
+                .catch(error => {
+                    console.error('Error loading content record:', error);
+                    showNotification('Error loading content record for editing', 'danger');
+                });
         }
 
         function deleteContentRecord(id) {
@@ -1144,6 +1322,211 @@
                         }
                     })
                     .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Upload Catalog Functions
+        function showAddUploadForm() {
+            // Hide records container and show form
+            document.getElementById('uploadRecordsContainer').style.display = 'none';
+            document.getElementById('uploadFormContainer').style.display = 'block';
+            
+            // Reset form
+            const form = document.getElementById('uploadForm');
+            if (form) {
+                form.reset();
+                form.action = '/dashboard/upload-catalog'; // Reset to create mode
+                
+                // Update button text
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.textContent = 'Save Upload Catalog Entry';
+                }
+                
+                // Clear status message
+                const statusDiv = document.getElementById('uploadMediaCatalogNameStatus');
+                if (statusDiv) statusDiv.style.display = 'none';
+                
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Initialize media catalog name autocomplete for upload form
+            setupUploadMediaCatalogAutocomplete();
+            
+            // Initialize content block autocomplete
+            setupContentBlockAutocomplete();
+            
+            // Setup auto-resize for content catalog link textarea
+            setupTextareaAutoResize();
+        }
+
+        function hideUploadForm() {
+            document.getElementById('uploadFormContainer').style.display = 'none';
+            document.getElementById('uploadRecordsContainer').style.display = 'block';
+        }
+
+        function showUpdateUploadForm() {
+            alert('Select an upload record from Recent Records below to update');
+        }
+
+        function toggleUploadSearch() {
+            const searchBar = document.getElementById('uploadSearchBar');
+            if (searchBar) {
+                searchBar.style.display = searchBar.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function searchUpload() {
+            const name = document.getElementById('uploadSearchName')?.value || '';
+            const type = document.getElementById('uploadSearchType')?.value || '';
+            const status = document.getElementById('uploadSearchStatus')?.value || '';
+            
+            const params = new URLSearchParams();
+            if (name) params.append('name', name);
+            if (type) params.append('type', type);
+            if (status) params.append('status', status);
+            
+            fetch(`/api/upload-catalog/search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => updateUploadRecordsTable(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function refreshRecentUpload() {
+            showUploadRecordsLoading();
+            fetch('/api/upload-catalog?limit=10&sort=createdOn:desc')
+                .then(response => response.json())
+                .then(data => updateUploadRecordsTable(data))
+                .catch(error => {
+                    console.error('Error loading upload records:', error);
+                    const tbody = document.getElementById('recentUploadRecords');
+                    if (tbody) {
+                        tbody.innerHTML = `
+                            <tr class="empty-state">
+                                <td colspan="7">
+                                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                    Error loading upload records. Please try again.
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+        }
+
+        function editUploadRecord(button) {
+            const id = button.getAttribute('data-id');
+            alert(`Edit upload record ${id} - Implementation needed`);
+        }
+
+        function deleteUploadRecord(id) {
+            if (confirm('Are you sure you want to delete this upload record?')) {
+                fetch(`/api/upload-catalog/${id}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            refreshRecentUpload();
+                            showNotification('Upload record deleted successfully', 'success');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function updateUploadRecordsTable(data) {
+            const tbody = document.getElementById('recentUploadRecords');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.className = 'empty-state';
+                emptyRow.innerHTML = `
+                    <td colspan="7">
+                        <i class="fas fa-inbox me-2"></i>
+                        No upload records found. Create your first upload entry above.
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
+                return;
+            }
+            
+            data.slice(0, 10).forEach(upload => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td title="Content Block ID">${formatContentBlock(upload.contentBlock)}</td>
+                    <td title="${upload.contentCatalogLink || 'No description available'}">
+                        ${formatContentLink(upload.contentCatalogLink)}
+                    </td>
+                    <td><span class="badge bg-secondary" title="Media Type">${formatMediaType(upload.mediaCatalogType)}</span></td>
+                    <td title="${upload.mediaCatalogName}">${truncateText(upload.mediaCatalogName, 25)}</td>
+                    <td><span class="badge ${getUploadStatusBadgeClass(upload.uploadStatus)}" title="Upload Status">${formatUploadStatus(upload.uploadStatus)}</span></td>
+                    <td title="Last Updated">${formatDate(upload.updatedOn || upload.createdOn)}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editUploadRecord(this)" 
+                                    data-id="${upload.id}" title="Edit Record">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUploadRecord(${upload.id})" 
+                                    title="Delete Record">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatContentBlock(contentBlock) {
+            if (!contentBlock) return '<span class="text-muted">—</span>';
+            return `<code class="text-primary">${contentBlock}</code>`;
+        }
+
+        function formatContentLink(contentLink) {
+            if (!contentLink) return '<span class="text-muted">No content specified</span>';
+            
+            if (isValidUrl(contentLink)) {
+                return `<a href="${contentLink}" target="_blank" class="text-decoration-none">
+                    <i class="fas fa-external-link-alt me-1"></i>View Link
+                </a>`;
+            } else {
+                return `<span class="text-muted">${truncateText(contentLink, 40)}</span>`;
+            }
+        }
+
+        function formatMediaType(mediaType) {
+            if (!mediaType) return 'Unknown';
+            return mediaType.replace('_', ' ').toLowerCase()
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function formatUploadStatus(status) {
+            if (!status) return 'Unknown';
+            return status.replace('_', ' ').toLowerCase()
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function showUploadRecordsLoading() {
+            const tbody = document.getElementById('recentUploadRecords');
+            if (!tbody) return;
+            
+            tbody.innerHTML = `
+                <tr class="loading-state">
+                    <td colspan="7">
+                        <div class="loading-spinner"></div>
+                        Loading upload records...
+                    </td>
+                </tr>
+            `;
+        }
+
+        function getUploadStatusBadgeClass(status) {
+            switch(status) {
+                case 'UPLOADED': return 'bg-success';
+                case 'COMPLETED': return 'bg-success';
+                case 'IN_PROGRESS': return 'bg-warning';
+                default: return 'bg-secondary';
             }
         }
 
@@ -1227,8 +1610,33 @@
         }
 
         function formatDate(dateString) {
+            if (!dateString) return '<span class="text-muted">—</span>';
+            
             const date = new Date(dateString);
-            return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // If today, show time only
+            if (date.toDateString() === now.toDateString()) {
+                return `<span class="text-success" title="${date.toLocaleString()}">Today ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}</span>`;
+            }
+            
+            // If yesterday, show "Yesterday"
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return `<span class="text-info" title="${date.toLocaleString()}">Yesterday</span>`;
+            }
+            
+            // If within a week, show day name
+            if (diffDays <= 7) {
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                return `<span class="text-muted" title="${date.toLocaleString()}">${dayNames[date.getDay()]}</span>`;
+            }
+            
+            // Otherwise show date
+            return `<span class="text-muted" title="${date.toLocaleString()}">${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}</span>`;
         }
 
         function showNotification(message, type = 'info') {
@@ -1249,6 +1657,666 @@
                 }
             }, 5000);
         }
+        
+        // Media Catalog Name Autocomplete Functionality
+        let mediaCatalogNames = [];
+        let isNewMediaCatalog = false;
+
+        function initializeMediaCatalogNameAutocomplete() {
+            // Fetch existing media catalog names
+            fetch('/api/media-catalog/names')
+                .then(response => response.json())
+                .then(names => {
+                    mediaCatalogNames = names;
+                    setupAutocomplete();
+                })
+                .catch(error => console.error('Error fetching media catalog names:', error));
+        }
+
+        function setupAutocomplete() {
+            const input = document.getElementById('mediaCatalogName');
+            const dropdown = document.getElementById('mediaCatalogNameDropdown');
+            
+            if (!input || !dropdown) return;
+
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                dropdown.innerHTML = '';
+                
+                if (value.length < 1) {
+                    dropdown.classList.remove('show');
+                    clearStatusMessage();
+                    return;
+                }
+
+                const filteredNames = mediaCatalogNames.filter(name => 
+                    name.toLowerCase().includes(value)
+                );
+
+                if (filteredNames.length > 0) {
+                    filteredNames.forEach(name => {
+                        const item = document.createElement('button');
+                        item.className = 'dropdown-item';
+                        item.type = 'button';
+                        item.textContent = name;
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            input.value = name;
+                            dropdown.classList.remove('show');
+                            isNewMediaCatalog = false;
+                            updateStatusMessage(`Using existing: "${name}"`, 'success');
+                            updateMediaTypeFromExisting(name);
+                        });
+                        dropdown.appendChild(item);
+                    });
+                    
+                    // Check if current value exactly matches any existing name
+                    const exactMatch = mediaCatalogNames.find(name => 
+                        name.toLowerCase() === value
+                    );
+                    isNewMediaCatalog = !exactMatch;
+                    
+                    if (exactMatch) {
+                        updateStatusMessage(`Using existing: "${exactMatch}"`, 'success');
+                    } else {
+                        updateStatusMessage(`Will create new: "${input.value}"`, 'warning');
+                    }
+                    
+                    dropdown.classList.add('show');
+                } else {
+                    // No matches found - this will be a new entry
+                    isNewMediaCatalog = true;
+                    const newItem = document.createElement('button');
+                    newItem.className = 'dropdown-item text-success';
+                    newItem.type = 'button';
+                    newItem.innerHTML = `<small><i class="fas fa-plus me-2"></i>Create new: "${input.value}"</small>`;
+                    newItem.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Keep the current value in the input (it's already there)
+                        dropdown.classList.remove('show');
+                        isNewMediaCatalog = true;
+                        updateStatusMessage(`Will create new: "${input.value}"`, 'warning');
+                    });
+                    dropdown.appendChild(newItem);
+                    dropdown.classList.add('show');
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Hide dropdown on escape key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        function updateMediaTypeFromExisting(mediaName) {
+            // Fetch media catalog details to auto-fill media type
+            fetch(`/api/media-catalog/search?name=${encodeURIComponent(mediaName)}`)
+                .then(response => response.json())
+                .then(results => {
+                    if (results.length > 0) {
+                        const media = results[0];
+                        const typeSelect = document.getElementById('mediaCatalogType');
+                        if (typeSelect && media.type) {
+                            typeSelect.value = media.type.toLowerCase().replace('_', '-');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching media details:', error));
+        }
+
+        // Upload Catalog Media Name Autocomplete
+        let uploadMediaCatalogNames = [];
+        let isNewUploadMediaCatalog = false;
+
+        function setupUploadMediaCatalogAutocomplete() {
+            // Fetch existing media catalog names
+            fetch('/api/media-catalog/names')
+                .then(response => response.json())
+                .then(names => {
+                    uploadMediaCatalogNames = names;
+                    setupUploadAutocomplete();
+                })
+                .catch(error => console.error('Error fetching media catalog names:', error));
+        }
+
+        function setupUploadAutocomplete() {
+            const input = document.getElementById('uploadMediaCatalogName');
+            const dropdown = document.getElementById('uploadMediaCatalogNameDropdown');
+            
+            if (!input || !dropdown) return;
+
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                dropdown.innerHTML = '';
+                
+                if (value.length < 1) {
+                    dropdown.classList.remove('show');
+                    clearUploadStatusMessage();
+                    return;
+                }
+
+                // Enhanced search: support both full name and initials matching
+                const filteredNames = uploadMediaCatalogNames.filter(name => {
+                    const lowerName = name.toLowerCase();
+                    const lowerValue = value.toLowerCase();
+                    
+                    // Direct substring match
+                    if (lowerName.includes(lowerValue)) {
+                        return true;
+                    }
+                    
+                    // Initials matching: extract first letters of each word
+                    const initials = name.split(' ')
+                        .map(word => word.charAt(0).toLowerCase())
+                        .join('');
+                    
+                    return initials.includes(lowerValue);
+                });
+
+                if (filteredNames.length > 0) {
+                    filteredNames.forEach(name => {
+                        const item = document.createElement('button');
+                        item.className = 'dropdown-item';
+                        item.type = 'button';
+                        item.textContent = name;
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            input.value = name;
+                            dropdown.classList.remove('show');
+                            isNewUploadMediaCatalog = false;
+                            updateUploadStatusMessage(`Using existing: "${name}"`, 'success');
+                            updateUploadMediaTypeFromExisting(name);
+                            // Load linked content when media is selected
+                            loadLinkedContentForMedia(name);
+                        });
+                        dropdown.appendChild(item);
+                    });
+                    
+                    // Check if current value exactly matches any existing name
+                    const exactMatch = uploadMediaCatalogNames.find(name => 
+                        name.toLowerCase() === value
+                    );
+                    isNewUploadMediaCatalog = !exactMatch;
+                    
+                    if (exactMatch) {
+                        updateUploadStatusMessage(`Using existing: "${exactMatch}"`, 'success');
+                        // Load linked content for exact match
+                        loadLinkedContentForMedia(exactMatch);
+                    } else {
+                        updateUploadStatusMessage(`Will create new: "${input.value}"`, 'warning');
+                        // Hide linked content for new entries
+                        hideLinkedContent();
+                    }
+                    
+                    dropdown.classList.add('show');
+                } else {
+                    // No matches found - this will be a new entry
+                    isNewUploadMediaCatalog = true;
+                    const newItem = document.createElement('button');
+                    newItem.className = 'dropdown-item text-success';
+                    newItem.type = 'button';
+                    newItem.innerHTML = `<small><i class="fas fa-plus me-2"></i>Create new: "${input.value}"</small>`;
+                    newItem.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Keep the current value in the input (it's already there)
+                        dropdown.classList.remove('show');
+                        isNewUploadMediaCatalog = true;
+                        updateUploadStatusMessage(`Will create new: "${input.value}"`, 'warning');
+                    });
+                    dropdown.appendChild(newItem);
+                    dropdown.classList.add('show');
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Hide dropdown on escape key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        function updateUploadMediaTypeFromExisting(mediaName) {
+            // Fetch media catalog details to auto-fill media type
+            fetch(`/api/media-catalog/search?name=${encodeURIComponent(mediaName)}`)
+                .then(response => response.json())
+                .then(results => {
+                    if (results.length > 0) {
+                        const media = results[0];
+                        const typeSelect = document.getElementById('uploadMediaCatalogType');
+                        if (typeSelect && media.type) {
+                            typeSelect.value = media.type.toLowerCase().replace('_', '-');
+                        }
+                        // Load linked content for this media
+                        loadLinkedContentForMedia(mediaName);
+                    }
+                })
+                .catch(error => console.error('Error fetching media details:', error));
+        }
+
+        // New function to load linked content when media catalog is selected
+        function loadLinkedContentForMedia(mediaName) {
+            if (!mediaName || mediaName.trim() === '') {
+                hideLinkedContent();
+                return;
+            }
+
+            // Show loading state
+            showLinkedContentLoading();
+
+            // Fetch linked content from Content Catalog
+            fetch(`/api/content-catalog/search?mediaCatalogName=${encodeURIComponent(mediaName)}`)
+                .then(response => response.json())
+                .then(contentList => {
+                    displayLinkedContent(contentList, mediaName);
+                })
+                .catch(error => {
+                    console.error('Error fetching linked content:', error);
+                    showLinkedContentError();
+                });
+        }
+
+        function showLinkedContentLoading() {
+            const section = document.getElementById('linkedContentSection');
+            const container = document.getElementById('linkedContentList');
+            
+            if (section && container) {
+                section.style.display = 'block';
+                container.innerHTML = `
+                    <div class="linked-content-loading">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Loading linked content...
+                    </div>
+                `;
+            }
+        }
+
+        function displayLinkedContent(contentList, mediaName) {
+            const section = document.getElementById('linkedContentSection');
+            const container = document.getElementById('linkedContentList');
+            
+            if (!section || !container) return;
+
+            section.style.display = 'block';
+
+            if (!contentList || contentList.length === 0) {
+                container.innerHTML = `
+                    <div class="linked-content-empty">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No content records found for "${mediaName}"
+                    </div>
+                `;
+                return;
+            }
+
+            let contentHtml = '';
+            contentList.forEach(content => {
+                const statusClass = getContentStatusClass(content.status);
+                const truncatedLink = content.link ? 
+                    (content.link.length > 50 ? content.link.substring(0, 50) + '...' : content.link) : 
+                    'No link provided';
+
+                contentHtml += `
+                    <div class="linked-content-item" onclick="selectLinkedContent(${content.id}, '${content.link || ''}')">
+                        <div class="linked-content-info">
+                            <div class="linked-content-id">ID: ${content.id}</div>
+                            <div class="linked-content-link" title="${content.link || 'No link provided'}">
+                                ${content.link ? 
+                                    `<i class="fas fa-link me-1"></i>${truncatedLink}` : 
+                                    `<i class="fas fa-file-text me-1"></i>Text content`
+                                }
+                            </div>
+                        </div>
+                        <div class="linked-content-status">
+                            <span class="badge ${statusClass}">${content.status || 'Unknown'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = contentHtml;
+        }
+
+        function selectLinkedContent(contentId, contentLink) {
+            // Update the Content ID field
+            const contentBlockInput = document.getElementById('contentBlock');
+            if (contentBlockInput) {
+                contentBlockInput.value = contentId;
+                updateContentBlockStatusMessage(`Selected: Content ID ${contentId}`, 'success');
+            }
+
+            // Auto-fill the content catalog link if it's empty
+            const linkTextarea = document.getElementById('contentCatalogLink');
+            if (linkTextarea && contentLink && !linkTextarea.value.trim()) {
+                linkTextarea.value = contentLink;
+            }
+
+            // Update visual selection
+            document.querySelectorAll('.linked-content-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.closest('.linked-content-item').classList.add('selected');
+
+            // Show feedback
+            showNotification(`Content ID ${contentId} selected and auto-filled`, 'success');
+        }
+
+        function hideLinkedContent() {
+            const section = document.getElementById('linkedContentSection');
+            if (section) {
+                section.style.display = 'none';
+            }
+        }
+
+        function showLinkedContentError() {
+            const container = document.getElementById('linkedContentList');
+            if (container) {
+                container.innerHTML = `
+                    <div class="linked-content-empty text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading linked content. Please try again.
+                    </div>
+                `;
+            }
+        }
+
+        function getContentStatusClass(status) {
+            switch(status?.toUpperCase()) {
+                case 'DOWNLOADED': return 'bg-success';
+                case 'NEW': return 'bg-info';
+                case 'IN_PROGRESS': return 'bg-warning';
+                case 'ERROR': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function updateUploadStatusMessage(message, type) {
+            const statusDiv = document.getElementById('uploadMediaCatalogNameStatus');
+            const messageSpan = document.getElementById('uploadStatusMessage');
+            
+            if (statusDiv && messageSpan) {
+                messageSpan.textContent = message;
+                statusDiv.className = `mt-1 text-${type}`;
+                statusDiv.style.display = 'block';
+            }
+        }
+
+        function clearUploadStatusMessage() {
+            const statusDiv = document.getElementById('uploadMediaCatalogNameStatus');
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        // Content Block Autocomplete
+        let contentBlocks = [];
+
+        function setupContentBlockAutocomplete() {
+            const input = document.getElementById('contentBlock');
+            const dropdown = document.getElementById('contentBlockDropdown');
+            
+            if (!input || !dropdown) return;
+
+            input.addEventListener('input', function() {
+                const value = this.value.trim();
+                dropdown.innerHTML = '';
+                
+                if (value.length < 2) {
+                    dropdown.classList.remove('show');
+                    clearContentBlockStatusMessage();
+                    return;
+                }
+
+                // Fetch content blocks with search
+                fetch(`/api/content-catalog/content-blocks?search=${encodeURIComponent(value)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        contentBlocks = data;
+                        displayContentBlockOptions(data, value, dropdown);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching content blocks:', error);
+                        updateContentBlockStatusMessage('Error loading content data', 'danger');
+                    });
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Hide dropdown on escape key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        function displayContentBlockOptions(data, searchValue, dropdown) {
+            if (data.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item text-muted">No content found</div>';
+                dropdown.classList.add('show');
+                return;
+            }
+
+            data.slice(0, 10).forEach(content => {
+                const item = document.createElement('button');
+                item.className = 'dropdown-item';
+                item.type = 'button';
+                
+                // Create display text with ID and name
+                const displayText = `${content.id} - ${content.mediaCatalogName}`;
+                const statusBadge = getContentStatusBadge(content.status);
+                
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>ID: ${content.id}</strong><br>
+                            <small class="text-muted">${content.mediaCatalogName}</small>
+                        </div>
+                        <span class="badge ${statusBadge}">${content.status}</span>
+                    </div>
+                `;
+                
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const input = document.getElementById('contentBlock');
+                    input.value = `${content.id}`;
+                    dropdown.classList.remove('show');
+                    updateContentBlockStatusMessage(`Selected: "${content.mediaCatalogName}" (ID: ${content.id})`, 'success');
+                    
+                    // Auto-fill content catalog link/description if available
+                    if (content.link) {
+                        const linkTextarea = document.getElementById('contentCatalogLink');
+                        if (linkTextarea && !linkTextarea.value.trim()) {
+                            linkTextarea.value = content.link;
+                        }
+                    }
+                });
+                
+                dropdown.appendChild(item);
+            });
+            
+            dropdown.classList.add('show');
+        }
+
+        function getContentStatusBadge(status) {
+            switch(status?.toUpperCase()) {
+                case 'COMPLETED': return 'bg-success';
+                case 'IN_PROGRESS': return 'bg-warning';
+                case 'PENDING': return 'bg-info';
+                case 'ON_HOLD': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function updateContentBlockStatusMessage(message, type) {
+            const statusDiv = document.getElementById('contentBlockStatus');
+            const messageSpan = document.getElementById('contentBlockMessage');
+            
+            if (statusDiv && messageSpan) {
+                messageSpan.textContent = message;
+                statusDiv.className = `mt-1 text-${type}`;
+                statusDiv.style.display = 'block';
+            }
+        }
+
+        function clearContentBlockStatusMessage() {
+            const statusDiv = document.getElementById('contentBlockStatus');
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        // Utility functions for Content Catalog Link/Description handling
+        function isValidUrl(string) {
+            if (!string) return false;
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                // Check if it starts with http/https but might not be perfectly formatted
+                return string.trim().toLowerCase().startsWith('http');
+            }
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return 'N/A';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        function setupTextareaAutoResize() {
+            const textarea = document.getElementById('contentCatalogLink');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 150) + 'px'; // Max height 150px
+                });
+                
+                // Initial resize
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+            }
+        }
+
+        function updateStatusMessage(message, type) {
+            const statusDiv = document.getElementById('mediaCatalogNameStatus');
+            const messageSpan = document.getElementById('statusMessage');
+            
+            if (statusDiv && messageSpan) {
+                messageSpan.textContent = message;
+                statusDiv.style.display = 'block';
+                
+                // Update color based on type
+                const smallElement = statusDiv.querySelector('small');
+                smallElement.className = type === 'success' ? 'text-success' : 
+                                       type === 'warning' ? 'text-warning' : 
+                                       'text-info';
+            }
+        }
+
+        function clearStatusMessage() {
+            const statusDiv = document.getElementById('mediaCatalogNameStatus');
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        // Global utility functions
+        function hideRecentRecordsSections() {
+            const sections = document.querySelectorAll('.recent-records-section');
+            sections.forEach(section => section.style.display = 'none');
+        }
+
+        function showRecentRecordsSections() {
+            const sections = document.querySelectorAll('.recent-records-section');
+            sections.forEach(section => section.style.display = 'block');
+        }
+
+        // Auto-activate tab based on server-side activeTab parameter
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeTab = /*[[${activeTab}]]*/ 'dashboard';
+            if (activeTab && activeTab !== 'dashboard') {
+                showTab(activeTab);
+            }
+            
+            // Ensure data is loaded for all tabs on initial page load
+            loadInitialTabData();
+        });
+
+        function loadInitialTabData() {
+            // Load data for all tabs that might be visible
+            setTimeout(() => {
+                if (typeof refreshRecentMedia === 'function') {
+                    refreshRecentMedia();
+                }
+                if (typeof refreshRecentContent === 'function') {
+                    refreshRecentContent();
+                }
+                if (typeof refreshRecentUpload === 'function') {
+                    refreshRecentUpload();
+                }
+            }, 100);
+        }
+
+        // Safe refresh functions that don't interfere with forms
+        function safeRefreshRecentContent() {
+            const form = document.getElementById('contentCatalogForm');
+            // Only refresh if form is not visible/active
+            if (!form || form.style.display === 'none' || !form.style.display) {
+                refreshRecentContent();
+            }
+        }
+
+        function safeRefreshRecentMedia() {
+            const form = document.getElementById('mediaCatalogForm');
+            // Only refresh if form is not visible/active
+            if (!form || form.style.display === 'none' || !form.style.display) {
+                refreshRecentMedia();
+            }
+        }
+
+        function safeRefreshRecentUpload() {
+            const form = document.getElementById('uploadCatalogForm');
+            // Only refresh if form is not visible/active
+            if (!form || form.style.display === 'none' || !form.style.display) {
+                refreshRecentUpload();
+            }
+        }
+
+        // Helper function for external tab switching (used by dashboard.js)
+        function showTab(tabId) {
+            const tabButton = document.querySelector(`[data-tab="${tabId}"]`);
+            if (tabButton) {
+                tabButton.click();
+            }
+        }
+
+        // Make refresh functions globally available for dashboard.js
+        window.refreshRecentMedia = refreshRecentMedia;
+        window.refreshRecentContent = refreshRecentContent;
+        window.refreshRecentUpload = refreshRecentUpload;
+        window.showTab = showTab;
     </script>
 </body>
 </html>

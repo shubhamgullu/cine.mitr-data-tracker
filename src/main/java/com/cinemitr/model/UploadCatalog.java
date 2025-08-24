@@ -9,6 +9,9 @@ public class UploadCatalog extends BaseEntity {
     @Column(name = "content_catalog_link", nullable = false)
     private String contentCatalogLink;
     
+    @Column(name = "content_block")
+    private String contentBlock;
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "media_catalog_type", nullable = false)
     private MediaType mediaCatalogType;
@@ -55,6 +58,14 @@ public class UploadCatalog extends BaseEntity {
     
     public void setContentCatalogLink(String contentCatalogLink) {
         this.contentCatalogLink = contentCatalogLink;
+    }
+    
+    public String getContentBlock() {
+        return contentBlock;
+    }
+    
+    public void setContentBlock(String contentBlock) {
+        this.contentBlock = contentBlock;
     }
     
     public MediaType getMediaCatalogType() {

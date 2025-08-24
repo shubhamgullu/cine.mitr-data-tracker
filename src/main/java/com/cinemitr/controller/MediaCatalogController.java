@@ -109,4 +109,15 @@ public class MediaCatalogController {
         Long count = mediaCatalogRepository.countByType(type);
         return ResponseEntity.ok(count);
     }
+    
+    @GetMapping("/names")
+    public ResponseEntity<List<String>> getAllMediaCatalogNames() {
+        List<String> names = mediaCatalogRepository.findAll()
+            .stream()
+            .map(MediaCatalog::getName)
+            .distinct()
+            .sorted()
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(names);
+    }
 }

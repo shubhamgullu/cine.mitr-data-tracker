@@ -1,19 +1,31 @@
-# Cine Mitr - Movie Instagram Dashboard
+# Cine Mitr - Comprehensive Media Catalog Management System
 
-A modern movie Instagram dashboard built with Spring Boot, Thymeleaf, and Bootstrap. Cine Mitr allows you to manage and track your movie-related Instagram links in one centralized dashboard.
+A modern, comprehensive media catalog management system built with Spring Boot, Thymeleaf, and Bootstrap. Cine Mitr provides a centralized dashboard to manage media catalogs, content tracking, upload operations, user analytics, and Instagram links with advanced search and CRUD functionality.
 
 ## 🎬 Features
 
-- **Instagram Link Management**: Add, edit, and delete movie Instagram links with ease
+### 📊 Multi-Catalog Management
+- **Media Catalog**: Manage movies, albums, web series, documentaries with platform details, download status, and metadata
+- **Content Catalog**: Track content links with status management, priority levels, and upload integration
+- **Upload Catalog**: Handle upload operations with content linking and status tracking
+- **States Catalog**: Comprehensive user analytics including views, subscribers, engagement metrics
+- **Instagram Link Management**: Traditional Instagram link management with category organization
+
+### 🎨 Enhanced User Experience
+- **Unified Interface**: Consistent Add/Update/Search functionality across all catalog tabs
+- **Hidden Forms**: Clean interface with forms appearing only when needed
+- **Recent Records Display**: Shows last 10 records for each catalog with edit/delete actions
+- **Direct Tab Access**: URL endpoints to navigate directly to specific catalog tabs
 - **Dark Theme Dashboard**: Modern dark blue theme with CSS custom properties
-- **Category Organization**: Organize links by movie genres (Action, Comedy, Drama, Horror, Romance, Thriller, Science Fiction, Fantasy, Documentary, Animation)
-- **Analytics Tracking**: Track views and clicks on Instagram links automatically  
 - **Responsive Design**: Mobile-first responsive interface using Bootstrap 5
-- **Search & Filter**: Find links by movie name or category
-- **Modern UI**: Beautiful dark theme design with smooth animations and transitions
-- **Edit Modal**: In-place editing with Bootstrap modal dialogs
-- **Click Tracking**: AJAX-powered click tracking for Instagram links
-- **Database Integration**: JPA/Hibernate with H2 database and comprehensive schema
+
+### ⚡ Advanced Functionality
+- **CRUD Operations**: Full Create, Read, Update, Delete operations for all catalogs
+- **Search & Filter**: Advanced search functionality with multiple filter criteria
+- **Real-time Updates**: AJAX-powered interactions for seamless user experience
+- **Analytics Tracking**: Comprehensive tracking for views, clicks, and engagement metrics
+- **Database Integration**: JPA/Hibernate with H2 database and complete audit trail
+- **Form Validation**: Client and server-side validation with proper error handling
 
 ## 🛠️ Technology Stack
 
@@ -103,17 +115,68 @@ Once the application starts successfully:
 
 ### Dashboard Features
 
-1. **Homepage**: View total Instagram links count and recent links
-2. **Media Catalog Tab**: Manage media information including movies, albums, web series, and documentaries with platform details, download status, and fun facts
-3. **Content Catalog Tab**: Track content links with media catalog integration, status tracking (new, downloaded, error, in-progress), priority management, location details, metadata, like states, and upload content status
-4. **Upload Catalog Tab**: Manage upload operations with content catalog links, media types, storage locations, upload status tracking, and caption management
-5. **States Catalog Tab**: Track comprehensive user analytics including views, subscribers, interactions, reach metrics, profile visits, contact clicks, follower growth, content counts, and engagement rates
-6. **Dashboard Tab**: View, edit, and delete existing Instagram links
-7. **Analytics**: Track view counts and click counts for each link
-8. **Categories**: Organize links by predefined movie genres
-9. **Click Tracking**: Automatic click tracking when users access Instagram links
-10. **Edit Modal**: Edit link details using Bootstrap modal dialogs
-11. **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+#### 📋 Catalog Management Tabs
+
+1. **Media Catalog Tab** (`/dashboard/media-catalog`)
+   - Manage movies, albums, web series, documentaries
+   - Platform tracking (Netflix, Amazon, Zee5, YouTube, etc.)
+   - Download status management (Downloaded, Not Downloaded, Partially Downloaded)
+   - Location and metadata storage
+   - Fun facts and descriptions
+   - Add/Update/Search functionality with recent records display
+
+2. **Content Catalog Tab** (`/dashboard/content-catalog-tab`)
+   - Content link management with media catalog integration
+   - Status tracking (New, Downloaded, Error, In Progress)
+   - Priority levels (High, Medium, Low)
+   - Metadata and location management
+   - Like states and comment tracking
+   - Upload content status integration
+   - Advanced search with multiple filters
+
+3. **Upload Catalog Tab** (`/dashboard/upload-catalog-tab`)
+   - Upload operation management
+   - Content catalog link integration
+   - Storage location tracking
+   - Upload status monitoring
+   - Caption and metadata management
+   - Bulk upload operations support
+
+4. **States Catalog Tab** (`/dashboard/states-catalog`)
+   - Comprehensive analytics dashboard
+   - Views, subscribers, and interactions tracking
+   - Reach and impressions metrics
+   - Profile visits and contact clicks
+   - Follower growth analysis
+   - Content performance metrics (reels, stories)
+   - Engagement rate calculations
+
+5. **Dashboard Tab** (`/dashboard`)
+   - Instagram link management
+   - Category organization by genres
+   - Click and view tracking
+   - Link validation and management
+
+#### 🎯 Enhanced User Interface Features
+
+6. **Consistent UX Pattern**: All tabs feature the same interface pattern:
+   - Action bar with Add New/Update/Search buttons
+   - Hidden forms that appear only when "Add New" is clicked
+   - Recent records table (last 10 entries) sorted by latest updates
+   - Inline edit/delete functionality
+   - Real-time search and filtering
+
+7. **Direct Tab Navigation**: 
+   - URL-based tab access for bookmarking and sharing
+   - Auto-activation of specific tabs via URL parameters
+   - Seamless navigation between catalog types
+
+8. **Advanced Search & Filtering**:
+   - Multi-criteria search across all catalog types
+   - Real-time filtering with AJAX updates
+   - Search by name, type, status, priority, and custom fields
+
+9. **Responsive Design**: Optimized for desktop, tablet, and mobile devices with consistent dark theme
 
 ### Dark Theme UI
 
@@ -171,21 +234,43 @@ cine-mitr/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/cinemitr/
-│   │   │   ├── config/          # Security configuration
-│   │   │   ├── controller/      # Web controllers
-│   │   │   ├── model/           # Entity classes
-│   │   │   ├── repository/      # Data repositories
-│   │   │   ├── service/         # Business logic
+│   │   │   ├── config/          # JPA and security configuration
+│   │   │   ├── controller/      # Web and API controllers
+│   │   │   │   ├── InstagramLinkController.java    # Main dashboard controller
+│   │   │   │   ├── MediaCatalogController.java     # Media catalog API
+│   │   │   │   ├── ContentCatalogController.java   # Content catalog API
+│   │   │   │   ├── UploadCatalogController.java    # Upload catalog API
+│   │   │   │   └── StatesCatalogController.java    # States catalog API
+│   │   │   ├── model/           # Entity classes with audit trail
+│   │   │   │   ├── BaseEntity.java                 # Base entity with audit fields
+│   │   │   │   ├── MediaCatalog.java               # Media catalog entity
+│   │   │   │   ├── ContentCatalog.java             # Content catalog entity
+│   │   │   │   ├── UploadCatalog.java              # Upload catalog entity
+│   │   │   │   ├── StatesCatalog.java              # States catalog entity
+│   │   │   │   └── MovieInstagramLink.java         # Instagram link entity
+│   │   │   ├── repository/      # JPA repositories with custom queries
+│   │   │   ├── service/         # Business logic services
 │   │   │   └── CineMitrApplication.java
 │   │   └── resources/
 │   │       ├── static/          # CSS, JS, Images
+│   │       │   ├── css/
+│   │       │   │   ├── dark-theme.css              # Dark theme styles
+│   │       │   │   └── style.css                   # Main styles
+│   │       │   └── js/
+│   │       │       └── dashboard.js                # Dashboard functionality
 │   │       ├── templates/       # Thymeleaf templates
+│   │       │   └── dashboard/
+│   │       │       └── index.html                  # Main dashboard template
 │   │       └── application.properties
 │   └── test/                    # Test classes
-├── target/                      # Build output
+├── database/                    # Database schema and migration files
+│   ├── schema.sql              # Complete database schema
+│   └── migration.sql           # Database migration scripts
+├── data/                       # H2 database files (created at runtime)
+├── target/                     # Build output
 ├── pom.xml                     # Maven configuration
 ├── .gitignore                  # Git ignore rules
-└── README.md                   # This file
+└── README.md                   # This documentation
 ```
 
 ## 🧪 Testing
@@ -217,10 +302,49 @@ mvn clean test jacoco:report
 - `GET /dashboard/links` - View all links with search/filter
 - `GET /dashboard/link/{id}` - View specific link details
 
+### Catalog Management Endpoints
+
+#### Media Catalog API
+- `GET /api/media-catalog` - List all media catalog entries with pagination and sorting
+- `GET /api/media-catalog/{id}` - Get specific media catalog entry
+- `POST /api/media-catalog` - Create new media catalog entry
+- `PUT /api/media-catalog/{id}` - Update existing media catalog entry
+- `DELETE /api/media-catalog/{id}` - Delete media catalog entry
+- `GET /api/media-catalog/search` - Search media catalog with filters
+
+#### Content Catalog API
+- `GET /api/content-catalog` - List all content catalog entries
+- `GET /api/content-catalog/{id}` - Get specific content catalog entry
+- `POST /dashboard/content-catalog` - Create new content catalog entry
+- `POST /dashboard/content-catalog/{id}/edit` - Update content catalog entry
+- `DELETE /api/content-catalog/{id}` - Delete content catalog entry
+- `GET /api/content-catalog/search` - Advanced search with multiple filters
+
+#### Upload Catalog API
+- `GET /api/upload-catalog` - List all upload catalog entries
+- `GET /api/upload-catalog/{id}` - Get specific upload catalog entry
+- `POST /dashboard/upload-catalog` - Create new upload catalog entry
+- `POST /dashboard/upload-catalog/{id}/edit` - Update upload catalog entry
+- `DELETE /api/upload-catalog/{id}` - Delete upload catalog entry
+
+#### States Catalog API
+- `GET /api/states-catalog` - List all analytics entries
+- `GET /api/states-catalog/{id}` - Get specific analytics entry
+- `POST /api/states-catalog` - Create new analytics entry
+- `PUT /api/states-catalog/{id}` - Update analytics entry
+- `DELETE /api/states-catalog/{id}` - Delete analytics entry
+
+#### Direct Tab Access Endpoints
+- `GET /dashboard/media-catalog` - Open directly to Media Catalog tab
+- `GET /dashboard/content-catalog-tab` - Open directly to Content Catalog tab  
+- `GET /dashboard/upload-catalog-tab` - Open directly to Upload Catalog tab
+- `GET /dashboard/states-catalog` - Open directly to States Catalog tab
+
 ### API Response Formats
-- **Success**: Returns redirect with flash message
-- **Error**: Returns error message with form validation
-- **AJAX**: Returns simple text response for click tracking
+- **Success**: Returns redirect with flash message or JSON response
+- **Error**: Returns error message with form validation details
+- **AJAX**: Returns JSON response for search and real-time updates
+- **Direct Access**: Auto-activates specific tabs based on URL parameters
 
 ## 🔒 Security Features
 

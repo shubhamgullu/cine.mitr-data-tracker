@@ -103,4 +103,15 @@ public class ContentCatalogController {
         Long count = contentCatalogRepository.countByStatus(status);
         return ResponseEntity.ok(count);
     }
+    
+    @GetMapping("/content-blocks")
+    public List<ContentCatalog> getContentBlocks(@RequestParam(required = false) String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            return contentCatalogRepository.findByMediaCatalogNameContainingIgnoreCaseOrderByCreatedOnDesc(search.trim());
+        }
+        return contentCatalogRepository.findAll(
+            org.springframework.data.domain.PageRequest.of(0, 50, 
+                org.springframework.data.domain.Sort.by("createdOn").descending())
+        ).getContent();
+    }
 }
