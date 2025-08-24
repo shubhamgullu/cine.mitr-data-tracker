@@ -467,6 +467,7 @@
                                     <thead>
                                         <tr>
                                             <th>Media Name</th>
+                                            <th>Link/Description</th>
                                             <th>Type</th>
                                             <th>Status</th>
                                             <th>Priority</th>
@@ -477,6 +478,20 @@
                                     <tbody id="recentContentRecords">
                                         <tr th:each="content : ${recentContentRecords}" th:if="${contentStat.index < 10}">
                                             <td th:text="${content.mediaCatalogName}">Sample Content</td>
+                                            <td>
+                                                <div class="content-link-cell">
+                                                    <a th:if="${content.link != null and !#strings.isEmpty(content.link)}" 
+                                                       th:href="${content.link}" 
+                                                       th:text="${#strings.abbreviate(content.link, 40)}"
+                                                       target="_blank"
+                                                       class="text-decoration-none content-link"
+                                                       th:title="${content.link}">
+                                                        Sample Link
+                                                    </a>
+                                                    <span th:if="${content.link == null or #strings.isEmpty(content.link)}" 
+                                                          class="text-muted">No link provided</span>
+                                                </div>
+                                            </td>
                                             <td><span class="badge bg-secondary" th:text="${content.mediaCatalogType}">MOVIE</span></td>
                                             <td>
                                                 <span class="badge" 
@@ -717,12 +732,15 @@
                                 <table class="records-table">
                                     <thead>
                                         <tr>
-                                            <th>Content Block</th>
+                                            <th>Content Block ID</th>
                                             <th>Content Link/Description</th>
                                             <th>Media Type</th>
                                             <th>Media Name</th>
+                                            <th>Content Location</th>
+                                            <th>Upload Location</th>
                                             <th>Upload Status</th>
-                                            <th>Updated</th>
+                                            <th>Caption</th>
+                                            <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -1263,10 +1281,14 @@
         }
 
         function refreshRecentContent() {
-            fetch('/api/content-catalog?limit=10&sort=createdOn:desc')
+            fetch('/api/content-catalog')
                 .then(response => response.json())
-                .then(data => updateContentRecordsTable(data))
-                .catch(error => console.error('Error:', error));
+                .then(data => {
+                    // Sort by createdOn descending and take first 10
+                    const sortedData = data.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn)).slice(0, 10);
+                    updateContentRecordsTable(sortedData);
+                })
+                .catch(error => console.error('Error loading content records:', error));
         }
 
         function editContentRecord(button) {
@@ -1394,9 +1416,13 @@
 
         function refreshRecentUpload() {
             showUploadRecordsLoading();
-            fetch('/api/upload-catalog?limit=10&sort=createdOn:desc')
+            fetch('/api/upload-catalog')
                 .then(response => response.json())
-                .then(data => updateUploadRecordsTable(data))
+                .then(data => {
+                    // Sort by createdOn descending and take first 10
+                    const sortedData = data.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn)).slice(0, 10);
+                    updateUploadRecordsTable(sortedData);
+                })
                 .catch(error => {
                     console.error('Error loading upload records:', error);
                     const tbody = document.getElementById('recentUploadRecords');
@@ -1441,7 +1467,7 @@
                 const emptyRow = document.createElement('tr');
                 emptyRow.className = 'empty-state';
                 emptyRow.innerHTML = `
-                    <td colspan="7">
+                    <td colspan="10">
                         <i class="fas fa-inbox me-2"></i>
                         No upload records found. Create your first upload entry above.
                     </td>
@@ -1452,15 +1478,30 @@
             
             data.slice(0, 10).forEach(upload => {
                 const row = document.createElement('tr');
+                
+                // Format content link cell with icon
+                let linkCell = '';
+                if (upload.contentCatalogLink && upload.contentCatalogLink.trim() !== '') {
+                    const truncatedLink = upload.contentCatalogLink.length > 50 ? upload.contentCatalogLink.substring(0, 50) + '...' : upload.contentCatalogLink;
+                    linkCell = `<div class="content-link-cell">
+                        <a href="${upload.contentCatalogLink}" target="_blank" class="content-link" title="${upload.contentCatalogLink}">
+                            <i class="fas fa-external-link-alt me-1"></i>${truncatedLink}
+                        </a>
+                    </div>`;
+                } else {
+                    linkCell = '<div class="content-link-cell"><span class="text-muted"><i class="fas fa-file-text me-1"></i>No link provided</span></div>';
+                }
+                
                 row.innerHTML = `
                     <td title="Content Block ID">${formatContentBlock(upload.contentBlock)}</td>
-                    <td title="${upload.contentCatalogLink || 'No description available'}">
-                        ${formatContentLink(upload.contentCatalogLink)}
-                    </td>
-                    <td><span class="badge bg-secondary" title="Media Type">${formatMediaType(upload.mediaCatalogType)}</span></td>
-                    <td title="${upload.mediaCatalogName}">${truncateText(upload.mediaCatalogName, 25)}</td>
+                    <td title="${upload.contentCatalogLink || 'No description available'}">${linkCell}</td>
+                    <td><span class="badge bg-info" title="Media Type">${formatMediaType(upload.mediaCatalogType)}</span></td>
+                    <td title="${upload.mediaCatalogName}" class="media-name-cell">${truncateText(upload.mediaCatalogName, 20)}</td>
+                    <td title="Content Location" class="location-cell">${formatLocation(upload.contentCatalogLocation)}</td>
+                    <td title="Upload Location" class="location-cell">${formatLocation(upload.uploadCatalogLocation)}</td>
                     <td><span class="badge ${getUploadStatusBadgeClass(upload.uploadStatus)}" title="Upload Status">${formatUploadStatus(upload.uploadStatus)}</span></td>
-                    <td title="Last Updated">${formatDate(upload.updatedOn || upload.createdOn)}</td>
+                    <td title="${upload.uploadCatalogCaption || 'No caption'}" class="caption-cell">${formatCaption(upload.uploadCatalogCaption)}</td>
+                    <td title="Created Date" class="date-cell">${formatDate(upload.createdOn)}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <button class="btn btn-sm btn-outline-primary" onclick="editUploadRecord(this)" 
@@ -1505,6 +1546,24 @@
             if (!status) return 'Unknown';
             return status.replace('_', ' ').toLowerCase()
                 .replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function formatLocation(location) {
+            if (!location || location.trim() === '') {
+                return '<span class="text-muted"><i class="fas fa-folder-open me-1"></i>Not specified</span>';
+            }
+            return `<span class="location-text" title="${location}">
+                <i class="fas fa-folder me-1"></i>${truncateText(location, 25)}
+            </span>`;
+        }
+
+        function formatCaption(caption) {
+            if (!caption || caption.trim() === '') {
+                return '<span class="text-muted">No caption</span>';
+            }
+            return `<span class="caption-text" title="${caption}">
+                <i class="fas fa-quote-left me-1"></i>${truncateText(caption, 30)}
+            </span>`;
         }
 
         function showUploadRecordsLoading() {
@@ -1562,8 +1621,21 @@
             
             data.slice(0, 10).forEach(content => {
                 const row = document.createElement('tr');
+                
+                // Format link cell
+                let linkCell = '';
+                if (content.link && content.link.trim() !== '') {
+                    const truncatedLink = content.link.length > 40 ? content.link.substring(0, 40) + '...' : content.link;
+                    linkCell = `<a href="${content.link}" target="_blank" class="content-link" title="${content.link}">
+                        <i class="fas fa-external-link-alt me-1"></i>${truncatedLink}
+                    </a>`;
+                } else {
+                    linkCell = '<span class="text-muted"><i class="fas fa-file-text me-1"></i>No link provided</span>';
+                }
+                
                 row.innerHTML = `
                     <td>${content.mediaCatalogName}</td>
+                    <td><div class="content-link-cell">${linkCell}</div></td>
                     <td><span class="badge bg-secondary">${content.mediaCatalogType}</span></td>
                     <td><span class="badge ${getContentStatusBadgeClass(content.status)}">${content.status}</span></td>
                     <td><span class="badge ${getPriorityBadgeClass(content.priority)}">${content.priority}</span></td>
@@ -2266,17 +2338,38 @@
 
         function loadInitialTabData() {
             // Load data for all tabs that might be visible
+            console.log('Loading initial tab data...');
             setTimeout(() => {
                 if (typeof refreshRecentMedia === 'function') {
+                    console.log('Calling refreshRecentMedia...');
                     refreshRecentMedia();
                 }
                 if (typeof refreshRecentContent === 'function') {
+                    console.log('Calling refreshRecentContent...');
                     refreshRecentContent();
                 }
                 if (typeof refreshRecentUpload === 'function') {
+                    console.log('Calling refreshRecentUpload...');
                     refreshRecentUpload();
                 }
             }, 100);
+            
+            // Also try to force refresh after a longer delay if needed
+            setTimeout(() => {
+                // Check if tables are empty and retry if needed
+                const uploadTableBody = document.getElementById('recentUploadRecords');
+                const contentTableBody = document.querySelector('#content-status .recent-records-table tbody');
+                
+                if (uploadTableBody && !uploadTableBody.hasChildNodes()) {
+                    console.log('Upload table is empty, retrying...');
+                    refreshRecentUpload();
+                }
+                
+                if (contentTableBody && !contentTableBody.hasChildNodes()) {
+                    console.log('Content table is empty, retrying...');
+                    refreshRecentContent();
+                }
+            }, 1000);
         }
 
         // Safe refresh functions that don't interfere with forms

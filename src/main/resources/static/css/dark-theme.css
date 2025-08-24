@@ -1523,11 +1523,13 @@ body.dark-theme .main-content {
 /* Force recent records sections to be larger */
 body.dark-theme .recent-records-section {
     min-height: 600px !important;
-    padding: 2.5rem !important;
+    padding: 2rem !important;
     background: rgba(79, 128, 255, 0.03) !important;
     border: 2px solid var(--border-light) !important;
     border-radius: 15px !important;
     width: 100% !important;
+    display: block !important;
+    visibility: visible !important;
 }
 
 /* =============================================================================
@@ -1559,19 +1561,21 @@ html body.dark-theme .tab-content.active {
     display: block !important;
 }
 
-/* Emergency table fix */
+/* Professional Table Container Styling */
 html body.dark-theme .table-container,
 html body.dark-theme .table-responsive,
 html body.dark-theme div.table-container {
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 600px !important;
-    overflow: visible !important;
-    background: rgba(79, 128, 255, 0.1) !important;
-    border: 5px solid #4f80ff !important;
-    border-radius: 20px !important;
-    padding: 3rem !important;
-    box-shadow: 0 0 30px rgba(79, 128, 255, 0.5) !important;
+    min-height: 400px !important;
+    overflow: auto !important;
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 8px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    display: block !important;
+    visibility: visible !important;
 }
 
 /* Emergency upload records fix */
@@ -1598,29 +1602,52 @@ html body.dark-theme .dashboard-table {
     background: transparent !important;
 }
 
-/* Make table headers super visible */
+/* Enhanced Professional Table Headers with Beautiful Gradients */
 html body.dark-theme table th,
-html body.dark-theme .records-table th {
-    padding: 3rem 2rem !important;
-    font-size: 1.3rem !important;
-    font-weight: 900 !important;
-    background: linear-gradient(90deg, #4f80ff, #10b981) !important;
-    color: white !important;
+html body.dark-theme .records-table th,
+html body.dark-theme .recent-records-table th,
+html body.dark-theme .dashboard-table th {
+    padding: 1.25rem 1rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #374151, #4b5563, #6b7280) !important;
+    color: #f8fafc !important;
     text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-    border: none !important;
+    letter-spacing: 0.8px !important;
+    border-bottom: 3px solid #3b82f6 !important;
     text-align: center !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    position: relative !important;
 }
 
-/* Make table cells huge */
+/* Add subtle shine effect to headers */
+html body.dark-theme table th::before {
+    content: '';
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 50% !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
+    border-radius: 8px 8px 0 0 !important;
+    pointer-events: none !important;
+}
+
+/* Professional Table Cells */
 html body.dark-theme table td,
-html body.dark-theme .records-table td {
-    padding: 2rem !important;
-    font-size: 1.2rem !important;
-    color: white !important;
-    border-bottom: 2px solid rgba(79, 128, 255, 0.3) !important;
-    text-align: center !important;
+html body.dark-theme .records-table td,
+html body.dark-theme .recent-records-table td,
+html body.dark-theme .dashboard-table td {
+    padding: 1rem !important;
+    font-size: 0.9rem !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    text-align: left !important;
     vertical-align: middle !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: transparent !important;
 }
 
 /* Force form containers to be massive */
@@ -1872,8 +1899,8 @@ html body.dark-theme .dashboard-header .container-fluid {
    ULTIMATE EDGE-TO-EDGE OVERRIDE - ELIMINATE ALL WASTED SPACE
    ============================================================================= */
 
-/* Override ANY remaining Bootstrap/default margins */
-html body.dark-theme * {
+/* Override ANY remaining Bootstrap/default margins - but preserve functionality */
+html body.dark-theme *:not(script):not(style) {
     box-sizing: border-box !important;
 }
 
@@ -1929,5 +1956,265 @@ html body.dark-theme {
     margin: 0 !important;
     padding: 0 !important;
     overflow-x: auto !important;
+}
+
+/* =============================================================================
+   FIX BROKEN TABLE FUNCTIONALITY - ENSURE VISIBILITY
+   ============================================================================= */
+
+/* Ensure all tab content is visible and functional */
+html body.dark-theme .tab-content {
+    display: none !important;
+}
+
+html body.dark-theme .tab-content.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Force table containers to be visible in all tabs */
+html body.dark-theme #movies .recent-records-section,
+html body.dark-theme #content-status .recent-records-section,
+html body.dark-theme #add-entry .records-container,
+html body.dark-theme #states-catalog .form-container,
+html body.dark-theme #dashboard .dashboard-section {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+}
+
+/* Ensure tables are visible */
+html body.dark-theme .table-responsive,
+html body.dark-theme .table-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure recent records tables are visible */
+html body.dark-theme .recent-records-table,
+html body.dark-theme .records-table,
+html body.dark-theme .dashboard-table {
+    display: table !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+}
+
+/* Fix specific tab containers */
+html body.dark-theme #content-status .recent-records-section .table-responsive {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+html body.dark-theme #add-entry .records-container .table-container {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+/* Ensure form containers don't interfere with table visibility */
+html body.dark-theme .entry-form {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Make sure the records containers aren't hidden */
+html body.dark-theme #uploadRecordsContainer,
+html body.dark-theme #mediaRecordsContainer,
+html body.dark-theme .recent-records-section {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Ensure table bodies are visible and functional */
+html body.dark-theme #recentUploadRecords,
+html body.dark-theme .recent-records-table tbody,
+html body.dark-theme tbody {
+    display: table-row-group !important;
+    visibility: visible !important;
+}
+
+/* Table Row Hover Effects */
+html body.dark-theme .records-table tbody tr:hover,
+html body.dark-theme .recent-records-table tbody tr:hover,
+html body.dark-theme .dashboard-table tbody tr:hover {
+    background: rgba(79, 128, 255, 0.08) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Alternating Row Colors for Better Readability */
+html body.dark-theme .records-table tbody tr:nth-child(even),
+html body.dark-theme .recent-records-table tbody tr:nth-child(even),
+html body.dark-theme .dashboard-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Status Badge Improvements */
+html body.dark-theme .badge {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    border: 1px solid transparent !important;
+}
+
+html body.dark-theme .badge.bg-success {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border-color: #10b981 !important;
+    color: white !important;
+}
+
+html body.dark-theme .badge.bg-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border-color: #f59e0b !important;
+    color: #000 !important;
+}
+
+html body.dark-theme .badge.bg-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    border-color: #ef4444 !important;
+    color: white !important;
+}
+
+html body.dark-theme .badge.bg-info {
+    background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
+    border-color: #06b6d4 !important;
+    color: white !important;
+}
+
+html body.dark-theme .badge.bg-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+    border-color: #6b7280 !important;
+    color: white !important;
+}
+
+/* =============================================================================
+   Content Link Cell Styling
+   ============================================================================= */
+
+.content-link-cell {
+    max-width: 250px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.content-link {
+    color: #3b82f6 !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 4px !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+.content-link:hover {
+    color: #1d4ed8 !important;
+    background: rgba(59, 130, 246, 0.2) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
+}
+
+.content-link i {
+    font-size: 0.8rem !important;
+}
+
+/* Text muted for no-link cells */
+html body.dark-theme .text-muted {
+    color: #9ca3af !important;
+    font-style: italic !important;
+}
+
+/* Enhanced Table Container with Better Border */
+html body.dark-theme .table-responsive {
+    border: 2px solid #374151 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+    background: linear-gradient(135deg, var(--bg-secondary), rgba(255, 255, 255, 0.02)) !important;
+}
+
+/* =============================================================================
+   Upload Table Specific Cell Styling
+   ============================================================================= */
+
+/* Media Name Cell */
+.media-name-cell {
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    max-width: 150px !important;
+}
+
+/* Location Cells */
+.location-cell {
+    max-width: 200px !important;
+    font-size: 0.85rem !important;
+}
+
+.location-text {
+    color: var(--text-secondary) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.location-text i {
+    color: var(--accent-blue) !important;
+}
+
+/* Caption Cell */
+.caption-cell {
+    max-width: 250px !important;
+    font-size: 0.85rem !important;
+}
+
+.caption-text {
+    color: var(--text-secondary) !important;
+    font-style: italic !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.caption-text i {
+    color: var(--accent-green) !important;
+    opacity: 0.7 !important;
+}
+
+/* Date Cell */
+.date-cell {
+    font-size: 0.85rem !important;
+    color: var(--text-muted) !important;
+    white-space: nowrap !important;
+}
+
+/* Code styling for Content Block IDs */
+html body.dark-theme code.text-primary {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: var(--accent-blue) !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 4px !important;
+    font-size: 0.85rem !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Upload table specific adjustments for wider content */
+html body.dark-theme .records-table {
+    min-width: 1200px !important; /* Increased for more columns */
+}
+
+/* Upload Records Container specific styling */
+html body.dark-theme #uploadRecordsContainer .table-container {
+    overflow-x: auto !important;
+    padding: 1rem !important;
 }
 
