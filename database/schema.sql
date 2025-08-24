@@ -7,6 +7,10 @@
 
 -- Drop existing tables (if recreating)
 DROP TABLE IF EXISTS movie_instagram_links;
+DROP TABLE IF EXISTS media_catalog;
+DROP TABLE IF EXISTS content_catalog;
+DROP TABLE IF EXISTS upload_catalog;
+DROP TABLE IF EXISTS states_catalog;
 
 -- =============================================================================
 -- Table: movie_instagram_links
@@ -34,8 +38,146 @@ CREATE TABLE movie_instagram_links (
 );
 
 -- =============================================================================
+-- Table: media_catalog
+-- Purpose: Stores media information including movies, albums, web series, and documentaries
+-- =============================================================================
+CREATE TABLE media_catalog (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    platform VARCHAR(100),
+    download_status VARCHAR(50) DEFAULT 'NOT_DOWNLOADED',
+    location VARCHAR(500),
+    description TEXT,
+    fun_facts TEXT,
+    created_by VARCHAR(100) DEFAULT 'system',
+    updated_by VARCHAR(100) DEFAULT 'system',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Indexes for better query performance
+    INDEX idx_media_name (name),
+    INDEX idx_media_type (type),
+    INDEX idx_platform (platform),
+    INDEX idx_download_status (download_status),
+    INDEX idx_media_created_on (created_on)
+);
+
+-- =============================================================================
+-- Table: content_catalog
+-- Purpose: Tracks content links with status, priority, and metadata
+-- =============================================================================
+CREATE TABLE content_catalog (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    link VARCHAR(500) NOT NULL,
+    media_catalog_type VARCHAR(50) NOT NULL,
+    media_catalog_name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    priority VARCHAR(20) DEFAULT 'MEDIUM',
+    location VARCHAR(500),
+    metadata TEXT,
+    like_states VARCHAR(20),
+    comment_states TEXT,
+    upload_content_status VARCHAR(50),
+    created_by VARCHAR(100) DEFAULT 'system',
+    updated_by VARCHAR(100) DEFAULT 'system',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Indexes for better query performance
+    INDEX idx_content_status (status),
+    INDEX idx_content_type (media_catalog_type),
+    INDEX idx_content_name (media_catalog_name),
+    INDEX idx_content_priority (priority),
+    INDEX idx_content_created_on (created_on)
+);
+
+-- =============================================================================
+-- Table: upload_catalog
+-- Purpose: Manages upload operations with status and location tracking
+-- =============================================================================
+CREATE TABLE upload_catalog (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    content_catalog_link VARCHAR(500) NOT NULL,
+    media_catalog_type VARCHAR(50) NOT NULL,
+    media_catalog_name VARCHAR(255) NOT NULL,
+    content_catalog_location VARCHAR(500),
+    upload_catalog_location VARCHAR(500),
+    upload_status VARCHAR(50) NOT NULL,
+    upload_catalog_caption TEXT,
+    created_by VARCHAR(100) DEFAULT 'system',
+    updated_by VARCHAR(100) DEFAULT 'system',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Indexes for better query performance
+    INDEX idx_upload_status (upload_status),
+    INDEX idx_upload_type (media_catalog_type),
+    INDEX idx_upload_name (media_catalog_name),
+    INDEX idx_upload_created_on (created_on)
+);
+
+-- =============================================================================
+-- Table: states_catalog
+-- Purpose: Tracks comprehensive user analytics and engagement metrics
+-- =============================================================================
+CREATE TABLE states_catalog (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    views INT DEFAULT 0,
+    subscribers INT DEFAULT 0,
+    interactions INT DEFAULT 0,
+    total_content INT DEFAULT 0,
+    reach INT DEFAULT 0,
+    impressions INT DEFAULT 0,
+    profile_visits INT DEFAULT 0,
+    website_clicks INT DEFAULT 0,
+    email_clicks INT DEFAULT 0,
+    call_clicks INT DEFAULT 0,
+    followers_gained INT DEFAULT 0,
+    followers_lost INT DEFAULT 0,
+    reels_count INT DEFAULT 0,
+    stories_count INT DEFAULT 0,
+    avg_engagement_rate DECIMAL(5,2) DEFAULT 0.00,
+    created_by VARCHAR(100) DEFAULT 'system',
+    updated_by VARCHAR(100) DEFAULT 'system',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Indexes for better query performance
+    INDEX idx_states_views (views DESC),
+    INDEX idx_states_subscribers (subscribers DESC),
+    INDEX idx_states_engagement (avg_engagement_rate DESC),
+    INDEX idx_states_created_on (created_on)
+);
+
+-- =============================================================================
 -- Sample Data for Testing and Development
 -- =============================================================================
+
+-- Sample Media Catalog Data
+INSERT INTO media_catalog (name, type, platform, download_status, location, description, fun_facts) VALUES
+('Avengers: Endgame', 'MOVIE', 'netflix', 'DOWNLOADED', '/movies/avengers_endgame.mp4', 'Epic superhero saga conclusion', 'Highest grossing movie of all time'),
+('Stranger Things S4', 'WEB_SERIES', 'netflix', 'NOT_DOWNLOADED', NULL, 'Supernatural drama series', 'Shot in multiple countries'),
+('Taylor Swift - Midnights', 'ALBUM', 'spotify', 'PARTIALLY_DOWNLOADED', '/music/midnights/', 'Latest album release', 'Written during sleepless nights'),
+('Our Planet', 'DOCUMENTARY', 'netflix', 'DOWNLOADED', '/docs/our_planet.mp4', 'Nature documentary series', 'Narrated by David Attenborough');
+
+-- Sample Content Catalog Data  
+INSERT INTO content_catalog (link, media_catalog_type, media_catalog_name, status, priority, location, metadata, like_states, comment_states, upload_content_status) VALUES
+('https://instagram.com/p/avengers-action', 'MOVIE', 'Avengers: Endgame', 'DOWNLOADED', 'HIGH', '/content/avengers_clip.mp4', 'Duration: 60s, Resolution: 1080p', 'LIKED', 'Amazing action sequence!', 'UPLOADED'),
+('https://youtube.com/watch?v=stranger-things', 'WEB_SERIES', 'Stranger Things S4', 'NEW', 'MEDIUM', NULL, 'Trailer content', NULL, NULL, NULL),
+('https://spotify.com/track/midnights', 'ALBUM', 'Taylor Swift - Midnights', 'IN_PROGRESS', 'HIGH', '/music/preview.mp3', 'Preview track: 30s', 'LIKED', 'Love this song!', 'PENDING_UPLOAD');
+
+-- Sample Upload Catalog Data
+INSERT INTO upload_catalog (content_catalog_link, media_catalog_type, media_catalog_name, content_catalog_location, upload_catalog_location, upload_status, upload_catalog_caption) VALUES
+('https://instagram.com/p/avengers-action', 'MOVIE', 'Avengers: Endgame', '/content/avengers_clip.mp4', '/uploads/instagram/avengers_post.mp4', 'COMPLETED', 'Epic battle scene from the Marvel saga! #Avengers #Marvel'),
+('https://youtube.com/watch?v=music-video', 'ALBUM', 'Taylor Swift - Midnights', '/music/midnights_mv.mp4', '/uploads/youtube/midnights_upload.mp4', 'IN_PROGRESS', 'Official music video for Midnights album #TaylorSwift'),
+('https://tiktok.com/@username/video', 'WEB_SERIES', 'Stranger Things S4', '/series/st4_clip.mp4', '/uploads/tiktok/st4_teaser.mp4', 'UPLOADED', 'Stranger Things Season 4 is here! 🔥 #StrangerThings');
+
+-- Sample States Catalog Data
+INSERT INTO states_catalog (views, subscribers, interactions, total_content, reach, impressions, profile_visits, website_clicks, email_clicks, call_clicks, followers_gained, followers_lost, reels_count, stories_count, avg_engagement_rate) VALUES
+(15000, 2500, 1200, 45, 12000, 18000, 850, 120, 25, 8, 150, 12, 25, 80, 7.85),
+(22000, 3200, 1800, 67, 19000, 28000, 1200, 180, 35, 15, 220, 18, 35, 120, 9.12),
+(8500, 1200, 650, 28, 7200, 11000, 450, 75, 12, 3, 85, 8, 15, 45, 6.23);
 
 -- Action Movies
 INSERT INTO movie_instagram_links (movie_name, category, instagram_link, description, status, view_count, click_count) VALUES
@@ -144,6 +286,60 @@ FROM movie_instagram_links
 WHERE status = 'ACTIVE' 
   AND created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 DAY)
 ORDER BY created_at DESC;
+
+-- View: Media Catalog Analytics
+CREATE VIEW media_catalog_analytics AS
+SELECT 
+    type,
+    COUNT(*) as total_items,
+    COUNT(CASE WHEN download_status = 'DOWNLOADED' THEN 1 END) as downloaded_count,
+    COUNT(CASE WHEN download_status = 'NOT_DOWNLOADED' THEN 1 END) as not_downloaded_count,
+    COUNT(CASE WHEN download_status = 'PARTIALLY_DOWNLOADED' THEN 1 END) as partial_count,
+    platform,
+    COUNT(*) as platform_count
+FROM media_catalog
+GROUP BY type, platform
+ORDER BY total_items DESC;
+
+-- View: Content Status Overview
+CREATE VIEW content_status_overview AS
+SELECT 
+    status,
+    COUNT(*) as total_count,
+    media_catalog_type,
+    priority,
+    COUNT(CASE WHEN upload_content_status = 'UPLOADED' THEN 1 END) as uploaded_count
+FROM content_catalog
+GROUP BY status, media_catalog_type, priority
+ORDER BY total_count DESC;
+
+-- View: Upload Progress Tracking
+CREATE VIEW upload_progress_tracking AS
+SELECT 
+    upload_status,
+    COUNT(*) as count,
+    media_catalog_type,
+    AVG(CASE WHEN upload_status = 'COMPLETED' THEN 100 
+             WHEN upload_status = 'IN_PROGRESS' THEN 50 
+             WHEN upload_status = 'UPLOADED' THEN 100 
+             ELSE 0 END) as completion_percentage
+FROM upload_catalog
+GROUP BY upload_status, media_catalog_type
+ORDER BY count DESC;
+
+-- View: Analytics Summary Dashboard
+CREATE VIEW analytics_dashboard AS
+SELECT 
+    SUM(views) as total_views,
+    SUM(subscribers) as total_subscribers,
+    SUM(interactions) as total_interactions,
+    SUM(total_content) as content_pieces,
+    AVG(avg_engagement_rate) as avg_engagement,
+    SUM(followers_gained) as followers_gained,
+    SUM(followers_lost) as followers_lost,
+    SUM(reels_count) as total_reels,
+    SUM(stories_count) as total_stories
+FROM states_catalog;
 
 -- =============================================================================
 -- Stored Procedures for Common Operations

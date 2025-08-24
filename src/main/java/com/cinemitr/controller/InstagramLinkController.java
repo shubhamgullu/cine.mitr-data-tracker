@@ -1,6 +1,8 @@
 package com.cinemitr.controller;
 
 import com.cinemitr.model.MovieInstagramLink;
+import com.cinemitr.model.MediaCatalog;
+import com.cinemitr.repository.MediaCatalogRepository;
 import com.cinemitr.service.MovieInstagramLinkService;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class InstagramLinkController {
 
     @Autowired
     private MovieInstagramLinkService instagramLinkService;
+    
+    @Autowired
+    private MediaCatalogRepository mediaCatalogRepository;
 
     @GetMapping
     public String dashboard(Model model) {
@@ -162,6 +167,38 @@ public class InstagramLinkController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", 
                 "Error deleting Instagram link: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/media-catalog")
+    public String addMediaCatalog(@RequestParam String name,
+                                @RequestParam String type,
+                                @RequestParam(required = false) String platform,
+                                @RequestParam(required = false) String downloadStatus,
+                                @RequestParam(required = false) String location,
+                                @RequestParam(required = false) String description,
+                                @RequestParam(required = false) String funFacts,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            MediaCatalog mediaCatalog = new MediaCatalog();
+            mediaCatalog.setName(name);
+            mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
+            mediaCatalog.setPlatform(platform);
+            
+            if (downloadStatus != null && !downloadStatus.isEmpty()) {
+                mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+            }
+            
+            mediaCatalog.setLocation(location);
+            mediaCatalog.setDescription(description);
+            mediaCatalog.setFunFacts(funFacts);
+            
+            mediaCatalogRepository.save(mediaCatalog);
+            redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error saving media catalog: " + e.getMessage());
         }
         
         return "redirect:/dashboard";

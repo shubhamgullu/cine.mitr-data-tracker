@@ -35,8 +35,17 @@
             <div class="container-fluid">
                 <!-- Tab Navigation -->
                 <div class="tab-navigation mb-4">
-                    <button class="tab-btn active" data-tab="add-entry">
-                        <i class="fas fa-plus me-2"></i>Add Entry
+                    <button class="tab-btn active" data-tab="movies">
+                        <i class="fas fa-database me-2"></i>Media Catalog
+                    </button>
+                    <button class="tab-btn" data-tab="content-status">
+                        <i class="fas fa-list-alt me-2"></i>Content Catalog
+                    </button>
+                    <button class="tab-btn" data-tab="add-entry">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Catalog
+                    </button>
+                    <button class="tab-btn" data-tab="states-catalog">
+                        <i class="fas fa-chart-line me-2"></i>States Catalog
                     </button>
                     <button class="tab-btn" data-tab="dashboard">
                         <i class="fas fa-chart-bar me-2"></i>Dashboard
@@ -53,56 +62,467 @@
                     <span th:text="${error}"></span>
                 </div>
 
-                <!-- Add Entry Tab -->
-                <div class="tab-content active" id="add-entry">
+                <!-- Media Catalog Tab -->
+                <div class="tab-content active" id="movies">
                     <div class="form-container">
-                        <form th:action="@{/dashboard/add-link}" method="post" th:object="${newLink}" class="entry-form">
+                        <h2 class="section-title">Media Catalog Management</h2>
+                        <form th:action="@{/dashboard/media-catalog}" method="post" class="entry-form">
                             <div class="form-group">
-                                <label for="instagramLink" class="form-label">Instagram Link</label>
-                                <input type="url" 
+                                <label for="mediaName" class="form-label">Name</label>
+                                <input type="text" 
                                        class="form-control" 
-                                       id="instagramLink" 
-                                       th:field="*{instagramLink}"
-                                       placeholder="https://instagram.com/reel/..." 
+                                       id="mediaName" 
+                                       name="name"
+                                       placeholder="Enter media name" 
                                        required>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="movieName" class="form-label">Movie Name</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="movieName" 
-                                           th:field="*{movieName}"
-                                           placeholder="Movie Title" 
-                                           required>
+                                    <label for="mediaType" class="form-label">Type</label>
+                                    <select class="form-control" 
+                                            id="mediaType" 
+                                            name="type"
+                                            required>
+                                        <option value="">Select Type</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="category" class="form-label">Category</label>
+                                    <label for="platform" class="form-label">Platform</label>
                                     <select class="form-control" 
-                                            id="category" 
-                                            th:field="*{category}" 
+                                            id="platform"
+                                            name="platform">
+                                        <option value="">Select Platform</option>
+                                        <option value="netflix">Netflix</option>
+                                        <option value="amazon">Amazon Prime</option>
+                                        <option value="zee5">ZEE5</option>
+                                        <option value="youtube">YouTube</option>
+                                        <option value="hotstar">Disney+ Hotstar</option>
+                                        <option value="sony-liv">Sony LIV</option>
+                                        <option value="voot">Voot</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="isDownloaded" class="form-label">Downloaded Status</label>
+                                    <select class="form-control" 
+                                            id="isDownloaded"
+                                            name="downloadStatus">
+                                        <option value="not-downloaded">Not Downloaded</option>
+                                        <option value="downloaded">Downloaded</option>
+                                        <option value="partially-downloaded">Partially Downloaded</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="location" 
+                                           name="location"
+                                           placeholder="Storage location or file path">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="mediaDescription" class="form-label">Description</label>
+                                <textarea class="form-control" 
+                                          id="mediaDescription" 
+                                          name="description"
+                                          placeholder="Brief description of the media..."
+                                          rows="3"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="funFacts" class="form-label">Fun Facts</label>
+                                <textarea class="form-control" 
+                                          id="funFacts" 
+                                          name="funFacts"
+                                          placeholder="Interesting facts or trivia about this media..."
+                                          rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-save">
+                                Save Media Entry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+
+                <!-- Content Catalog Tab -->
+                <div class="tab-content" id="content-status">
+                    <div class="form-container">
+                        <h2 class="section-title">Content Catalog Management</h2>
+                        <form class="entry-form">
+                            <div class="form-group">
+                                <label for="contentLink" class="form-label">Link</label>
+                                <input type="url" 
+                                       class="form-control" 
+                                       id="contentLink" 
+                                       placeholder="Enter content URL or link" 
+                                       required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mediaCatalogType" class="form-label">Media Catalog Type</label>
+                                    <select class="form-control" 
+                                            id="mediaCatalogType" 
                                             required>
-                                        <option value="">Action</option>
-                                        <option th:each="cat : ${predefinedCategories}" 
-                                                th:value="${cat}" 
-                                                th:text="${cat}">Category</option>
+                                        <option value="">Select Type</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="mediaCatalogName" class="form-label">Media Catalog Name</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="mediaCatalogName" 
+                                           placeholder="Enter media catalog name" 
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contentStatus" class="form-label">Status</label>
+                                    <select class="form-control" 
+                                            id="contentStatus" 
+                                            required>
+                                        <option value="">Select Status</option>
+                                        <option value="new">New</option>
+                                        <option value="downloaded">Downloaded</option>
+                                        <option value="error">Error</option>
+                                        <option value="in-progress">In Progress</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="contentPriority" class="form-label">Priority</label>
+                                    <select class="form-control" 
+                                            id="contentPriority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="description" class="form-label">Description (Optional)</label>
+                                <label for="contentLocation" class="form-label">Location</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="contentLocation" 
+                                       placeholder="Storage location or file path">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="metadata" class="form-label">Metadata</label>
                                 <textarea class="form-control" 
-                                          id="description" 
-                                          th:field="*{description}"
-                                          placeholder="Brief description of the content..."
+                                          id="metadata" 
+                                          placeholder="Additional metadata information..."
+                                          rows="3"></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="likeStates" class="form-label">Like States</label>
+                                    <select class="form-control" 
+                                            id="likeStates">
+                                        <option value="">Select Like State</option>
+                                        <option value="liked">Liked</option>
+                                        <option value="disliked">Disliked</option>
+                                        <option value="neutral">Neutral</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="uploadContentStatus" class="form-label">Upload Content Status</label>
+                                    <select class="form-control" 
+                                            id="uploadContentStatus">
+                                        <option value="" selected>Default (null)</option>
+                                        <option value="pending">Pending Upload</option>
+                                        <option value="uploading">Uploading</option>
+                                        <option value="uploaded">Uploaded</option>
+                                        <option value="upload-failed">Upload Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="commentStates" class="form-label">Comment States</label>
+                                <textarea class="form-control" 
+                                          id="commentStates" 
+                                          placeholder="Default (null) - Enter comments if needed..."
                                           rows="3"></textarea>
                             </div>
 
                             <button type="submit" class="btn-save">
-                                Save Entry
+                                Save Content Catalog Entry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Catalog Tab -->
+                <div class="tab-content" id="add-entry">
+                    <div class="form-container">
+                        <h2 class="section-title">Upload Catalog Management</h2>
+                        <form class="entry-form">
+                            <div class="form-group">
+                                <label for="contentCatalogLink" class="form-label">Content Catalog Link</label>
+                                <input type="url" 
+                                       class="form-control" 
+                                       id="contentCatalogLink" 
+                                       placeholder="Enter content catalog link" 
+                                       required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="uploadMediaCatalogType" class="form-label">Media Catalog Type</label>
+                                    <select class="form-control" 
+                                            id="uploadMediaCatalogType" 
+                                            required>
+                                        <option value="">Select Type</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="uploadMediaCatalogName" class="form-label">Media Catalog Name</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="uploadMediaCatalogName" 
+                                           placeholder="Enter media catalog name" 
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contentCatalogLocation" class="form-label">Content Catalog Location</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="contentCatalogLocation" 
+                                           placeholder="Content storage location">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="uploadCatalogLocation" class="form-label">Upload Catalog Location</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="uploadCatalogLocation" 
+                                           placeholder="Upload destination location">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="uploadStatus" class="form-label">Upload Status</label>
+                                <select class="form-control" 
+                                        id="uploadStatus" 
+                                        required>
+                                    <option value="">Select Status</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="uploaded">Uploaded</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="uploadCatalogCaption" class="form-label">Upload Catalog Caption</label>
+                                <textarea class="form-control" 
+                                          id="uploadCatalogCaption" 
+                                          placeholder="Enter caption for the upload catalog..."
+                                          rows="4"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-save">
+                                Save Upload Catalog Entry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- States Catalog Tab -->
+                <div class="tab-content" id="states-catalog">
+                    <div class="form-container">
+                        <h2 class="section-title">States Catalog - User Analytics</h2>
+                        <form class="entry-form">
+                            <!-- Basic Metrics -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="views" class="form-label">Views</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="views" 
+                                           placeholder="Total views count" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="subscribers" class="form-label">Subscribers</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="subscribers" 
+                                           placeholder="Total subscribers" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="interactions" class="form-label">Interactions</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="interactions" 
+                                           placeholder="Total interactions" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="totalContent" class="form-label">Total Content</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="totalContent" 
+                                           placeholder="Total content pieces" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <!-- Reach & Engagement Metrics -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reach" class="form-label">Reach</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="reach" 
+                                           placeholder="Unique accounts reached" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="impressions" class="form-label">Impressions</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="impressions" 
+                                           placeholder="Total views (including repeats)" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="profileVisits" class="form-label">Profile Visits</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="profileVisits" 
+                                           placeholder="Profile visits count" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="websiteClicks" class="form-label">Website Clicks</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="websiteClicks" 
+                                           placeholder="Website clicks count" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <!-- Contact Metrics -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="emailClicks" class="form-label">Email Clicks</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="emailClicks" 
+                                           placeholder="Email clicks count" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="callClicks" class="form-label">Call Clicks</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="callClicks" 
+                                           placeholder="Call clicks count" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <!-- Growth Metrics -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="followersGained" class="form-label">Followers Gained</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="followersGained" 
+                                           placeholder="New followers gained" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="followersLost" class="form-label">Followers Lost</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="followersLost" 
+                                           placeholder="Followers lost" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <!-- Content-Specific Metrics -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reelsCount" class="form-label">Reels Count</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="reelsCount" 
+                                           placeholder="Number of reels posted till date" 
+                                           min="0">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="storiesCount" class="form-label">Stories Count</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="storiesCount" 
+                                           placeholder="Number of stories till date" 
+                                           min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="avgEngagementRate" class="form-label">Average Engagement Rate (%)</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="avgEngagementRate" 
+                                       placeholder="Average engagement rate (e.g., 5.25)" 
+                                       step="0.01" 
+                                       min="0" 
+                                       max="100">
+                            </div>
+
+                            <button type="submit" class="btn-save">
+                                Save States Catalog Entry
                             </button>
                         </form>
                     </div>

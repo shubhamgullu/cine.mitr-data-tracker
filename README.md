@@ -95,7 +95,7 @@ Once the application starts successfully:
 - **H2 Database Console**: http://localhost:8080/h2-console
 
 #### H2 Database Connection Details:
-- **JDBC URL**: `jdbc:h2:mem:testdb`
+- **JDBC URL**: `jdbc:h2:file:./data/cinemitr`
 - **Username**: `sa`
 - **Password**: *(leave empty)*
 
@@ -104,13 +104,16 @@ Once the application starts successfully:
 ### Dashboard Features
 
 1. **Homepage**: View total Instagram links count and recent links
-2. **Add Entry Tab**: Add new movie Instagram links with form validation
-3. **Dashboard Tab**: View, edit, and delete existing Instagram links
-4. **Analytics**: Track view counts and click counts for each link
-5. **Categories**: Organize links by predefined movie genres
-6. **Click Tracking**: Automatic click tracking when users access Instagram links
-7. **Edit Modal**: Edit link details using Bootstrap modal dialogs
-8. **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+2. **Media Catalog Tab**: Manage media information including movies, albums, web series, and documentaries with platform details, download status, and fun facts
+3. **Content Catalog Tab**: Track content links with media catalog integration, status tracking (new, downloaded, error, in-progress), priority management, location details, metadata, like states, and upload content status
+4. **Upload Catalog Tab**: Manage upload operations with content catalog links, media types, storage locations, upload status tracking, and caption management
+5. **States Catalog Tab**: Track comprehensive user analytics including views, subscribers, interactions, reach metrics, profile visits, contact clicks, follower growth, content counts, and engagement rates
+6. **Dashboard Tab**: View, edit, and delete existing Instagram links
+7. **Analytics**: Track view counts and click counts for each link
+8. **Categories**: Organize links by predefined movie genres
+9. **Click Tracking**: Automatic click tracking when users access Instagram links
+10. **Edit Modal**: Edit link details using Bootstrap modal dialogs
+11. **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
 
 ### Dark Theme UI
 
@@ -126,7 +129,7 @@ Once the application starts successfully:
 
 #### Development (H2 - Default)
 ```properties
-spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.url=jdbc:h2:file:./data/cinemitr
 spring.datasource.username=sa
 spring.datasource.password=
 ```
@@ -206,7 +209,7 @@ mvn clean test jacoco:report
 
 ### Dashboard Endpoints
 - `GET /` - Homepage with Instagram links overview
-- `GET /dashboard` - Main dashboard with tabs (Add Entry/Dashboard)
+- `GET /dashboard` - Main dashboard with tabs (Media Catalog/Content Catalog/Upload Catalog/States Catalog/Dashboard)
 - `POST /dashboard/add-link` - Create new Instagram link
 - `POST /dashboard/link/{id}/edit` - Edit existing Instagram link
 - `POST /dashboard/link/{id}/delete` - Delete Instagram link
@@ -244,7 +247,8 @@ server.port=8081
 #### Database Connection Issues
 ```bash
 # Check H2 console at: http://localhost:8080/h2-console
-# Verify JDBC URL: jdbc:h2:mem:testdb
+# Verify JDBC URL: jdbc:h2:file:./data/cinemitr
+# Database files will be created in ./data/ directory
 ```
 
 #### Maven Build Issues
