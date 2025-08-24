@@ -4,13 +4,16 @@ A modern movie Instagram dashboard built with Spring Boot, Thymeleaf, and Bootst
 
 ## 🎬 Features
 
-- **Instagram Link Management**: Add, edit, and delete movie Instagram links
-- **Category Organization**: Organize links by movie genres (Action, Comedy, Drama, etc.)
-- **Analytics Tracking**: Track views and clicks on Instagram links  
-- **Responsive Design**: Mobile-friendly interface using Bootstrap 5
+- **Instagram Link Management**: Add, edit, and delete movie Instagram links with ease
+- **Dark Theme Dashboard**: Modern dark blue theme with CSS custom properties
+- **Category Organization**: Organize links by movie genres (Action, Comedy, Drama, Horror, Romance, Thriller, Science Fiction, Fantasy, Documentary, Animation)
+- **Analytics Tracking**: Track views and clicks on Instagram links automatically  
+- **Responsive Design**: Mobile-first responsive interface using Bootstrap 5
 - **Search & Filter**: Find links by movie name or category
-- **Modern UI**: Beautiful gradient design with glassmorphism effects
-- **Database Integration**: JPA/Hibernate with H2 database
+- **Modern UI**: Beautiful dark theme design with smooth animations and transitions
+- **Edit Modal**: In-place editing with Bootstrap modal dialogs
+- **Click Tracking**: AJAX-powered click tracking for Instagram links
+- **Database Integration**: JPA/Hibernate with H2 database and comprehensive schema
 
 ## 🛠️ Technology Stack
 
@@ -98,21 +101,24 @@ Once the application starts successfully:
 
 ## 🎯 Usage Guide
 
-### For Users
+### Dashboard Features
 
-1. **Homepage**: Browse featured movies and latest releases
-2. **Movies**: Search and filter movies by genre
-3. **Registration**: Create a new user account
-4. **Login**: Sign in to access booking features
-5. **Booking**: Select movies, showtimes, and book tickets
-6. **My Bookings**: View and manage your bookings
+1. **Homepage**: View total Instagram links count and recent links
+2. **Add Entry Tab**: Add new movie Instagram links with form validation
+3. **Dashboard Tab**: View, edit, and delete existing Instagram links
+4. **Analytics**: Track view counts and click counts for each link
+5. **Categories**: Organize links by predefined movie genres
+6. **Click Tracking**: Automatic click tracking when users access Instagram links
+7. **Edit Modal**: Edit link details using Bootstrap modal dialogs
+8. **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
 
-### For Administrators
+### Dark Theme UI
 
-1. **Movie Management**: Add, edit, and delete movies
-2. **Showtime Management**: Schedule movie showtimes
-3. **User Management**: View and manage user accounts
-4. **Booking Management**: Monitor all bookings
+1. **Modern Design**: Dark blue color scheme with CSS custom properties
+2. **Smooth Animations**: CSS transitions and fade-in effects
+3. **Professional Layout**: Clean table layout with hover effects
+4. **Mobile Responsive**: Adapts beautifully to all screen sizes
+5. **Accessibility**: Focus indicators and proper color contrast
 
 ## 🔧 Configuration
 
@@ -145,12 +151,14 @@ server.port=8080
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 
-# Security Configuration
-spring.security.user.name=admin
-spring.security.user.password=admin
-
 # Thymeleaf Configuration
 spring.thymeleaf.cache=false
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+
+# Static Resources Configuration
+spring.web.resources.static-locations=classpath:/static/
+spring.web.resources.cache.period=3600
 ```
 
 ## 📁 Project Structure
@@ -196,30 +204,28 @@ mvn clean test jacoco:report
 
 ## 📝 API Endpoints
 
-### Public Endpoints
-- `GET /` - Homepage
-- `GET /movies` - Movie listings
-- `GET /movies/{id}` - Movie details
-- `GET /login` - Login page
-- `GET /register` - Registration page
+### Dashboard Endpoints
+- `GET /` - Homepage with Instagram links overview
+- `GET /dashboard` - Main dashboard with tabs (Add Entry/Dashboard)
+- `POST /dashboard/add-link` - Create new Instagram link
+- `POST /dashboard/link/{id}/edit` - Edit existing Instagram link
+- `POST /dashboard/link/{id}/delete` - Delete Instagram link
+- `POST /dashboard/link/{id}/click` - Track click analytics (AJAX)
+- `GET /dashboard/links` - View all links with search/filter
+- `GET /dashboard/link/{id}` - View specific link details
 
-### Protected Endpoints (Require Authentication)
-- `GET /bookings` - User's bookings
-- `POST /bookings/create` - Create new booking
-- `POST /bookings/{id}/cancel` - Cancel booking
-
-### Admin Endpoints (Require ADMIN role)
-- `GET /admin/movies` - Movie management
-- `POST /admin/movies` - Create/Update movie
-- `DELETE /admin/movies/{id}` - Delete movie
+### API Response Formats
+- **Success**: Returns redirect with flash message
+- **Error**: Returns error message with form validation
+- **AJAX**: Returns simple text response for click tracking
 
 ## 🔒 Security Features
 
-- **Password Encryption**: BCrypt password encoding
-- **CSRF Protection**: Enabled for all forms
-- **Session Management**: Secure session handling
-- **Role-Based Access**: USER and ADMIN roles
-- **SQL Injection Prevention**: JPA/Hibernate protection
+- **Form Validation**: Server-side validation for all form inputs
+- **URL Validation**: Instagram URL format validation
+- **SQL Injection Prevention**: JPA/Hibernate parameter binding
+- **XSS Protection**: Thymeleaf automatic HTML escaping
+- **Input Sanitization**: Proper data validation and sanitization
 
 ## 🐛 Troubleshooting
 

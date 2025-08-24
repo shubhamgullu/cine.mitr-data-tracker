@@ -1,0 +1,91 @@
+/*
+ * Form Input Text Visibility Fixes for Dark Theme
+ * This file ensures all form inputs have proper text visibility
+ */
+
+/* Critical form text visibility fixes */
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+    color: #ffffff !important;
+    background-color: #2d3139 !important;
+    border: 1px solid #3a3f4b !important;
+}
+
+body.dark-theme input:focus,
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+    color: #ffffff !important;
+    background-color: #1a1d23 !important;
+    border-color: #4f80ff !important;
+    box-shadow: 0 0 0 0.2rem rgba(79, 128, 255, 0.25) !important;
+}
+
+/* Bootstrap form control overrides */
+body.dark-theme .form-control,
+body.dark-theme .form-select {
+    color: #ffffff !important;
+    background-color: #2d3139 !important;
+    border-color: #3a3f4b !important;
+}
+
+body.dark-theme .form-control:focus,
+body.dark-theme .form-select:focus {
+    color: #ffffff !important;
+    background-color: #1a1d23 !important;
+    border-color: #4f80ff !important;
+    box-shadow: 0 0 0 0.2rem rgba(79, 128, 255, 0.25) !important;
+}
+
+/* Modal form controls */
+.modal body.dark-theme input,
+.modal body.dark-theme select,
+.modal body.dark-theme textarea,
+.modal input,
+.modal select,
+.modal textarea {
+    color: #ffffff !important;
+    background-color: #2d3139 !important;
+    border: 1px solid #3a3f4b !important;
+}
+
+.modal body.dark-theme input:focus,
+.modal body.dark-theme select:focus,
+.modal body.dark-theme textarea:focus,
+.modal input:focus,
+.modal select:focus,
+.modal textarea:focus {
+    color: #ffffff !important;
+    background-color: #1a1d23 !important;
+    border-color: #4f80ff !important;
+}
+
+/* Placeholder text */
+body.dark-theme input::placeholder,
+body.dark-theme textarea::placeholder {
+    color: #6c757d !important;
+    opacity: 1 !important;
+}
+
+/* Autofill styles for WebKit browsers */
+body.dark-theme input:-webkit-autofill,
+body.dark-theme input:-webkit-autofill:hover,
+body.dark-theme input:-webkit-autofill:focus,
+body.dark-theme input:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #2d3139 inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Select dropdown options */
+body.dark-theme select option {
+    color: #ffffff !important;
+    background-color: #2d3139 !important;
+}
+
+/* Ensure text is visible during typing */
+body.dark-theme input:not(:placeholder-shown),
+body.dark-theme textarea:not(:placeholder-shown),
+body.dark-theme select:not([value=""]) {
+    color: #ffffff !important;
+}

@@ -44,6 +44,10 @@ public class MovieInstagramLinkService {
         return instagramLinkRepository.save(link);
     }
 
+    public MovieInstagramLink updateLink(MovieInstagramLink link) {
+        return instagramLinkRepository.save(link);
+    }
+
     public void deleteLink(Long id) {
         instagramLinkRepository.deleteById(id);
     }

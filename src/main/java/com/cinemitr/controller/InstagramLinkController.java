@@ -122,6 +122,37 @@ public class InstagramLinkController {
         }
     }
 
+    @PostMapping("/link/{id}/edit")
+    public String editLink(@PathVariable Long id,
+                          @RequestParam String movieName,
+                          @RequestParam String category,
+                          @RequestParam String instagramLink,
+                          @RequestParam(required = false) String description,
+                          RedirectAttributes redirectAttributes) {
+        try {
+            Optional<MovieInstagramLink> existingLink = instagramLinkService.getLinkById(id);
+            if (existingLink.isPresent()) {
+                MovieInstagramLink link = existingLink.get();
+                link.setMovieName(movieName);
+                link.setCategory(category);
+                link.setInstagramLink(instagramLink);
+                link.setDescription(description);
+                
+                instagramLinkService.updateLink(link);
+                redirectAttributes.addFlashAttribute("success", 
+                    "Instagram link updated successfully!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", 
+                    "Instagram link not found!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", 
+                "Error updating Instagram link: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+
     @PostMapping("/link/{id}/delete")
     public String deleteLink(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
