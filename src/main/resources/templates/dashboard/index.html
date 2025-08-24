@@ -65,8 +65,58 @@
                 <!-- Media Catalog Tab -->
                 <div class="tab-content active" id="movies">
                     <div class="form-container">
-                        <h2 class="section-title">Media Catalog Management</h2>
-                        <form th:action="@{/dashboard/media-catalog}" method="post" class="entry-form">
+                        <!-- Action Bar -->
+                        <div class="action-bar mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title mb-0">Media Catalog Management</h2>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-primary me-2" onclick="showAddMediaForm()">
+                                        <i class="fas fa-plus me-2"></i>Add New Media
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateMediaForm()">
+                                        <i class="fas fa-edit me-2"></i>Update Existing
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleMediaSearch()">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar (Initially Hidden) -->
+                        <div id="mediaSearchBar" class="search-bar mb-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="mediaSearchName" placeholder="Search by name...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-control" id="mediaSearchType">
+                                        <option value="">All Types</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-control" id="mediaSearchStatus">
+                                        <option value="">All Status</option>
+                                        <option value="downloaded">Downloaded</option>
+                                        <option value="not-downloaded">Not Downloaded</option>
+                                        <option value="partially-downloaded">Partially Downloaded</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="searchMedia()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add/Edit Form (Initially Hidden) -->
+                        <div id="mediaFormContainer" style="display: none;">
+                            <form th:action="@{/dashboard/media-catalog}" method="post" class="entry-form" id="mediaForm">
                             <div class="form-group">
                                 <label for="mediaName" class="form-label">Name</label>
                                 <input type="text" 
@@ -150,10 +200,61 @@
                                           rows="3"></textarea>
                             </div>
 
-                            <button type="submit" class="btn-save">
-                                Save Media Entry
-                            </button>
+                            <div class="form-actions mt-3">
+                                <button type="submit" class="btn-save me-2">
+                                    <i class="fas fa-save me-2"></i>Save Media Entry
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="cancelMediaForm()">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
                         </form>
+                        </div>
+
+                        <!-- Recent Records Section (Default View) -->
+                        <div id="mediaRecordsContainer" class="recent-records-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="section-subtitle">Media Catalog Records</h4>
+                                <a href="#" class="btn btn-sm btn-outline-primary" onclick="refreshRecentMedia()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm recent-records-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Platform</th>
+                                            <th>Status</th>
+                                            <th>Updated</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentMediaRecords">
+                                        <tr th:each="media : ${recentMediaRecords}" th:if="${mediaStat.index < 10}">
+                                            <td th:text="${media.name}">Sample Movie</td>
+                                            <td><span class="badge bg-secondary" th:text="${media.type}">MOVIE</span></td>
+                                            <td th:text="${media.platform}">Netflix</td>
+                                            <td>
+                                                <span class="badge" th:classappend="${media.downloadStatus == 'DOWNLOADED'} ? 'bg-success' : (${media.downloadStatus == 'NOT_DOWNLOADED'} ? 'bg-warning' : 'bg-info')"
+                                                      th:text="${media.downloadStatus}">DOWNLOADED</span>
+                                            </td>
+                                            <td th:text="${#temporals.format(media.updatedOn, 'dd-MM HH:mm')}">24-08 14:30</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editMediaRecord(this)" 
+                                                        th:data-id="${media.id}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMediaRecord(${media.id})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -161,7 +262,63 @@
                 <!-- Content Catalog Tab -->
                 <div class="tab-content" id="content-status">
                     <div class="form-container">
-                        <h2 class="section-title">Content Catalog Management</h2>
+                        <!-- Action Bar -->
+                        <div class="action-bar mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title mb-0">Content Catalog Management</h2>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-primary me-2" onclick="showAddContentForm()">
+                                        <i class="fas fa-plus me-2"></i>Add New Content
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateContentForm()">
+                                        <i class="fas fa-edit me-2"></i>Update Existing
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleContentSearch()">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar (Initially Hidden) -->
+                        <div id="contentSearchBar" class="search-bar mb-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" id="contentSearchName" placeholder="Search by name...">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="contentSearchType">
+                                        <option value="">All Types</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="contentSearchStatus">
+                                        <option value="">All Status</option>
+                                        <option value="new">New</option>
+                                        <option value="downloaded">Downloaded</option>
+                                        <option value="error">Error</option>
+                                        <option value="in-progress">In Progress</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="contentSearchPriority">
+                                        <option value="">All Priority</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-primary w-100" onclick="searchContent()">
+                                        <i class="fas fa-search me-2"></i>Search Content
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <form class="entry-form">
                             <div class="form-group">
                                 <label for="contentLink" class="form-label">Link</label>
@@ -274,14 +431,115 @@
                                 Save Content Catalog Entry
                             </button>
                         </form>
+
+                        <!-- Recent Records Section -->
+                        <div class="recent-records-section mt-5">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="section-subtitle">Recent Content Records</h4>
+                                <a href="#" class="btn btn-sm btn-outline-primary" onclick="refreshRecentContent()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm recent-records-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Media Name</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentContentRecords">
+                                        <tr th:each="content : ${recentContentRecords}" th:if="${contentStat.index < 10}">
+                                            <td th:text="${content.mediaCatalogName}">Sample Content</td>
+                                            <td><span class="badge bg-secondary" th:text="${content.mediaCatalogType}">MOVIE</span></td>
+                                            <td>
+                                                <span class="badge" th:classappend="${content.status == 'DOWNLOADED'} ? 'bg-success' : (${content.status == 'NEW'} ? 'bg-info' : (${content.status == 'ERROR'} ? 'bg-danger' : 'bg-warning'))"
+                                                      th:text="${content.status}">NEW</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge" th:classappend="${content.priority == 'HIGH'} ? 'bg-danger' : (${content.priority == 'MEDIUM'} ? 'bg-warning' : 'bg-secondary')"
+                                                      th:text="${content.priority}">MEDIUM</span>
+                                            </td>
+                                            <td th:text="${#temporals.format(content.createdOn, 'dd-MM HH:mm')}">24-08 14:30</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editContentRecord(this)" 
+                                                        th:data-id="${content.id}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteContentRecord(${content.id})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Upload Catalog Tab -->
                 <div class="tab-content" id="add-entry">
                     <div class="form-container">
-                        <h2 class="section-title">Upload Catalog Management</h2>
-                        <form class="entry-form">
+                        <!-- Action Bar -->
+                        <div class="action-bar mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title mb-0">Upload Catalog Management</h2>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-primary me-2" onclick="showAddUploadForm()">
+                                        <i class="fas fa-plus me-2"></i>Add New Upload
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateUploadForm()">
+                                        <i class="fas fa-edit me-2"></i>Update Existing
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleUploadSearch()">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar (Initially Hidden) -->
+                        <div id="uploadSearchBar" class="search-bar mb-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" id="uploadSearchName" placeholder="Search by name...">
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="uploadSearchType">
+                                        <option value="">All Types</option>
+                                        <option value="movie">Movie</option>
+                                        <option value="album">Album</option>
+                                        <option value="web-series">Web Series</option>
+                                        <option value="documentary">Documentary</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="uploadSearchStatus">
+                                        <option value="">All Status</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="uploaded">Uploaded</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" id="uploadSearchLink" placeholder="Search by link...">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="searchUpload()">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add/Edit Form (Initially Hidden) -->
+                        <div id="uploadFormContainer" style="display: none;">
+                        <form th:action="@{/dashboard/upload-catalog}" method="post" class="entry-form" id="uploadForm">
                             <div class="form-group">
                                 <label for="contentCatalogLink" class="form-label">Content Catalog Link</label>
                                 <input type="url" 
@@ -694,6 +952,302 @@
             document.getElementById('editForm').action = '/dashboard/link/' + id + '/edit';
             
             new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        // Media Catalog Functions
+        function showAddMediaForm() {
+            // Hide records container and show form
+            document.getElementById('mediaRecordsContainer').style.display = 'none';
+            document.getElementById('mediaFormContainer').style.display = 'block';
+            
+            // Clear form for new entry
+            document.getElementById('mediaForm').reset();
+            
+            // Update form title and button
+            document.querySelector('#mediaFormContainer h3')?.remove();
+            const title = document.createElement('h3');
+            title.className = 'section-subtitle mb-3';
+            title.innerHTML = '<i class="fas fa-plus me-2"></i>Add New Media';
+            document.getElementById('mediaFormContainer').insertBefore(title, document.getElementById('mediaForm'));
+            
+            // Scroll to form
+            document.getElementById('mediaFormContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showUpdateMediaForm() {
+            alert('Click the edit button (✏️) next to any record in the table below to update it.');
+        }
+
+        function cancelMediaForm() {
+            // Hide form and show records
+            document.getElementById('mediaFormContainer').style.display = 'none';
+            document.getElementById('mediaRecordsContainer').style.display = 'block';
+        }
+
+        function toggleMediaSearch() {
+            const searchBar = document.getElementById('mediaSearchBar');
+            if (searchBar.style.display === 'none') {
+                searchBar.style.display = 'block';
+            } else {
+                searchBar.style.display = 'none';
+            }
+        }
+
+        function searchMedia() {
+            const name = document.getElementById('mediaSearchName').value;
+            const type = document.getElementById('mediaSearchType').value;
+            const status = document.getElementById('mediaSearchStatus').value;
+            
+            // Call API or refresh page with search parameters
+            const params = new URLSearchParams();
+            if (name) params.append('name', name);
+            if (type) params.append('type', type);
+            if (status) params.append('status', status);
+            
+            fetch(`/api/media-catalog/search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the recent records table with search results
+                    updateMediaRecordsTable(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function refreshRecentMedia() {
+            fetch('/api/media-catalog?limit=10&sort=updatedOn:desc')
+                .then(response => response.json())
+                .then(data => updateMediaRecordsTable(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function editMediaRecord(button) {
+            const id = button.getAttribute('data-id');
+            
+            // Hide records container and show form
+            document.getElementById('mediaRecordsContainer').style.display = 'none';
+            document.getElementById('mediaFormContainer').style.display = 'block';
+            
+            // Update form title for editing
+            document.querySelector('#mediaFormContainer h3')?.remove();
+            const title = document.createElement('h3');
+            title.className = 'section-subtitle mb-3';
+            title.innerHTML = '<i class="fas fa-edit me-2"></i>Edit Media Record';
+            document.getElementById('mediaFormContainer').insertBefore(title, document.getElementById('mediaForm'));
+            
+            // Add hidden field for ID (for update)
+            let idField = document.getElementById('mediaId');
+            if (!idField) {
+                idField = document.createElement('input');
+                idField.type = 'hidden';
+                idField.id = 'mediaId';
+                idField.name = 'id';
+                document.getElementById('mediaForm').appendChild(idField);
+            }
+            idField.value = id;
+            
+            // Fetch media details and populate form
+            fetch(`/api/media-catalog/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate form fields with data
+                    document.getElementById('mediaName').value = data.name || '';
+                    document.getElementById('mediaType').value = data.type ? data.type.toLowerCase().replace('_', '-') : '';
+                    document.getElementById('platform').value = data.platform || '';
+                    document.getElementById('isDownloaded').value = data.downloadStatus ? data.downloadStatus.toLowerCase().replace('_', '-') : '';
+                    document.getElementById('location').value = data.location || '';
+                    document.getElementById('mediaDescription').value = data.description || '';
+                    document.getElementById('funFacts').value = data.funFacts || '';
+                    
+                    // Update form action for update
+                    document.getElementById('mediaForm').action = `/dashboard/media-catalog/${id}/edit`;
+                    
+                    // Scroll to form
+                    document.getElementById('mediaFormContainer').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error loading media record', 'error');
+                });
+        }
+
+        function deleteMediaRecord(id) {
+            if (confirm('Are you sure you want to delete this media record?')) {
+                fetch(`/api/media-catalog/${id}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            refreshRecentMedia();
+                            showNotification('Media record deleted successfully', 'success');
+                        } else {
+                            showNotification('Error deleting media record', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Error deleting media record', 'error');
+                    });
+            }
+        }
+
+        // Content Catalog Functions
+        function showAddContentForm() {
+            document.querySelector('#content-status form').reset();
+            document.querySelector('#content-status .entry-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showUpdateContentForm() {
+            alert('Select a content record from Recent Records below to update');
+        }
+
+        function toggleContentSearch() {
+            const searchBar = document.getElementById('contentSearchBar');
+            searchBar.style.display = searchBar.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function searchContent() {
+            const name = document.getElementById('contentSearchName').value;
+            const type = document.getElementById('contentSearchType').value;
+            const status = document.getElementById('contentSearchStatus').value;
+            const priority = document.getElementById('contentSearchPriority').value;
+            
+            const params = new URLSearchParams();
+            if (name) params.append('name', name);
+            if (type) params.append('type', type);
+            if (status) params.append('status', status);
+            if (priority) params.append('priority', priority);
+            
+            fetch(`/api/content-catalog/search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => updateContentRecordsTable(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function refreshRecentContent() {
+            fetch('/api/content-catalog?limit=10&sort=createdOn:desc')
+                .then(response => response.json())
+                .then(data => updateContentRecordsTable(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function editContentRecord(button) {
+            const id = button.getAttribute('data-id');
+            // Similar to editMediaRecord but for content
+            alert(`Edit content record ${id} - Implementation needed`);
+        }
+
+        function deleteContentRecord(id) {
+            if (confirm('Are you sure you want to delete this content record?')) {
+                fetch(`/api/content-catalog/${id}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            refreshRecentContent();
+                            showNotification('Content record deleted successfully', 'success');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Utility Functions
+        function updateMediaRecordsTable(data) {
+            const tbody = document.getElementById('recentMediaRecords');
+            tbody.innerHTML = '';
+            
+            data.slice(0, 10).forEach(media => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${media.name}</td>
+                    <td><span class="badge bg-secondary">${media.type}</span></td>
+                    <td>${media.platform || 'N/A'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(media.downloadStatus)}">${media.downloadStatus}</span></td>
+                    <td>${formatDate(media.updatedOn)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editMediaRecord(this)" data-id="${media.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMediaRecord(${media.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateContentRecordsTable(data) {
+            const tbody = document.getElementById('recentContentRecords');
+            tbody.innerHTML = '';
+            
+            data.slice(0, 10).forEach(content => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${content.mediaCatalogName}</td>
+                    <td><span class="badge bg-secondary">${content.mediaCatalogType}</span></td>
+                    <td><span class="badge ${getContentStatusBadgeClass(content.status)}">${content.status}</span></td>
+                    <td><span class="badge ${getPriorityBadgeClass(content.priority)}">${content.priority}</span></td>
+                    <td>${formatDate(content.createdOn)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editContentRecord(this)" data-id="${content.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteContentRecord(${content.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'DOWNLOADED': return 'bg-success';
+                case 'NOT_DOWNLOADED': return 'bg-warning';
+                case 'PARTIALLY_DOWNLOADED': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getContentStatusBadgeClass(status) {
+            switch(status) {
+                case 'DOWNLOADED': return 'bg-success';
+                case 'NEW': return 'bg-info';
+                case 'ERROR': return 'bg-danger';
+                case 'IN_PROGRESS': return 'bg-warning';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getPriorityBadgeClass(priority) {
+            switch(priority) {
+                case 'HIGH': return 'bg-danger';
+                case 'MEDIUM': return 'bg-warning';
+                case 'LOW': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create a toast notification
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 5000);
         }
     </script>
 </body>

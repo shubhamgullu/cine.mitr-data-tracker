@@ -2,8 +2,17 @@ package com.cinemitr.controller;
 
 import com.cinemitr.model.MovieInstagramLink;
 import com.cinemitr.model.MediaCatalog;
+import com.cinemitr.model.ContentCatalog;
+import com.cinemitr.model.UploadCatalog;
+import com.cinemitr.model.StatesCatalog;
 import com.cinemitr.repository.MediaCatalogRepository;
+import com.cinemitr.repository.ContentCatalogRepository;
+import com.cinemitr.repository.UploadCatalogRepository;
+import com.cinemitr.repository.StatesCatalogRepository;
 import com.cinemitr.service.MovieInstagramLinkService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,6 +34,15 @@ public class InstagramLinkController {
     
     @Autowired
     private MediaCatalogRepository mediaCatalogRepository;
+    
+    @Autowired
+    private ContentCatalogRepository contentCatalogRepository;
+    
+    @Autowired
+    private UploadCatalogRepository uploadCatalogRepository;
+    
+    @Autowired
+    private StatesCatalogRepository statesCatalogRepository;
 
     @GetMapping
     public String dashboard(Model model) {
@@ -41,6 +59,26 @@ public class InstagramLinkController {
         
         Long totalLinksCount = (long) instagramLinkService.getActiveLinks().size();
         model.addAttribute("totalLinksCount", totalLinksCount);
+        
+        // Add recent records for all catalogs (last 10 records each, sorted by latest updated first)
+        PageRequest mediaPageRequest = PageRequest.of(0, 10, Sort.by("updatedOn").descending());
+        PageRequest otherPageRequest = PageRequest.of(0, 10, Sort.by("createdOn").descending());
+        
+        // Recent Media Catalog records (sorted by latest updated first)
+        List<MediaCatalog> recentMediaRecords = mediaCatalogRepository.findAll(mediaPageRequest).getContent();
+        model.addAttribute("recentMediaRecords", recentMediaRecords);
+        
+        // Recent Content Catalog records
+        List<ContentCatalog> recentContentRecords = contentCatalogRepository.findAll(otherPageRequest).getContent();
+        model.addAttribute("recentContentRecords", recentContentRecords);
+        
+        // Recent Upload Catalog records
+        List<UploadCatalog> recentUploadRecords = uploadCatalogRepository.findAll(otherPageRequest).getContent();
+        model.addAttribute("recentUploadRecords", recentUploadRecords);
+        
+        // Recent States Catalog records
+        List<StatesCatalog> recentStatesRecords = statesCatalogRepository.findAllOrderByCreatedOnDesc();
+        model.addAttribute("recentStatesRecords", recentStatesRecords.stream().limit(10).collect(Collectors.toList()));
         
         return "dashboard/index";
     }
@@ -199,6 +237,45 @@ public class InstagramLinkController {
             redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving media catalog: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/media-catalog/{id}/edit")
+    public String updateMediaCatalog(@PathVariable Long id,
+                                   @RequestParam String name,
+                                   @RequestParam String type,
+                                   @RequestParam(required = false) String platform,
+                                   @RequestParam(required = false) String downloadStatus,
+                                   @RequestParam(required = false) String location,
+                                   @RequestParam(required = false) String description,
+                                   @RequestParam(required = false) String funFacts,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            Optional<MediaCatalog> optionalMedia = mediaCatalogRepository.findById(id);
+            if (optionalMedia.isPresent()) {
+                MediaCatalog mediaCatalog = optionalMedia.get();
+                mediaCatalog.setName(name);
+                mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
+                mediaCatalog.setPlatform(platform);
+                
+                if (downloadStatus != null && !downloadStatus.isEmpty()) {
+                    mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+                }
+                
+                mediaCatalog.setLocation(location);
+                mediaCatalog.setDescription(description);
+                mediaCatalog.setFunFacts(funFacts);
+                mediaCatalog.setUpdatedBy("system");
+                
+                mediaCatalogRepository.save(mediaCatalog);
+                redirectAttributes.addFlashAttribute("success", "Media catalog updated successfully!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Media catalog not found!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating media catalog: " + e.getMessage());
         }
         
         return "redirect:/dashboard";

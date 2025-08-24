@@ -3,6 +3,8 @@ package com.cinemitr.controller;
 import com.cinemitr.model.MediaCatalog;
 import com.cinemitr.repository.MediaCatalogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,19 @@ public class MediaCatalogController {
     private MediaCatalogRepository mediaCatalogRepository;
     
     @GetMapping
-    public List<MediaCatalog> getAllMediaCatalogs() {
+    public List<MediaCatalog> getAllMediaCatalogs(@RequestParam(required = false) Integer limit,
+                                                 @RequestParam(required = false) String sort) {
+        if (limit != null && sort != null) {
+            // Parse sort parameter (e.g., "updatedOn:desc")
+            String[] sortParts = sort.split(":");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "asc";
+            
+            Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+            PageRequest pageRequest = PageRequest.of(0, limit, Sort.by(direction, sortField));
+            
+            return mediaCatalogRepository.findAll(pageRequest).getContent();
+        }
         return mediaCatalogRepository.findAll();
     }
     
