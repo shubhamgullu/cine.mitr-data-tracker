@@ -1,0 +1,26 @@
+[
+  {
+    "link": "https://example.com/movie1",
+    "mediaCatalogType": "MOVIE",
+    "mediaCatalogName": "The Avengers",
+    "status": "NEW",
+    "priority": "HIGH",
+    "location": "Server1/Movies/",
+    "metadata": "Action superhero movie with ensemble cast",
+    "likeStates": "LIKED",
+    "commentStates": "Great movie with excellent action sequences!",
+    "uploadContentStatus": "PENDING_UPLOAD"
+  },
+  {
+    "link": "https://example.com/album1",
+    "mediaCatalogType": "ALBUM",
+    "mediaCatalogName": "Greatest Hits",
+    "status": "DOWNLOADED",
+    "priority": "MEDIUM",
+    "location": "Server2/Music/",
+    "metadata": "Pop music collection from various artists",
+    "likeStates": "NEUTRAL",
+    "commentStates": "Good collection of popular songs",
+    "uploadContentStatus": "UPLOADED"
+  }
+]

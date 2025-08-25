@@ -1,0 +1,5 @@
+contentCatalogLink,contentBlock,mediaCatalogType,mediaCatalogName,contentCatalogLocation,uploadCatalogLocation,uploadStatus,uploadCatalogCaption
+"https://example.com/movie1","1","movie","The Avengers","Server1/Movies/","Upload/Movies/","new","Marvel superhero movie - high priority upload"
+"https://example.com/album1","2","album","Greatest Hits","Server2/Music/","Upload/Music/","in_progress","Popular music album - currently uploading"
+"https://example.com/series1","3","web-series","Breaking Bad","Server1/Series/","Upload/Series/","completed","Crime drama - upload completed successfully"
+"https://example.com/doc1","4","documentary","Planet Earth","Server3/Docs/","Upload/Docs/","uploaded","Nature documentary - fully uploaded and available"

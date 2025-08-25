@@ -1,0 +1,22 @@
+[
+  {
+    "contentCatalogLink": "https://example.com/movie1",
+    "contentBlock": "1",
+    "mediaCatalogType": "MOVIE",
+    "mediaCatalogName": "The Avengers",
+    "contentCatalogLocation": "Server1/Movies/",
+    "uploadCatalogLocation": "Upload/Movies/",
+    "uploadStatus": "NEW",
+    "uploadCatalogCaption": "Marvel superhero movie - high priority upload"
+  },
+  {
+    "contentCatalogLink": "https://example.com/album1",
+    "contentBlock": "2",
+    "mediaCatalogType": "ALBUM",
+    "mediaCatalogName": "Greatest Hits",
+    "contentCatalogLocation": "Server2/Music/",
+    "uploadCatalogLocation": "Upload/Music/",
+    "uploadStatus": "IN_PROGRESS",
+    "uploadCatalogCaption": "Popular music album - currently uploading"
+  }
+]

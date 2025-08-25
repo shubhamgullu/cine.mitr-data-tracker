@@ -1,0 +1,5 @@
+link,mediaCatalogType,mediaCatalogName,status,priority,location,metadata,likeStates,commentStates,uploadContentStatus
+"https://example.com/movie1","movie","The Avengers","new","high","Server1/Movies/","Action superhero movie","liked","Great movie!","pending_upload"
+"https://example.com/album1","album","Greatest Hits","downloaded","medium","Server2/Music/","Pop music collection","neutral","Good collection","uploaded"
+"https://example.com/series1","web-series","Breaking Bad","in_progress","high","Server1/Series/","Crime drama series","liked","Excellent series","uploading"
+"https://example.com/doc1","documentary","Planet Earth","new","low","Server3/Docs/","Nature documentary","neutral","Educational content","pending_upload"

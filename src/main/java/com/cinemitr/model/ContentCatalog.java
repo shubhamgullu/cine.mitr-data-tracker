@@ -41,6 +41,9 @@ public class ContentCatalog extends BaseEntity {
     @Column(name = "upload_content_status")
     private UploadContentStatus uploadContentStatus;
     
+    @Column(name = "linked_upload_catalog_id")
+    private Long linkedUploadCatalogId;
+    
     // Enums
     public enum MediaType {
         MOVIE, ALBUM, WEB_SERIES, DOCUMENTARY
@@ -151,5 +154,13 @@ public class ContentCatalog extends BaseEntity {
     
     public void setUploadContentStatus(UploadContentStatus uploadContentStatus) {
         this.uploadContentStatus = uploadContentStatus;
+    }
+    
+    public Long getLinkedUploadCatalogId() {
+        return linkedUploadCatalogId;
+    }
+    
+    public void setLinkedUploadCatalogId(Long linkedUploadCatalogId) {
+        this.linkedUploadCatalogId = linkedUploadCatalogId;
     }
 }

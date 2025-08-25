@@ -1,0 +1,38 @@
+[
+  {
+    "name": "The Avengers",
+    "type": "MOVIE",
+    "downloadStatus": "DOWNLOADED",
+    "description": "Marvel superhero movie",
+    "platform": "netflix",
+    "location": "D:\\Movies\\Avengers",
+    "funFacts": "First movie to bring together multiple Marvel heroes"
+  },
+  {
+    "name": "Greatest Hits",
+    "type": "ALBUM",
+    "downloadStatus": "NOT_DOWNLOADED",
+    "description": "Popular music collection",
+    "platform": "spotify",
+    "location": "",
+    "funFacts": "Features songs from the 1990s era"
+  },
+  {
+    "name": "Breaking Bad",
+    "type": "WEB_SERIES",
+    "downloadStatus": "PARTIALLY_DOWNLOADED",
+    "description": "Crime drama series",
+    "platform": "netflix",
+    "location": "D:\\Series\\Breaking Bad",
+    "funFacts": "Won 16 Emmy Awards during its run"
+  },
+  {
+    "name": "Planet Earth",
+    "type": "DOCUMENTARY",
+    "downloadStatus": "DOWNLOADED",
+    "description": "Nature documentary series",
+    "platform": "bbc",
+    "location": "D:\\Documentaries\\Planet Earth",
+    "funFacts": "Narrated by David Attenborough"
+  }
+]

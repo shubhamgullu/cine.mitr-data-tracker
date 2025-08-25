@@ -32,13 +32,16 @@ public class UploadCatalog extends BaseEntity {
     @Column(name = "upload_catalog_caption", columnDefinition = "TEXT")
     private String uploadCatalogCaption;
     
+    @Column(name = "linked_content_catalog_id")
+    private Long linkedContentCatalogId;
+    
     // Enums
     public enum MediaType {
         MOVIE, ALBUM, WEB_SERIES, DOCUMENTARY
     }
     
     public enum UploadStatus {
-        COMPLETED, IN_PROGRESS, UPLOADED
+        NEW, COMPLETED, IN_PROGRESS, UPLOADED
     }
     
     // Constructors
@@ -114,5 +117,13 @@ public class UploadCatalog extends BaseEntity {
     
     public void setUploadCatalogCaption(String uploadCatalogCaption) {
         this.uploadCatalogCaption = uploadCatalogCaption;
+    }
+    
+    public Long getLinkedContentCatalogId() {
+        return linkedContentCatalogId;
+    }
+    
+    public void setLinkedContentCatalogId(Long linkedContentCatalogId) {
+        this.linkedContentCatalogId = linkedContentCatalogId;
     }
 }

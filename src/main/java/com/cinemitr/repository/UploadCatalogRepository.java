@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UploadCatalogRepository extends JpaRepository<UploadCatalog, Long> {
@@ -22,4 +23,6 @@ public interface UploadCatalogRepository extends JpaRepository<UploadCatalog, Lo
     
     @Query("SELECT COUNT(u) FROM UploadCatalog u WHERE u.uploadStatus = :status")
     Long countByUploadStatus(@Param("status") UploadCatalog.UploadStatus status);
+    
+    Optional<UploadCatalog> findByLinkedContentCatalogId(Long linkedContentCatalogId);
 }

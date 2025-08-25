@@ -22,9 +22,19 @@
                         <i class="fas fa-bars me-3"></i>
                         <h1 class="mb-0">Movie & Instagram Dashboard</h1>
                     </div>
-                    <div class="header-stats">
-                        <span class="total-count" th:text="${totalLinksCount ?: 0}">0</span>
-                        <small>Total Links</small>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bulk-actions" style="display: none;" id="bulkActionsContainer">
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="showBulkDeleteConfirmation()" id="bulkDeleteBtn" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Delete Selected (<span id="selectedCount">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllSelections()">
+                                <i class="fas fa-times me-2"></i>Clear Selection
+                            </button>
+                        </div>
+                        <div class="header-stats">
+                            <span class="total-count" th:text="${totalLinksCount ?: 0}">0</span>
+                            <small>Total Links</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,8 +86,14 @@
                                     <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateMediaForm()">
                                         <i class="fas fa-edit me-2"></i>Update Existing
                                     </button>
+                                    <button type="button" class="btn btn-success me-2" onclick="showBulkUploadModal('media')">
+                                        <i class="fas fa-file-upload me-2"></i>Bulk Upload
+                                    </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="toggleMediaSearch()">
                                         <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="refreshMediaTable()">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh
                                     </button>
                                 </div>
                             </div>
@@ -223,6 +239,9 @@
                                 <table class="table table-sm recent-records-table">
                                     <thead>
                                         <tr>
+                                            <th style="width: 40px;">
+                                                <input type="checkbox" id="selectAllMedia" class="form-check-input" onchange="toggleAllSelections('media')">
+                                            </th>
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Platform</th>
@@ -233,6 +252,9 @@
                                     </thead>
                                     <tbody id="recentMediaRecords">
                                         <tr th:each="media : ${recentMediaRecords}" th:if="${mediaStat.index < 10}">
+                                            <td>
+                                                <input type="checkbox" class="form-check-input media-checkbox" th:data-id="${media.id}" onchange="updateBulkActions()">
+                                            </td>
                                             <td th:text="${media.name}">Sample Movie</td>
                                             <td><span class="badge bg-secondary" th:text="${media.type}">MOVIE</span></td>
                                             <td th:text="${media.platform}">Netflix</td>
@@ -272,6 +294,9 @@
                                     </button>
                                     <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateContentForm()">
                                         <i class="fas fa-edit me-2"></i>Update Existing
+                                    </button>
+                                    <button type="button" class="btn btn-success me-2" onclick="showBulkUploadModal('content')">
+                                        <i class="fas fa-file-upload me-2"></i>Bulk Upload
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="toggleContentSearch()">
                                         <i class="fas fa-search me-2"></i>Search
@@ -466,6 +491,9 @@
                                 <table class="table table-sm recent-records-table">
                                     <thead>
                                         <tr>
+                                            <th style="width: 40px;">
+                                                <input type="checkbox" id="selectAllContent" class="form-check-input" onchange="toggleAllSelections('content')">
+                                            </th>
                                             <th>Media Name</th>
                                             <th>Link/Description</th>
                                             <th>Type</th>
@@ -477,6 +505,9 @@
                                     </thead>
                                     <tbody id="recentContentRecords">
                                         <tr th:each="content : ${recentContentRecords}" th:if="${contentStat.index < 10}">
+                                            <td>
+                                                <input type="checkbox" class="form-check-input content-checkbox" th:data-id="${content.id}" onchange="updateBulkActions()">
+                                            </td>
                                             <td th:text="${content.mediaCatalogName}">Sample Content</td>
                                             <td>
                                                 <div class="content-link-cell">
@@ -535,8 +566,14 @@
                                     <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateUploadForm()">
                                         <i class="fas fa-edit me-2"></i>Update Existing
                                     </button>
+                                    <button type="button" class="btn btn-success me-2" onclick="showBulkUploadModal('upload')">
+                                        <i class="fas fa-file-upload me-2"></i>Bulk Upload
+                                    </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="toggleUploadSearch()">
                                         <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="refreshUploadTable()">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh
                                     </button>
                                 </div>
                             </div>
@@ -704,8 +741,9 @@
                                         name="uploadStatus"
                                         required>
                                     <option value="">Select Status</option>
-                                    <option value="completed">Completed</option>
+                                    <option value="new">New</option>
                                     <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
                                     <option value="uploaded">Uploaded</option>
                                 </select>
                             </div>
@@ -732,6 +770,9 @@
                                 <table class="records-table">
                                     <thead>
                                         <tr>
+                                            <th style="width: 40px;">
+                                                <input type="checkbox" id="selectAllUpload" class="form-check-input" onchange="toggleAllSelections('upload')">
+                                            </th>
                                             <th>Content Block ID</th>
                                             <th>Content Link/Description</th>
                                             <th>Media Type</th>
@@ -1030,6 +1071,262 @@
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" form="editForm" class="btn-save">Update Entry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Upload Modal -->
+    <div class="modal fade" id="editUploadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Upload Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUploadForm" method="post">
+                        <div class="form-group">
+                            <label for="editContentCatalogLink" class="form-label">Content Catalog Link / Description</label>
+                            <textarea class="form-control" 
+                                      id="editContentCatalogLink" 
+                                      name="contentCatalogLink"
+                                      placeholder="Enter content catalog link or text description..." 
+                                      rows="3"
+                                      required></textarea>
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    You can enter a URL link or any text description for the content catalog
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Media Catalog Fields -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editMediaCatalogType" class="form-label">Media Catalog Type</label>
+                                <select class="form-control" 
+                                        id="editMediaCatalogType" 
+                                        name="mediaCatalogType"
+                                        required>
+                                    <option value="">Select Type</option>
+                                    <option value="movie">Movie</option>
+                                    <option value="album">Album</option>
+                                    <option value="web-series">Web Series</option>
+                                    <option value="documentary">Documentary</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editMediaCatalogName" class="form-label">Media Catalog Name</label>
+                                <div class="position-relative">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="editMediaCatalogName" 
+                                           name="mediaCatalogName"
+                                           placeholder="Type name or initials to search..." 
+                                           autocomplete="off"
+                                           required>
+                                    <div id="editMediaCatalogDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                                </div>
+                                <div class="mt-1">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Search by full name or initials (e.g., "AB" for "Avengers Endgame")
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content ID Field -->
+                        <div class="form-group">
+                            <label for="editContentBlock" class="form-label">
+                                Content ID / Content Block 
+                                <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="position-relative">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="editContentBlock" 
+                                       name="contentBlock"
+                                       placeholder="Type to search from Content Catalog or leave empty..." 
+                                       autocomplete="off">
+                                <div id="editContentBlockDropdown" class="dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                            </div>
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    You can leave this empty to upload without linking to specific content
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editContentCatalogLocation" class="form-label">Content Catalog Location</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="editContentCatalogLocation" 
+                                       name="contentCatalogLocation"
+                                       placeholder="Content storage location">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editUploadCatalogLocation" class="form-label">Upload Catalog Location</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="editUploadCatalogLocation" 
+                                       name="uploadCatalogLocation"
+                                       placeholder="Upload destination location">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editUploadStatus" class="form-label">Upload Status</label>
+                            <select class="form-control" 
+                                    id="editUploadStatus" 
+                                    name="uploadStatus"
+                                    required>
+                                <option value="">Select Status</option>
+                                <option value="new">New</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="uploaded">Uploaded</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editUploadCatalogCaption" class="form-label">Upload Catalog Caption</label>
+                            <textarea class="form-control" 
+                                      id="editUploadCatalogCaption" 
+                                      name="uploadCatalogCaption"
+                                      placeholder="Enter caption for the upload catalog..."
+                                      rows="4"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="editUploadForm" class="btn-save">Update Upload Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div class="modal fade" id="bulkUploadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bulkUploadModalTitle">Bulk Upload</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-file-download me-2 text-primary"></i>Download Templates
+                            </h6>
+                            <div class="template-downloads mb-4">
+                                <p class="text-muted mb-3">Download template files to see the required format:</p>
+                                <div class="btn-group-vertical w-100" id="templateDownloadButtons">
+                                    <!-- Template download buttons will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-file-upload me-2 text-success"></i>Upload File
+                            </h6>
+                            <form id="bulkUploadForm" method="post" enctype="multipart/form-data">
+                                <div class="form-group mb-3">
+                                    <label for="bulkUploadFile" class="form-label">Select File</label>
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="bulkUploadFile" 
+                                           name="file" 
+                                           accept=".csv,.xlsx,.xls,.json" 
+                                           required>
+                                    <div class="form-text">
+                                        Supported formats: CSV, Excel (.xlsx/.xls), JSON
+                                    </div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Important:</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>Make sure your file follows the template format exactly</li>
+                                            <li>For Content Catalog uploads, linked Upload records will be created automatically</li>
+                                            <li>Invalid rows will be skipped and reported in the results</li>
+                                            <li>Large files may take a few moments to process</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="uploadProgress" class="mt-3" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 100%">
+                                Processing...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="bulkUploadForm" class="btn-save">
+                        <i class="fas fa-upload me-2"></i>Upload & Process
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Cleanup Confirmation Modal -->
+    <div class="modal fade" id="cleanupConfirmationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Database Cleanup
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning:</strong> This action is irreversible!
+                    </div>
+                    <p><strong>This will permanently delete ALL data from:</strong></p>
+                    <ul>
+                        <li>📄 All Content Catalog entries</li>
+                        <li>📤 All Upload Catalog entries</li>
+                        <li>🎬 All Media Catalog entries</li>
+                        <li>🔗 All linked relationships between records</li>
+                    </ul>
+                    <p class="mt-3"><strong>Are you sure you want to proceed?</strong></p>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirmCleanup">
+                        <label class="form-check-label" for="confirmCleanup">
+                            I understand this will delete all data and cannot be undone
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <form id="cleanupForm" method="post" action="/dashboard/cleanup-database" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" id="confirmCleanupBtn" disabled>
+                            <i class="fas fa-trash-alt me-2"></i>Yes, Clean Database
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1441,7 +1738,61 @@
 
         function editUploadRecord(button) {
             const id = button.getAttribute('data-id');
-            alert(`Edit upload record ${id} - Implementation needed`);
+            
+            // Get upload record data from API
+            fetch(`/api/upload-catalog/${id}`)
+                .then(response => response.json())
+                .then(upload => {
+                    // Populate modal form with current data
+                    const fields = {
+                        'editContentCatalogLink': upload.contentCatalogLink || '',
+                        'editContentBlock': upload.contentBlock || '',
+                        'editMediaCatalogName': upload.mediaCatalogName || '',
+                        'editMediaCatalogType': upload.mediaCatalogType ? upload.mediaCatalogType.toLowerCase().replace('_', '-') : '',
+                        'editContentCatalogLocation': upload.contentCatalogLocation || '',
+                        'editUploadCatalogLocation': upload.uploadCatalogLocation || '',
+                        'editUploadStatus': upload.uploadStatus ? upload.uploadStatus.toLowerCase().replace('_', '-') : '',
+                        'editUploadCatalogCaption': upload.uploadCatalogCaption || ''
+                    };
+                    
+                    // Set values and apply styling fixes
+                    Object.keys(fields).forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        if (field) {
+                            field.value = fields[fieldId];
+                            // Force visibility and styling
+                            field.style.color = '#ffffff';
+                            field.style.backgroundColor = '#2d3139';
+                            field.style.borderColor = '#3a3f4b';
+                            field.style.opacity = '1';
+                            field.style.visibility = 'visible';
+                            field.style.pointerEvents = 'auto';
+                        }
+                    });
+                    
+                    // Set form action for the specific record
+                    document.getElementById('editUploadForm').action = `/dashboard/upload-catalog/${id}/edit`;
+                    
+                    // Show modal
+                    const editUploadModal = new bootstrap.Modal(document.getElementById('editUploadModal'));
+                    editUploadModal.show();
+                    
+                    // Apply additional styling fixes after modal is shown
+                    setTimeout(() => {
+                        document.querySelectorAll('#editUploadModal input, #editUploadModal select, #editUploadModal textarea').forEach(field => {
+                            field.style.color = '#ffffff';
+                            field.style.backgroundColor = '#2d3139';
+                            field.style.borderColor = '#3a3f4b';
+                            field.style.opacity = '1';
+                            field.style.visibility = 'visible';
+                            field.style.pointerEvents = 'auto';
+                        });
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('Error fetching upload record:', error);
+                    alert('Error loading upload record data');
+                });
         }
 
         function deleteUploadRecord(id) {
@@ -1467,7 +1818,7 @@
                 const emptyRow = document.createElement('tr');
                 emptyRow.className = 'empty-state';
                 emptyRow.innerHTML = `
-                    <td colspan="10">
+                    <td colspan="11">
                         <i class="fas fa-inbox me-2"></i>
                         No upload records found. Create your first upload entry above.
                     </td>
@@ -1493,6 +1844,7 @@
                 }
                 
                 row.innerHTML = `
+                    <td><input type="checkbox" class="form-check-input upload-checkbox" data-id="${upload.id}" onchange="updateBulkActions()"></td>
                     <td title="Content Block ID">${formatContentBlock(upload.contentBlock)}</td>
                     <td title="${upload.contentCatalogLink || 'No description available'}">${linkCell}</td>
                     <td><span class="badge bg-info" title="Media Type">${formatMediaType(upload.mediaCatalogType)}</span></td>
@@ -1582,6 +1934,7 @@
 
         function getUploadStatusBadgeClass(status) {
             switch(status) {
+                case 'NEW': return 'bg-info';
                 case 'UPLOADED': return 'bg-success';
                 case 'COMPLETED': return 'bg-success';
                 case 'IN_PROGRESS': return 'bg-warning';
@@ -1597,6 +1950,9 @@
             data.slice(0, 10).forEach(media => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="form-check-input media-checkbox" data-id="${media.id}" onchange="updateBulkActions()">
+                    </td>
                     <td>${media.name}</td>
                     <td><span class="badge bg-secondary">${media.type}</span></td>
                     <td>${media.platform || 'N/A'}</td>
@@ -1634,6 +1990,7 @@
                 }
                 
                 row.innerHTML = `
+                    <td><input type="checkbox" class="form-check-input content-checkbox" data-id="${content.id}" onchange="updateBulkActions()"></td>
                     <td>${content.mediaCatalogName}</td>
                     <td><div class="content-link-cell">${linkCell}</div></td>
                     <td><span class="badge bg-secondary">${content.mediaCatalogType}</span></td>
@@ -2334,7 +2691,318 @@
             
             // Ensure data is loaded for all tabs on initial page load
             loadInitialTabData();
+            
+            // Initialize upload edit form handler
+            initializeUploadEditForm();
+            
+            // Initialize bulk upload form handler
+            initializeBulkUploadForm();
+            
+            // Initialize upload form content block handling
+            initializeUploadFormContentBlock();
         });
+        
+        function initializeUploadEditForm() {
+            const editUploadForm = document.getElementById('editUploadForm');
+            if (editUploadForm) {
+                // Initialize form submission handler
+                editUploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    
+                    // Handle content block ID vs display value
+                    const contentBlockInput = document.getElementById('editContentBlock');
+                    if (contentBlockInput && contentBlockInput.hasAttribute('data-content-id')) {
+                        formData.set('contentBlock', contentBlockInput.getAttribute('data-content-id'));
+                    }
+                    
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    
+                    // Show loading state
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+                    }
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Close modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('editUploadModal'));
+                            if (modal) modal.hide();
+                            
+                            // Refresh the upload records table
+                            if (typeof refreshRecentUpload === 'function') {
+                                refreshRecentUpload();
+                            }
+                            
+                            // Show success notification
+                            if (typeof showNotification === 'function') {
+                                showNotification('Upload record updated successfully!', 'success');
+                            } else {
+                                alert('Upload record updated successfully!');
+                            }
+                        } else {
+                            throw new Error('Failed to update upload record');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating upload record:', error);
+                        if (typeof showNotification === 'function') {
+                            showNotification('Error updating upload record', 'error');
+                        } else {
+                            alert('Error updating upload record');
+                        }
+                    })
+                    .finally(() => {
+                        // Restore button state
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Update Upload Record';
+                        }
+                    });
+                });
+                
+                // Initialize dropdown functionality
+                initializeEditModalDropdowns();
+            }
+        }
+        
+        function initializeEditModalDropdowns() {
+            // Content Block dropdown functionality
+            const contentBlockInput = document.getElementById('editContentBlock');
+            const contentBlockDropdown = document.getElementById('editContentBlockDropdown');
+            
+            if (contentBlockInput && contentBlockDropdown) {
+                let contentBlockTimeout;
+                
+                contentBlockInput.addEventListener('input', function() {
+                    clearTimeout(contentBlockTimeout);
+                    contentBlockTimeout = setTimeout(() => {
+                        const searchTerm = this.value.trim();
+                        if (searchTerm.length > 0) {
+                            searchContentBlocks(searchTerm, contentBlockDropdown, contentBlockInput);
+                        } else {
+                            contentBlockDropdown.style.display = 'none';
+                        }
+                    }, 300);
+                });
+                
+                contentBlockInput.addEventListener('focus', function() {
+                    if (this.value.trim().length > 0) {
+                        contentBlockDropdown.style.display = 'block';
+                    }
+                });
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!contentBlockInput.contains(event.target) && !contentBlockDropdown.contains(event.target)) {
+                        contentBlockDropdown.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Media Catalog Name dropdown functionality
+            const mediaCatalogInput = document.getElementById('editMediaCatalogName');
+            const mediaCatalogDropdown = document.getElementById('editMediaCatalogDropdown');
+            
+            if (mediaCatalogInput && mediaCatalogDropdown) {
+                let mediaCatalogTimeout;
+                
+                mediaCatalogInput.addEventListener('input', function() {
+                    clearTimeout(mediaCatalogTimeout);
+                    mediaCatalogTimeout = setTimeout(() => {
+                        const searchTerm = this.value.trim();
+                        if (searchTerm.length > 0) {
+                            searchMediaCatalog(searchTerm, mediaCatalogDropdown, mediaCatalogInput);
+                        } else {
+                            mediaCatalogDropdown.style.display = 'none';
+                        }
+                    }, 300);
+                });
+                
+                mediaCatalogInput.addEventListener('focus', function() {
+                    if (this.value.trim().length > 0) {
+                        mediaCatalogDropdown.style.display = 'block';
+                    }
+                });
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!mediaCatalogInput.contains(event.target) && !mediaCatalogDropdown.contains(event.target)) {
+                        mediaCatalogDropdown.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        function searchContentBlocks(searchTerm, dropdown, input) {
+            fetch(`/api/content-catalog/content-blocks?search=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    populateContentBlockDropdown(data, dropdown, input);
+                })
+                .catch(error => {
+                    console.error('Error fetching content blocks:', error);
+                    dropdown.style.display = 'none';
+                });
+        }
+        
+        function searchMediaCatalog(searchTerm, dropdown, input) {
+            fetch(`/api/content-catalog/search?name=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    populateMediaCatalogDropdown(data, dropdown, input);
+                })
+                .catch(error => {
+                    console.error('Error fetching media catalog:', error);
+                    dropdown.style.display = 'none';
+                });
+        }
+        
+        function populateContentBlockDropdown(data, dropdown, input) {
+            dropdown.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.slice(0, 10).forEach(item => {
+                    const option = document.createElement('button');
+                    option.className = 'dropdown-item';
+                    option.type = 'button';
+                    
+                    // Show link in the display but truncate if too long
+                    const displayLink = item.link ? (item.link.length > 50 ? item.link.substring(0, 50) + '...' : item.link) : 'No link';
+                    
+                    option.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${displayLink}</strong><br>
+                                <small class="text-muted">ID: ${item.id} | ${item.mediaCatalogName || 'No name'}</small>
+                            </div>
+                            <small class="text-info">${item.mediaCatalogType || ''}</small>
+                        </div>
+                    `;
+                    
+                    option.addEventListener('click', function() {
+                        // Display the link in the input field but store the ID as data attribute
+                        input.value = item.link || item.id; // Show link, fallback to ID
+                        input.setAttribute('data-content-id', item.id); // Store ID for backend
+                        dropdown.style.display = 'none';
+                    });
+                    
+                    dropdown.appendChild(option);
+                });
+                
+                dropdown.style.display = 'block';
+            } else {
+                const noResults = document.createElement('div');
+                noResults.className = 'dropdown-item-text text-muted';
+                noResults.textContent = 'No content blocks found';
+                dropdown.appendChild(noResults);
+                dropdown.style.display = 'block';
+            }
+        }
+        
+        function initializeUploadFormContentBlock() {
+            const uploadForm = document.getElementById('uploadForm');
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', function(e) {
+                    // Handle content block ID vs display value before submission
+                    const contentBlockInput = document.getElementById('contentBlock');
+                    if (contentBlockInput && contentBlockInput.hasAttribute('data-content-id')) {
+                        contentBlockInput.value = contentBlockInput.getAttribute('data-content-id');
+                    }
+                    // Let the form submit normally
+                });
+            }
+        }
+
+        function initializeBulkUploadForm() {
+            const bulkUploadForm = document.getElementById('bulkUploadForm');
+            if (bulkUploadForm) {
+                bulkUploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const fileInput = document.getElementById('bulkUploadFile');
+                    const progressDiv = document.getElementById('uploadProgress');
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    
+                    if (!fileInput.files.length) {
+                        alert('Please select a file to upload');
+                        return;
+                    }
+                    
+                    // Show progress
+                    progressDiv.style.display = 'block';
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                    
+                    // Create FormData and submit
+                    const formData = new FormData(this);
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            // Handle redirect (success or error messages will be shown on dashboard)
+                            window.location.href = response.url;
+                        } else {
+                            throw new Error('Upload failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Bulk upload error:', error);
+                        alert('Error during bulk upload. Please try again.');
+                        
+                        // Reset UI
+                        progressDiv.style.display = 'none';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload & Process';
+                    });
+                });
+            }
+        }
+
+        function populateMediaCatalogDropdown(data, dropdown, input) {
+            dropdown.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.slice(0, 10).forEach(item => {
+                    const option = document.createElement('button');
+                    option.className = 'dropdown-item';
+                    option.type = 'button';
+                    option.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${item.mediaCatalogName}</strong><br>
+                                <small class="text-muted">ID: ${item.id}</small>
+                            </div>
+                            <small class="text-info">${item.mediaCatalogType || ''}</small>
+                        </div>
+                    `;
+                    
+                    option.addEventListener('click', function() {
+                        input.value = item.mediaCatalogName;
+                        dropdown.style.display = 'none';
+                    });
+                    
+                    dropdown.appendChild(option);
+                });
+                
+                dropdown.style.display = 'block';
+            } else {
+                const noResults = document.createElement('div');
+                noResults.className = 'dropdown-item-text text-muted';
+                noResults.textContent = 'No media catalog found';
+                dropdown.appendChild(noResults);
+                dropdown.style.display = 'block';
+            }
+        }
 
         function loadInitialTabData() {
             // Load data for all tabs that might be visible
@@ -2371,6 +3039,377 @@
                 }
             }, 1000);
         }
+
+        // ===== BULK UPLOAD FUNCTIONALITY =====
+        
+        function showBulkUploadModal(type) {
+            const modal = document.getElementById('bulkUploadModal');
+            const title = document.getElementById('bulkUploadModalTitle');
+            const form = document.getElementById('bulkUploadForm');
+            const templateButtons = document.getElementById('templateDownloadButtons');
+            
+            // Set modal title and form action based on type
+            if (type === 'content') {
+                title.textContent = 'Bulk Upload - Content Catalog';
+                form.action = '/dashboard/bulk-upload/content-catalog';
+                
+                templateButtons.innerHTML = `
+                    <a href="/dashboard/templates/content-catalog/csv" class="btn btn-outline-primary btn-sm mb-2">
+                        <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                    </a>
+                    <a href="/dashboard/templates/content-catalog/json" class="btn btn-outline-success btn-sm mb-2">
+                        <i class="fas fa-file-code me-2"></i>Download JSON Template
+                    </a>
+                `;
+            } else if (type === 'upload') {
+                title.textContent = 'Bulk Upload - Upload Catalog';
+                form.action = '/dashboard/bulk-upload/upload-catalog';
+                
+                templateButtons.innerHTML = `
+                    <a href="/dashboard/templates/upload-catalog/csv" class="btn btn-outline-primary btn-sm mb-2">
+                        <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                    </a>
+                    <a href="/dashboard/templates/upload-catalog/json" class="btn btn-outline-success btn-sm mb-2">
+                        <i class="fas fa-file-code me-2"></i>Download JSON Template
+                    </a>
+                `;
+            } else if (type === 'media') {
+                title.textContent = 'Bulk Upload - Media Catalog';
+                form.action = '/dashboard/bulk-upload/media-catalog';
+                
+                templateButtons.innerHTML = `
+                    <a href="/dashboard/templates/media-catalog/csv" class="btn btn-outline-primary btn-sm mb-2">
+                        <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                    </a>
+                    <a href="/dashboard/templates/media-catalog/json" class="btn btn-outline-success btn-sm mb-2">
+                        <i class="fas fa-file-code me-2"></i>Download JSON Template
+                    </a>
+                `;
+            }
+            
+            // Reset form
+            form.reset();
+            document.getElementById('uploadProgress').style.display = 'none';
+            
+            // Show modal
+            const bulkUploadModal = new bootstrap.Modal(modal);
+            bulkUploadModal.show();
+        }
+        
+        function refreshUploadTable() {
+            const refreshBtn = event.target.closest('button');
+            const originalHtml = refreshBtn.innerHTML;
+            
+            // Show loading state
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+            refreshBtn.disabled = true;
+            
+            // Refresh the upload records
+            if (typeof refreshRecentUpload === 'function') {
+                refreshRecentUpload();
+                
+                // Show success feedback briefly
+                setTimeout(() => {
+                    refreshBtn.innerHTML = '<i class="fas fa-check me-2"></i>Refreshed!';
+                    setTimeout(() => {
+                        refreshBtn.innerHTML = originalHtml;
+                        refreshBtn.disabled = false;
+                    }, 1000);
+                }, 500);
+            } else {
+                // Show error feedback briefly
+                refreshBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalHtml;
+                    refreshBtn.disabled = false;
+                }, 2000);
+            }
+        }
+        
+        function refreshMediaTable() {
+            const refreshBtn = event.target.closest('button');
+            const originalHtml = refreshBtn.innerHTML;
+            
+            // Show loading state
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+            refreshBtn.disabled = true;
+            
+            // Refresh the media records
+            if (typeof refreshRecentMedia === 'function') {
+                refreshRecentMedia();
+                
+                // Show success feedback briefly
+                setTimeout(() => {
+                    refreshBtn.innerHTML = '<i class="fas fa-check me-2"></i>Refreshed!';
+                    setTimeout(() => {
+                        refreshBtn.innerHTML = originalHtml;
+                        refreshBtn.disabled = false;
+                    }, 1000);
+                }, 500);
+            } else {
+                // Show error feedback briefly
+                refreshBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalHtml;
+                    refreshBtn.disabled = false;
+                }, 2000);
+            }
+        }
+        
+        // ===== BULK DELETE FUNCTIONALITY =====
+        
+        function toggleAllSelections(catalogType) {
+            const selectAllCheckbox = document.getElementById(`selectAll${catalogType.charAt(0).toUpperCase() + catalogType.slice(1)}`);
+            const checkboxes = document.querySelectorAll(`.${catalogType}-checkbox`);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            updateBulkActions();
+        }
+        
+        function updateBulkActions() {
+            const mediaChecked = document.querySelectorAll('.media-checkbox:checked');
+            const contentChecked = document.querySelectorAll('.content-checkbox:checked');
+            const uploadChecked = document.querySelectorAll('.upload-checkbox:checked');
+            
+            const totalSelected = mediaChecked.length + contentChecked.length + uploadChecked.length;
+            
+            const bulkActionsContainer = document.getElementById('bulkActionsContainer');
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            if (totalSelected > 0) {
+                bulkActionsContainer.style.display = 'block';
+                bulkDeleteBtn.disabled = false;
+                selectedCount.textContent = totalSelected;
+            } else {
+                bulkActionsContainer.style.display = 'none';
+                bulkDeleteBtn.disabled = true;
+                selectedCount.textContent = '0';
+            }
+            
+            // Update select all checkboxes state
+            updateSelectAllCheckboxes();
+        }
+        
+        function updateSelectAllCheckboxes() {
+            // Media catalog
+            const mediaCheckboxes = document.querySelectorAll('.media-checkbox');
+            const mediaChecked = document.querySelectorAll('.media-checkbox:checked');
+            const selectAllMedia = document.getElementById('selectAllMedia');
+            if (selectAllMedia) {
+                selectAllMedia.checked = mediaCheckboxes.length > 0 && mediaChecked.length === mediaCheckboxes.length;
+                selectAllMedia.indeterminate = mediaChecked.length > 0 && mediaChecked.length < mediaCheckboxes.length;
+            }
+            
+            // Content catalog
+            const contentCheckboxes = document.querySelectorAll('.content-checkbox');
+            const contentChecked = document.querySelectorAll('.content-checkbox:checked');
+            const selectAllContent = document.getElementById('selectAllContent');
+            if (selectAllContent) {
+                selectAllContent.checked = contentCheckboxes.length > 0 && contentChecked.length === contentCheckboxes.length;
+                selectAllContent.indeterminate = contentChecked.length > 0 && contentChecked.length < contentCheckboxes.length;
+            }
+            
+            // Upload catalog
+            const uploadCheckboxes = document.querySelectorAll('.upload-checkbox');
+            const uploadChecked = document.querySelectorAll('.upload-checkbox:checked');
+            const selectAllUpload = document.getElementById('selectAllUpload');
+            if (selectAllUpload) {
+                selectAllUpload.checked = uploadCheckboxes.length > 0 && uploadChecked.length === uploadCheckboxes.length;
+                selectAllUpload.indeterminate = uploadChecked.length > 0 && uploadChecked.length < uploadCheckboxes.length;
+            }
+        }
+        
+        function clearAllSelections() {
+            const allCheckboxes = document.querySelectorAll('.media-checkbox, .content-checkbox, .upload-checkbox');
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            const selectAllCheckboxes = document.querySelectorAll('#selectAllMedia, #selectAllContent, #selectAllUpload');
+            selectAllCheckboxes.forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = false;
+                }
+            });
+            
+            updateBulkActions();
+        }
+        
+        function showBulkDeleteConfirmation() {
+            const mediaChecked = document.querySelectorAll('.media-checkbox:checked');
+            const contentChecked = document.querySelectorAll('.content-checkbox:checked');
+            const uploadChecked = document.querySelectorAll('.upload-checkbox:checked');
+            
+            const selectedItems = {
+                media: Array.from(mediaChecked).map(cb => cb.getAttribute('data-id')),
+                content: Array.from(contentChecked).map(cb => cb.getAttribute('data-id')),
+                upload: Array.from(uploadChecked).map(cb => cb.getAttribute('data-id'))
+            };
+            
+            const totalCount = selectedItems.media.length + selectedItems.content.length + selectedItems.upload.length;
+            
+            const confirmMessage = `Are you sure you want to delete ${totalCount} selected records?\n\n` +
+                `Media Catalog: ${selectedItems.media.length} records\n` +
+                `Content Catalog: ${selectedItems.content.length} records\n` +
+                `Upload Catalog: ${selectedItems.upload.length} records\n\n` +
+                `This action cannot be undone.`;
+            
+            if (confirm(confirmMessage)) {
+                performBulkDelete(selectedItems);
+            }
+        }
+        
+        function performBulkDelete(selectedItems) {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+            const originalHtml = bulkDeleteBtn.innerHTML;
+            bulkDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Deleting...';
+            bulkDeleteBtn.disabled = true;
+            
+            const promises = [];
+            
+            // Delete media catalog items
+            if (selectedItems.media.length > 0) {
+                promises.push(
+                    fetch('/api/media-catalog/bulk-delete', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(selectedItems.media)
+                    })
+                );
+            }
+            
+            // Delete content catalog items
+            if (selectedItems.content.length > 0) {
+                promises.push(
+                    fetch('/api/content-catalog/bulk-delete', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(selectedItems.content)
+                    })
+                );
+            }
+            
+            // Delete upload catalog items
+            if (selectedItems.upload.length > 0) {
+                promises.push(
+                    fetch('/api/upload-catalog/bulk-delete', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(selectedItems.upload)
+                    })
+                );
+            }
+            
+            Promise.all(promises)
+                .then(responses => {
+                    const allSuccessful = responses.every(response => response.ok);
+                    
+                    if (allSuccessful) {
+                        // Show success message
+                        showAlert('Success', `Successfully deleted ${selectedItems.media.length + selectedItems.content.length + selectedItems.upload.length} records.`, 'success');
+                        
+                        // Refresh all tables
+                        if (typeof refreshRecentMedia === 'function') refreshRecentMedia();
+                        if (typeof refreshRecentContent === 'function') refreshRecentContent();
+                        if (typeof refreshRecentUpload === 'function') refreshRecentUpload();
+                        
+                        // Clear selections
+                        clearAllSelections();
+                    } else {
+                        showAlert('Error', 'Some records could not be deleted. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during bulk delete:', error);
+                    showAlert('Error', 'An error occurred while deleting records. Please try again.', 'error');
+                })
+                .finally(() => {
+                    bulkDeleteBtn.innerHTML = originalHtml;
+                    bulkDeleteBtn.disabled = false;
+                });
+        }
+        
+        function showAlert(title, message, type) {
+            // Create and show a Bootstrap alert
+            const alertContainer = document.createElement('div');
+            alertContainer.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            alertContainer.style.top = '20px';
+            alertContainer.style.right = '20px';
+            alertContainer.style.zIndex = '9999';
+            alertContainer.style.minWidth = '300px';
+            
+            alertContainer.innerHTML = `
+                <strong>${title}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertContainer);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertContainer.parentNode) {
+                    alertContainer.remove();
+                }
+            }, 5000);
+        }
+        
+        // ===== DATABASE CLEANUP FUNCTIONALITY =====
+        
+        function showCleanupConfirmation() {
+            const modal = new bootstrap.Modal(document.getElementById('cleanupConfirmationModal'));
+            
+            // Reset the form
+            document.getElementById('confirmCleanup').checked = false;
+            document.getElementById('confirmCleanupBtn').disabled = true;
+            
+            modal.show();
+        }
+        
+        // Handle checkbox change for cleanup confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmCheckbox = document.getElementById('confirmCleanup');
+            const confirmButton = document.getElementById('confirmCleanupBtn');
+            
+            if (confirmCheckbox && confirmButton) {
+                confirmCheckbox.addEventListener('change', function() {
+                    confirmButton.disabled = !this.checked;
+                });
+            }
+            
+            // Handle form submission with additional confirmation
+            const cleanupForm = document.getElementById('cleanupForm');
+            if (cleanupForm) {
+                cleanupForm.addEventListener('submit', function(e) {
+                    if (!document.getElementById('confirmCleanup').checked) {
+                        e.preventDefault();
+                        alert('Please confirm that you understand this action cannot be undone.');
+                        return;
+                    }
+                    
+                    // Final confirmation dialog
+                    if (!confirm('Last chance! Are you absolutely sure you want to delete ALL database entries? This cannot be undone!')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Show processing state
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cleaning...';
+                    submitBtn.disabled = true;
+                });
+            }
+        });
 
         // Safe refresh functions that don't interfere with forms
         function safeRefreshRecentContent() {

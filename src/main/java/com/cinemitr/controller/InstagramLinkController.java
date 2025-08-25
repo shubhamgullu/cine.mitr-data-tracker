@@ -10,6 +10,7 @@ import com.cinemitr.repository.ContentCatalogRepository;
 import com.cinemitr.repository.UploadCatalogRepository;
 import com.cinemitr.repository.StatesCatalogRepository;
 import com.cinemitr.service.MovieInstagramLinkService;
+import com.cinemitr.service.BulkUploadService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import java.util.stream.Collectors;
@@ -19,10 +20,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 @Controller
@@ -43,6 +51,9 @@ public class InstagramLinkController {
     
     @Autowired
     private StatesCatalogRepository statesCatalogRepository;
+    
+    @Autowired
+    private BulkUploadService bulkUploadService;
 
     @GetMapping
     public String dashboard(Model model, @RequestParam(required = false) String tab) {
@@ -342,8 +353,22 @@ public class InstagramLinkController {
                 contentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.valueOf(uploadContentStatus.toUpperCase().replace("-", "_")));
             }
             
-            contentCatalogRepository.save(contentCatalog);
-            redirectAttributes.addFlashAttribute("success", "Content catalog entry saved successfully!");
+            // Save content catalog first
+            ContentCatalog savedContentCatalog = contentCatalogRepository.save(contentCatalog);
+            
+            // Automatically create corresponding Upload Catalog entry
+            UploadCatalog linkedUploadCatalog = createLinkedUploadCatalog(savedContentCatalog);
+            UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(linkedUploadCatalog);
+            
+            // Set the bidirectional linking
+            savedContentCatalog.setLinkedUploadCatalogId(savedUploadCatalog.getId());
+            savedUploadCatalog.setLinkedContentCatalogId(savedContentCatalog.getId());
+            
+            // Update both records with linking information
+            contentCatalogRepository.save(savedContentCatalog);
+            uploadCatalogRepository.save(savedUploadCatalog);
+            
+            redirectAttributes.addFlashAttribute("success", "Content catalog entry saved successfully! Linked upload record created automatically.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving content catalog: " + e.getMessage());
         }
@@ -393,8 +418,20 @@ public class InstagramLinkController {
                 }
                 contentCatalog.setUpdatedBy("system");
                 
-                contentCatalogRepository.save(contentCatalog);
-                redirectAttributes.addFlashAttribute("success", "Content catalog updated successfully!");
+                // Save the updated content catalog
+                ContentCatalog savedContentCatalog = contentCatalogRepository.save(contentCatalog);
+                
+                // Update linked Upload Catalog if exists
+                if (savedContentCatalog.getLinkedUploadCatalogId() != null) {
+                    Optional<UploadCatalog> linkedUploadOpt = uploadCatalogRepository.findById(savedContentCatalog.getLinkedUploadCatalogId());
+                    if (linkedUploadOpt.isPresent()) {
+                        UploadCatalog linkedUpload = linkedUploadOpt.get();
+                        updateLinkedRecords(savedContentCatalog, linkedUpload);
+                        uploadCatalogRepository.save(linkedUpload);
+                    }
+                }
+                
+                redirectAttributes.addFlashAttribute("success", "Content catalog updated successfully! Linked upload record also updated.");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Content catalog not found!");
             }
@@ -466,8 +503,24 @@ public class InstagramLinkController {
                 uploadCatalog.setUploadCatalogCaption(uploadCatalogCaption);
                 uploadCatalog.setUpdatedBy("system");
                 
-                uploadCatalogRepository.save(uploadCatalog);
-                redirectAttributes.addFlashAttribute("success", "Upload catalog updated successfully!");
+                // Save the updated upload catalog
+                UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(uploadCatalog);
+                
+                // Update linked Content Catalog if exists
+                if (savedUploadCatalog.getLinkedContentCatalogId() != null) {
+                    Optional<ContentCatalog> linkedContentOpt = contentCatalogRepository.findById(savedUploadCatalog.getLinkedContentCatalogId());
+                    if (linkedContentOpt.isPresent()) {
+                        ContentCatalog linkedContent = linkedContentOpt.get();
+                        // Update content catalog with upload catalog data
+                        linkedContent.setLink(savedUploadCatalog.getContentCatalogLink());
+                        linkedContent.setMediaCatalogName(savedUploadCatalog.getMediaCatalogName());
+                        linkedContent.setLocation(savedUploadCatalog.getContentCatalogLocation());
+                        linkedContent.setUpdatedBy("system_sync");
+                        contentCatalogRepository.save(linkedContent);
+                    }
+                }
+                
+                redirectAttributes.addFlashAttribute("success", "Upload catalog updated successfully! Linked content record also updated.");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Upload catalog not found!");
             }
@@ -523,6 +576,388 @@ public class InstagramLinkController {
             }
         } else {
             System.out.println("Media catalog already exists: " + mediaCatalogName); // Debug log
+        }
+    }
+    
+    /**
+     * Creates a linked Upload Catalog entry from a Content Catalog entry
+     */
+    private UploadCatalog createLinkedUploadCatalog(ContentCatalog contentCatalog) {
+        UploadCatalog uploadCatalog = new UploadCatalog();
+        
+        // Map fields from Content Catalog to Upload Catalog
+        uploadCatalog.setContentCatalogLink(contentCatalog.getLink());
+        uploadCatalog.setContentBlock(contentCatalog.getId().toString()); // Use Content Catalog ID as content block
+        
+        // Map media type enum values
+        UploadCatalog.MediaType uploadMediaType = mapContentMediaTypeToUploadMediaType(contentCatalog.getMediaCatalogType());
+        uploadCatalog.setMediaCatalogType(uploadMediaType);
+        
+        uploadCatalog.setMediaCatalogName(contentCatalog.getMediaCatalogName());
+        uploadCatalog.setContentCatalogLocation(contentCatalog.getLocation());
+        uploadCatalog.setUploadCatalogLocation(""); // Empty by default, can be filled later
+        
+        // Set default upload status as "NEW" for auto-created entries
+        uploadCatalog.setUploadStatus(UploadCatalog.UploadStatus.NEW);
+        
+        // Set default caption indicating auto-creation
+        uploadCatalog.setUploadCatalogCaption("Auto-created from Content Catalog: " + contentCatalog.getMediaCatalogName());
+        
+        return uploadCatalog;
+    }
+    
+    /**
+     * Maps ContentCatalog MediaType to UploadCatalog MediaType
+     */
+    private UploadCatalog.MediaType mapContentMediaTypeToUploadMediaType(ContentCatalog.MediaType contentMediaType) {
+        switch (contentMediaType) {
+            case MOVIE:
+                return UploadCatalog.MediaType.MOVIE;
+            case ALBUM:
+                return UploadCatalog.MediaType.ALBUM;
+            case WEB_SERIES:
+                return UploadCatalog.MediaType.WEB_SERIES;
+            case DOCUMENTARY:
+                return UploadCatalog.MediaType.DOCUMENTARY;
+            default:
+                return UploadCatalog.MediaType.MOVIE; // Default fallback
+        }
+    }
+    
+    /**
+     * Updates linked records when either Content or Upload catalog is modified
+     */
+    private void updateLinkedRecords(ContentCatalog contentCatalog, UploadCatalog uploadCatalog) {
+        if (contentCatalog != null && uploadCatalog != null) {
+            // Update Upload Catalog with Content Catalog data
+            uploadCatalog.setContentCatalogLink(contentCatalog.getLink());
+            uploadCatalog.setMediaCatalogName(contentCatalog.getMediaCatalogName());
+            uploadCatalog.setMediaCatalogType(mapContentMediaTypeToUploadMediaType(contentCatalog.getMediaCatalogType()));
+            uploadCatalog.setContentCatalogLocation(contentCatalog.getLocation());
+            uploadCatalog.setUpdatedBy("system_sync");
+            
+            // Update Content Catalog with Upload Catalog data (if needed)
+            contentCatalog.setUpdatedBy("system_sync");
+        }
+    }
+    
+    // ===== BULK UPLOAD ENDPOINTS =====
+    
+    @PostMapping("/bulk-upload/content-catalog")
+    public String bulkUploadContentCatalog(@RequestParam("file") MultipartFile file,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            if (file.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
+                return "redirect:/dashboard";
+            }
+            
+            Map<String, Object> result = bulkUploadService.processContentCatalogBulkUpload(file);
+            int successCount = (Integer) result.get("successCount");
+            int errorCount = (Integer) result.get("errorCount");
+            List<String> errors = (List<String>) result.get("errors");
+            
+            if (successCount > 0) {
+                String message = String.format("Bulk upload completed! Successfully imported %d Content Catalog entries", successCount);
+                if (errorCount > 0) {
+                    message += String.format(" with %d errors.", errorCount);
+                } else {
+                    message += ". All linked Upload Catalog entries were also created automatically.";
+                }
+                redirectAttributes.addFlashAttribute("success", message);
+            }
+            
+            if (errorCount > 0) {
+                redirectAttributes.addFlashAttribute("bulkUploadErrors", errors);
+                if (successCount == 0) {
+                    redirectAttributes.addFlashAttribute("error", "Bulk upload failed! No records were imported. Check the error details.");
+                }
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Bulk upload error: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/bulk-upload/upload-catalog")
+    public String bulkUploadUploadCatalog(@RequestParam("file") MultipartFile file,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            if (file.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
+                return "redirect:/dashboard";
+            }
+            
+            Map<String, Object> result = bulkUploadService.processUploadCatalogBulkUpload(file);
+            int successCount = (Integer) result.get("successCount");
+            int errorCount = (Integer) result.get("errorCount");
+            List<String> errors = (List<String>) result.get("errors");
+            
+            if (successCount > 0) {
+                String message = String.format("Bulk upload completed! Successfully imported %d Upload Catalog entries", successCount);
+                if (errorCount > 0) {
+                    message += String.format(" with %d errors.", errorCount);
+                } else {
+                    message += ".";
+                }
+                redirectAttributes.addFlashAttribute("success", message);
+            }
+            
+            if (errorCount > 0) {
+                redirectAttributes.addFlashAttribute("bulkUploadErrors", errors);
+                if (successCount == 0) {
+                    redirectAttributes.addFlashAttribute("error", "Bulk upload failed! No records were imported. Check the error details.");
+                }
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Bulk upload error: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/bulk-upload/media-catalog")
+    public String bulkUploadMediaCatalog(@RequestParam("file") MultipartFile file,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            if (file.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
+                return "redirect:/dashboard";
+            }
+            
+            Map<String, Object> result = bulkUploadService.processMediaCatalogBulkUpload(file);
+            int successCount = (Integer) result.get("successCount");
+            int errorCount = (Integer) result.get("errorCount");
+            List<String> errors = (List<String>) result.get("errors");
+            
+            if (successCount > 0) {
+                String message = String.format("Bulk upload completed! Successfully imported %d Media Catalog entries", successCount);
+                if (errorCount > 0) {
+                    message += String.format(" with %d errors.", errorCount);
+                } else {
+                    message += ". All media names have been formatted with proper capitalization.";
+                }
+                redirectAttributes.addFlashAttribute("success", message);
+            }
+            
+            if (errorCount > 0) {
+                redirectAttributes.addFlashAttribute("bulkUploadErrors", errors);
+                if (successCount == 0) {
+                    redirectAttributes.addFlashAttribute("error", "Bulk upload failed! No records were imported. Check the error details.");
+                }
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Bulk upload error: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    // Template download endpoints
+    @GetMapping("/templates/content-catalog/{format}")
+    public ResponseEntity<Resource> downloadContentCatalogTemplate(@PathVariable String format) {
+        try {
+            String fileName = "content_catalog_template." + format;
+            Resource resource = new ClassPathResource("static/templates/" + fileName);
+            
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/templates/upload-catalog/{format}")
+    public ResponseEntity<Resource> downloadUploadCatalogTemplate(@PathVariable String format) {
+        try {
+            String fileName = "upload_catalog_template." + format;
+            Resource resource = new ClassPathResource("static/templates/" + fileName);
+            
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/templates/media-catalog/{format}")
+    public ResponseEntity<Resource> downloadMediaCatalogTemplate(@PathVariable String format) {
+        try {
+            String fileName = "media_catalog_template." + format;
+            Resource resource = new ClassPathResource("static/templates/" + fileName);
+            
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    // ===== API ENDPOINTS FOR DYNAMIC LOADING =====
+    
+    @GetMapping("/api/media-catalog")
+    @ResponseBody
+    public ResponseEntity<List<MediaCatalog>> getMediaCatalog(
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "updatedOn:desc") String sort) {
+        try {
+            // Parse sort parameter
+            String[] sortParts = sort.split(":");
+            String sortField = sortParts[0];
+            String sortDirection = sortParts.length > 1 ? sortParts[1] : "desc";
+            
+            // Create sort object
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Sort sortObj = Sort.by(direction, sortField);
+            
+            // Create pageable request
+            PageRequest pageRequest = PageRequest.of(0, limit, sortObj);
+            
+            // Fetch data
+            List<MediaCatalog> mediaList = mediaCatalogRepository.findAll(pageRequest).getContent();
+            
+            return ResponseEntity.ok(mediaList);
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    @GetMapping("/api/content-catalog")
+    @ResponseBody
+    public ResponseEntity<List<ContentCatalog>> getContentCatalog() {
+        try {
+            Sort sort = Sort.by(Sort.Direction.DESC, "createdOn");
+            List<ContentCatalog> contentList = contentCatalogRepository.findAll(sort);
+            return ResponseEntity.ok(contentList);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    @GetMapping("/api/upload-catalog") 
+    @ResponseBody
+    public ResponseEntity<List<UploadCatalog>> getUploadCatalog() {
+        try {
+            Sort sort = Sort.by(Sort.Direction.DESC, "createdOn");
+            List<UploadCatalog> uploadList = uploadCatalogRepository.findAll(sort);
+            return ResponseEntity.ok(uploadList);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    // ===== BULK DELETE ENDPOINTS =====
+    
+    @DeleteMapping("/api/media-catalog/bulk-delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> bulkDeleteMediaCatalog(@RequestBody List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "No IDs provided for deletion"));
+            }
+            
+            long deletedCount = 0;
+            for (Long id : ids) {
+                if (mediaCatalogRepository.existsById(id)) {
+                    mediaCatalogRepository.deleteById(id);
+                    deletedCount++;
+                }
+            }
+            
+            return ResponseEntity.ok()
+                .body(Map.of("message", "Successfully deleted " + deletedCount + " media catalog records"));
+                
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting media catalog records: " + e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/api/content-catalog/bulk-delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> bulkDeleteContentCatalog(@RequestBody List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "No IDs provided for deletion"));
+            }
+            
+            long deletedCount = 0;
+            for (Long id : ids) {
+                if (contentCatalogRepository.existsById(id)) {
+                    // Find and delete linked upload catalog record if exists
+                    Optional<UploadCatalog> linkedUpload = uploadCatalogRepository.findByLinkedContentCatalogId(id);
+                    if (linkedUpload.isPresent()) {
+                        uploadCatalogRepository.delete(linkedUpload.get());
+                    }
+                    
+                    contentCatalogRepository.deleteById(id);
+                    deletedCount++;
+                }
+            }
+            
+            return ResponseEntity.ok()
+                .body(Map.of("message", "Successfully deleted " + deletedCount + " content catalog records"));
+                
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting content catalog records: " + e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/api/upload-catalog/bulk-delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> bulkDeleteUploadCatalog(@RequestBody List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "No IDs provided for deletion"));
+            }
+            
+            long deletedCount = 0;
+            for (Long id : ids) {
+                if (uploadCatalogRepository.existsById(id)) {
+                    // Find and delete linked content catalog record if exists
+                    Optional<ContentCatalog> linkedContent = contentCatalogRepository.findByLinkedUploadCatalogId(id);
+                    if (linkedContent.isPresent()) {
+                        contentCatalogRepository.delete(linkedContent.get());
+                    }
+                    
+                    uploadCatalogRepository.deleteById(id);
+                    deletedCount++;
+                }
+            }
+            
+            return ResponseEntity.ok()
+                .body(Map.of("message", "Successfully deleted " + deletedCount + " upload catalog records"));
+                
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error deleting upload catalog records: " + e.getMessage()));
         }
     }
 }
