@@ -9,7 +9,9 @@
       "Bash(where mvn)",
       "mcp__ide__getDiagnostics",
       "Bash(curl:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(dir mvn:*)"
     ],
     "deny": [],
     "ask": []

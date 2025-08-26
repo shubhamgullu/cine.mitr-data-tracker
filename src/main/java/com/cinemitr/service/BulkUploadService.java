@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -772,25 +774,25 @@ public class BulkUploadService {
                 statesCatalog.setReportDate(java.time.LocalDate.now());
             }
             
-            statesCatalog.setViews(parseInteger(record[1], "views"));
-            statesCatalog.setSubscribers(parseInteger(record[2], "subscribers"));
-            statesCatalog.setInteractions(parseInteger(record[3], "interactions"));
-            statesCatalog.setTotalContent(parseInteger(record[4], "totalContent"));
-            statesCatalog.setReach(parseInteger(record[5], "reach"));
-            statesCatalog.setImpressions(parseInteger(record[6], "impressions"));
-            statesCatalog.setProfileVisits(parseInteger(record[7], "profileVisits"));
-            statesCatalog.setWebsiteClicks(parseInteger(record[8], "websiteClicks"));
-            statesCatalog.setEmailClicks(parseInteger(record[9], "emailClicks"));
-            statesCatalog.setCallClicks(parseInteger(record[10], "callClicks"));
-            statesCatalog.setFollowersGained(parseInteger(record[11], "followersGained"));
-            statesCatalog.setFollowersLost(parseInteger(record[12], "followersLost"));
-            statesCatalog.setReelsCount(parseInteger(record[13], "reelsCount"));
-            statesCatalog.setStoriesCount(parseInteger(record[14], "storiesCount"));
+            statesCatalog.setViews(parseIntegerSafe(record[1]));
+            statesCatalog.setSubscribers(parseIntegerSafe(record[2]));
+            statesCatalog.setInteractions(parseIntegerSafe(record[3]));
+            statesCatalog.setTotalContent(parseIntegerSafe(record[4]));
+            statesCatalog.setReach(parseIntegerSafe(record[5]));
+            statesCatalog.setImpressions(parseIntegerSafe(record[6]));
+            statesCatalog.setProfileVisits(parseIntegerSafe(record[7]));
+            statesCatalog.setWebsiteClicks(parseIntegerSafe(record[8]));
+            statesCatalog.setEmailClicks(parseIntegerSafe(record[9]));
+            statesCatalog.setCallClicks(parseIntegerSafe(record[10]));
+            statesCatalog.setFollowersGained(parseIntegerSafe(record[11]));
+            statesCatalog.setFollowersLost(parseIntegerSafe(record[12]));
+            statesCatalog.setReelsCount(parseIntegerSafe(record[13]));
+            statesCatalog.setStoriesCount(parseIntegerSafe(record[14]));
             
             if (record.length > 15) {
-                statesCatalog.setAvgEngagementRate(parseBigDecimal(record[15], "avgEngagementRate"));
+                statesCatalog.setAvgEngagementRate(parseBigDecimalSafe(record[15]));
             } else {
-                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+                statesCatalog.setAvgEngagementRate(BigDecimal.ZERO);
             }
             
         } catch (Exception e) {
@@ -814,26 +816,26 @@ public class BulkUploadService {
                 statesCatalog.setReportDate(java.time.LocalDate.now());
             }
             
-            statesCatalog.setViews(getCellValueAsInteger(row.getCell(1)));
-            statesCatalog.setSubscribers(getCellValueAsInteger(row.getCell(2)));
-            statesCatalog.setInteractions(getCellValueAsInteger(row.getCell(3)));
-            statesCatalog.setTotalContent(getCellValueAsInteger(row.getCell(4)));
-            statesCatalog.setReach(getCellValueAsInteger(row.getCell(5)));
-            statesCatalog.setImpressions(getCellValueAsInteger(row.getCell(6)));
-            statesCatalog.setProfileVisits(getCellValueAsInteger(row.getCell(7)));
-            statesCatalog.setWebsiteClicks(getCellValueAsInteger(row.getCell(8)));
-            statesCatalog.setEmailClicks(getCellValueAsInteger(row.getCell(9)));
-            statesCatalog.setCallClicks(getCellValueAsInteger(row.getCell(10)));
-            statesCatalog.setFollowersGained(getCellValueAsInteger(row.getCell(11)));
-            statesCatalog.setFollowersLost(getCellValueAsInteger(row.getCell(12)));
-            statesCatalog.setReelsCount(getCellValueAsInteger(row.getCell(13)));
-            statesCatalog.setStoriesCount(getCellValueAsInteger(row.getCell(14)));
+            statesCatalog.setViews(getCellValueAsIntegerSafe(row.getCell(1)));
+            statesCatalog.setSubscribers(getCellValueAsIntegerSafe(row.getCell(2)));
+            statesCatalog.setInteractions(getCellValueAsIntegerSafe(row.getCell(3)));
+            statesCatalog.setTotalContent(getCellValueAsIntegerSafe(row.getCell(4)));
+            statesCatalog.setReach(getCellValueAsIntegerSafe(row.getCell(5)));
+            statesCatalog.setImpressions(getCellValueAsIntegerSafe(row.getCell(6)));
+            statesCatalog.setProfileVisits(getCellValueAsIntegerSafe(row.getCell(7)));
+            statesCatalog.setWebsiteClicks(getCellValueAsIntegerSafe(row.getCell(8)));
+            statesCatalog.setEmailClicks(getCellValueAsIntegerSafe(row.getCell(9)));
+            statesCatalog.setCallClicks(getCellValueAsIntegerSafe(row.getCell(10)));
+            statesCatalog.setFollowersGained(getCellValueAsIntegerSafe(row.getCell(11)));
+            statesCatalog.setFollowersLost(getCellValueAsIntegerSafe(row.getCell(12)));
+            statesCatalog.setReelsCount(getCellValueAsIntegerSafe(row.getCell(13)));
+            statesCatalog.setStoriesCount(getCellValueAsIntegerSafe(row.getCell(14)));
             
             Cell engagementCell = row.getCell(15);
             if (engagementCell != null) {
-                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.valueOf(getCellValueAsDouble(engagementCell)));
+                statesCatalog.setAvgEngagementRate(BigDecimal.valueOf(getCellValueAsDoubleSafe(engagementCell)));
             } else {
-                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+                statesCatalog.setAvgEngagementRate(BigDecimal.ZERO);
             }
             
         } catch (Exception e) {
@@ -855,26 +857,26 @@ public class BulkUploadService {
                 statesCatalog.setReportDate(java.time.LocalDate.now());
             }
             
-            statesCatalog.setViews(getMapValueAsInteger(map, "views"));
-            statesCatalog.setSubscribers(getMapValueAsInteger(map, "subscribers"));
-            statesCatalog.setInteractions(getMapValueAsInteger(map, "interactions"));
-            statesCatalog.setTotalContent(getMapValueAsInteger(map, "totalContent"));
-            statesCatalog.setReach(getMapValueAsInteger(map, "reach"));
-            statesCatalog.setImpressions(getMapValueAsInteger(map, "impressions"));
-            statesCatalog.setProfileVisits(getMapValueAsInteger(map, "profileVisits"));
-            statesCatalog.setWebsiteClicks(getMapValueAsInteger(map, "websiteClicks"));
-            statesCatalog.setEmailClicks(getMapValueAsInteger(map, "emailClicks"));
-            statesCatalog.setCallClicks(getMapValueAsInteger(map, "callClicks"));
-            statesCatalog.setFollowersGained(getMapValueAsInteger(map, "followersGained"));
-            statesCatalog.setFollowersLost(getMapValueAsInteger(map, "followersLost"));
-            statesCatalog.setReelsCount(getMapValueAsInteger(map, "reelsCount"));
-            statesCatalog.setStoriesCount(getMapValueAsInteger(map, "storiesCount"));
+            statesCatalog.setViews(getMapValueAsIntegerSafe(map, "views"));
+            statesCatalog.setSubscribers(getMapValueAsIntegerSafe(map, "subscribers"));
+            statesCatalog.setInteractions(getMapValueAsIntegerSafe(map, "interactions"));
+            statesCatalog.setTotalContent(getMapValueAsIntegerSafe(map, "totalContent"));
+            statesCatalog.setReach(getMapValueAsIntegerSafe(map, "reach"));
+            statesCatalog.setImpressions(getMapValueAsIntegerSafe(map, "impressions"));
+            statesCatalog.setProfileVisits(getMapValueAsIntegerSafe(map, "profileVisits"));
+            statesCatalog.setWebsiteClicks(getMapValueAsIntegerSafe(map, "websiteClicks"));
+            statesCatalog.setEmailClicks(getMapValueAsIntegerSafe(map, "emailClicks"));
+            statesCatalog.setCallClicks(getMapValueAsIntegerSafe(map, "callClicks"));
+            statesCatalog.setFollowersGained(getMapValueAsIntegerSafe(map, "followersGained"));
+            statesCatalog.setFollowersLost(getMapValueAsIntegerSafe(map, "followersLost"));
+            statesCatalog.setReelsCount(getMapValueAsIntegerSafe(map, "reelsCount"));
+            statesCatalog.setStoriesCount(getMapValueAsIntegerSafe(map, "storiesCount"));
             
             Object avgEngagementRateObj = map.get("avgEngagementRate");
             if (avgEngagementRateObj != null) {
-                statesCatalog.setAvgEngagementRate(new java.math.BigDecimal(avgEngagementRateObj.toString()));
+                statesCatalog.setAvgEngagementRate(new BigDecimal(avgEngagementRateObj.toString()));
             } else {
-                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+                statesCatalog.setAvgEngagementRate(BigDecimal.ZERO);
             }
             
         } catch (Exception e) {
@@ -882,5 +884,79 @@ public class BulkUploadService {
         }
         
         return statesCatalog;
+    }
+
+    // Helper methods for safe parsing
+    private Integer parseIntegerSafe(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private BigDecimal parseBigDecimalSafe(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(value.trim());
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private Integer getCellValueAsIntegerSafe(Cell cell) {
+        if (cell == null) {
+            return 0;
+        }
+        try {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return (int) cell.getNumericCellValue();
+            } else if (cell.getCellType() == CellType.STRING) {
+                String value = cell.getStringCellValue().trim();
+                return value.isEmpty() ? 0 : Integer.parseInt(value);
+            }
+        } catch (Exception e) {
+            // Return 0 for any parsing errors
+        }
+        return 0;
+    }
+
+    private Double getCellValueAsDoubleSafe(Cell cell) {
+        if (cell == null) {
+            return 0.0;
+        }
+        try {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return cell.getNumericCellValue();
+            } else if (cell.getCellType() == CellType.STRING) {
+                String value = cell.getStringCellValue().trim();
+                return value.isEmpty() ? 0.0 : Double.parseDouble(value);
+            }
+        } catch (Exception e) {
+            // Return 0.0 for any parsing errors
+        }
+        return 0.0;
+    }
+
+    private Integer getMapValueAsIntegerSafe(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) {
+            return 0;
+        }
+        try {
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            } else {
+                String strValue = value.toString().trim();
+                return strValue.isEmpty() ? 0 : Integer.parseInt(strValue);
+            }
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }
