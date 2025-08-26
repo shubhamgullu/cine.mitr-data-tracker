@@ -1,5 +1,59 @@
 /* Custom CSS for Cine Mitr */
 
+/* Multi-Media Catalog Names Styles */
+.multi-media-container {
+    position: relative;
+}
+
+.selected-media-names {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+}
+
+.media-name-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.media-name-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #007bff;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.media-name-tag .remove-tag {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    padding: 0;
+    font-size: 0.875rem;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.media-name-tag .remove-tag:hover {
+    opacity: 1;
+}
+
+.media-name-tag.new-media {
+    background: #28a745;
+}
+
+.media-name-tag.existing-media {
+    background: #007bff;
+}
+
 /* Global Styles */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

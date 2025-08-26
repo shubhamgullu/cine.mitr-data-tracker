@@ -328,13 +328,29 @@ public class InstagramLinkController {
                                   @RequestParam(required = false) String uploadContentStatus,
                                   RedirectAttributes redirectAttributes) {
         try {
-            // Check if media catalog with this name exists, if not create it
-            ensureMediaCatalogExists(mediaCatalogName, mediaCatalogType);
+            // Parse multiple media catalog names (comma-separated)
+            String[] mediaNames = mediaCatalogName.split(",");
+            StringBuilder processedNames = new StringBuilder();
+            int createdCount = 0;
             
+            // Ensure all media catalogs exist
+            for (String name : mediaNames) {
+                String cleanName = name.trim();
+                if (!cleanName.isEmpty()) {
+                    ensureMediaCatalogExists(cleanName, mediaCatalogType);
+                    if (processedNames.length() > 0) {
+                        processedNames.append(",");
+                    }
+                    processedNames.append(cleanName);
+                    createdCount++;
+                }
+            }
+            
+            // Create content catalog with all media names
             ContentCatalog contentCatalog = new ContentCatalog();
             contentCatalog.setLink(link);
             contentCatalog.setMediaCatalogType(ContentCatalog.MediaType.valueOf(mediaCatalogType.toUpperCase().replace("-", "_")));
-            contentCatalog.setMediaCatalogName(mediaCatalogName);
+            contentCatalog.setMediaCatalogName(processedNames.toString());
             contentCatalog.setStatus(ContentCatalog.ContentStatus.valueOf(status.toUpperCase().replace("-", "_")));
             
             String priorityValue = priority != null ? priority : "MEDIUM";
@@ -368,7 +384,10 @@ public class InstagramLinkController {
             contentCatalogRepository.save(savedContentCatalog);
             uploadCatalogRepository.save(savedUploadCatalog);
             
-            redirectAttributes.addFlashAttribute("success", "Content catalog entry saved successfully! Linked upload record created automatically.");
+            String successMessage = createdCount > 1 
+                ? "Content catalog entry saved successfully with " + createdCount + " media catalogs! Linked upload record created automatically."
+                : "Content catalog entry saved successfully! Linked upload record created automatically.";
+            redirectAttributes.addFlashAttribute("success", successMessage);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving content catalog: " + e.getMessage());
         }
@@ -392,13 +411,28 @@ public class InstagramLinkController {
         try {
             Optional<ContentCatalog> optionalContent = contentCatalogRepository.findById(id);
             if (optionalContent.isPresent()) {
-                // Check if media catalog with this name exists, if not create it
-                ensureMediaCatalogExists(mediaCatalogName, mediaCatalogType);
+                // Parse multiple media catalog names (comma-separated)
+                String[] mediaNames = mediaCatalogName.split(",");
+                StringBuilder processedNames = new StringBuilder();
+                int createdCount = 0;
+                
+                // Ensure all media catalogs exist
+                for (String name : mediaNames) {
+                    String cleanName = name.trim();
+                    if (!cleanName.isEmpty()) {
+                        ensureMediaCatalogExists(cleanName, mediaCatalogType);
+                        if (processedNames.length() > 0) {
+                            processedNames.append(",");
+                        }
+                        processedNames.append(cleanName);
+                        createdCount++;
+                    }
+                }
                 
                 ContentCatalog contentCatalog = optionalContent.get();
                 contentCatalog.setLink(link);
                 contentCatalog.setMediaCatalogType(ContentCatalog.MediaType.valueOf(mediaCatalogType.toUpperCase().replace("-", "_")));
-                contentCatalog.setMediaCatalogName(mediaCatalogName);
+                contentCatalog.setMediaCatalogName(processedNames.toString());
                 contentCatalog.setStatus(ContentCatalog.ContentStatus.valueOf(status.toUpperCase().replace("-", "_")));
                 
                 String priorityValue = priority != null ? priority : "MEDIUM";

@@ -381,18 +381,38 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="mediaCatalogName" class="form-label">Media Catalog Name</label>
-                                    <div class="position-relative">
-                                        <input type="text" 
-                                               class="form-control" 
+                                    <label for="mediaCatalogName" class="form-label">Media Catalog Names</label>
+                                    <div class="multi-media-container">
+                                        <!-- Selected Media Names Display -->
+                                        <div id="selectedMediaNames" class="selected-media-names mb-2" style="display: none;">
+                                            <small class="text-muted mb-1 d-block">Selected Media:</small>
+                                            <div id="mediaNameTags" class="media-name-tags"></div>
+                                        </div>
+                                        
+                                        <!-- Input for adding new media names -->
+                                        <div class="position-relative">
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="mediaCatalogNameInput" 
+                                                   placeholder="Type to search or enter media name, then press Enter" 
+                                                   autocomplete="off">
+                                            <div id="mediaCatalogNameDropdown" class="dropdown-menu" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1000;"></div>
+                                        </div>
+                                        
+                                        <!-- Hidden input to store the actual values -->
+                                        <input type="hidden" 
                                                id="mediaCatalogName" 
-                                               name="mediaCatalogName"
-                                               placeholder="Type to search or enter new name" 
-                                               autocomplete="off"
-                                               required>
-                                        <div id="mediaCatalogNameDropdown" class="dropdown-menu" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1000;"></div>
+                                               name="mediaCatalogName">
                                     </div>
-                                    <small class="form-text text-muted">Start typing to see existing names or enter a new one</small>
+                                    
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Type media names and press Enter to add multiple. You can search existing names or add new ones.
+                                        <span id="multiMediaLoadingStatus" style="display: none;">
+                                            <br><i class="fas fa-spinner fa-spin me-1"></i>Loading media catalog suggestions...
+                                        </span>
+                                    </small>
+                                    
                                     <div id="mediaCatalogNameStatus" class="mt-1" style="display: none;">
                                         <small class="text-info">
                                             <i class="fas fa-info-circle me-1"></i>
@@ -1707,10 +1727,29 @@
         function showAddContentForm() {
             hideRecentRecordsSections();
             const form = document.getElementById('contentCatalogForm');
+            if (!form) {
+                console.error('Content catalog form not found');
+                return;
+            }
+            
             form.style.display = 'block';
             form.reset();
+            
+            // Reset multi-media functionality for add mode
+            resetMultiMediaForm();
+            
+            // Initialize after form is visible and DOM is ready
+            setTimeout(() => {
+                const input = document.getElementById('mediaCatalogNameInput');
+                if (input) {
+                    initializeMediaCatalogNameAutocomplete();
+                    console.log('Multi-media functionality initialized');
+                } else {
+                    console.error('Media catalog input not found, form may not be properly structured');
+                }
+            }, 150);
+            
             form.scrollIntoView({ behavior: 'smooth' });
-            initializeMediaCatalogNameAutocomplete();
         }
 
         function hideContentForm() {
@@ -1720,6 +1759,9 @@
             // Reset form to add mode
             form.action = '/dashboard/content-catalog';
             form.reset();
+            
+            // Reset multi-media functionality
+            resetMultiMediaForm();
             
             // Reset button text
             const submitButton = form.querySelector('button[type="submit"]');
@@ -1814,7 +1856,23 @@
                     // Populate form fields with existing data
                     document.getElementById('contentLink').value = content.link || '';
                     document.getElementById('mediaCatalogType').value = content.mediaCatalogType?.toLowerCase().replace('_', '-') || '';
-                    document.getElementById('mediaCatalogName').value = content.mediaCatalogName || '';
+                    
+                    // Handle multiple media catalog names
+                    if (content.mediaCatalogName) {
+                        const mediaNames = content.mediaCatalogName.split(',');
+                        selectedMediaNames = mediaNames.map(name => name.trim()).filter(name => name !== '');
+                        updateMediaNameTags();
+                        updateHiddenInput();
+                        
+                        // Show selected names container if there are names
+                        if (selectedMediaNames.length > 0) {
+                            const container = document.getElementById('selectedMediaNames');
+                            if (container) {
+                                container.style.display = 'block';
+                            }
+                        }
+                    }
+                    
                     document.getElementById('contentStatus').value = content.status?.toLowerCase().replace('_', '-') || '';
                     document.getElementById('contentPriority').value = content.priority?.toLowerCase() || 'medium';
                     document.getElementById('contentLocation').value = content.location || '';
@@ -2332,106 +2390,286 @@
             }, 5000);
         }
         
-        // Media Catalog Name Autocomplete Functionality
+        // Multi-Media Catalog Name Functionality
         let mediaCatalogNames = [];
+        let selectedMediaNames = [];
         let isNewMediaCatalog = false;
 
         function initializeMediaCatalogNameAutocomplete() {
+            // Show loading status
+            const loadingStatus = document.getElementById('multiMediaLoadingStatus');
+            if (loadingStatus) {
+                loadingStatus.style.display = 'inline';
+            }
+            
             // Fetch existing media catalog names
             fetch('/api/media-catalog/names')
                 .then(response => response.json())
                 .then(names => {
                     mediaCatalogNames = names;
-                    setupAutocomplete();
+                    setupMultiMediaAutocomplete();
+                    setupContentFormValidation();
+                    
+                    // Hide loading status
+                    if (loadingStatus) {
+                        loadingStatus.style.display = 'none';
+                    }
+                    
+                    console.log('Loaded', names.length, 'media catalog names');
                 })
-                .catch(error => console.error('Error fetching media catalog names:', error));
+                .catch(error => {
+                    console.error('Error fetching media catalog names:', error);
+                    // Hide loading status on error
+                    if (loadingStatus) {
+                        loadingStatus.style.display = 'none';
+                    }
+                    updateStatusMessage('Failed to load existing media names. You can still add new ones.', 'warning');
+                });
         }
 
-        function setupAutocomplete() {
-            const input = document.getElementById('mediaCatalogName');
+        let contentFormValidationSetup = false;
+        
+        function setupContentFormValidation() {
+            const form = document.getElementById('contentCatalogForm');
+            if (!form || contentFormValidationSetup) return;
+
+            form.addEventListener('submit', function(e) {
+                if (selectedMediaNames.length === 0) {
+                    e.preventDefault();
+                    updateStatusMessage('Please select at least one media catalog name.', 'warning');
+                    
+                    // Focus on the input field
+                    const input = document.getElementById('mediaCatalogNameInput');
+                    if (input) {
+                        input.focus();
+                    }
+                    
+                    return false;
+                }
+                return true;
+            });
+            
+            contentFormValidationSetup = true;
+        }
+
+        function setupMultiMediaAutocomplete() {
+            const input = document.getElementById('mediaCatalogNameInput');
             const dropdown = document.getElementById('mediaCatalogNameDropdown');
             
-            if (!input || !dropdown) return;
-
-            input.addEventListener('input', function() {
-                const value = this.value.toLowerCase().trim();
-                dropdown.innerHTML = '';
+            if (!input || !dropdown) {
+                console.warn('Multi-media input elements not found, retrying...');
+                return;
+            }
+            
+            // Remove existing event listeners to prevent duplicates
+            input.replaceWith(input.cloneNode(true));
+            const newInput = document.getElementById('mediaCatalogNameInput');
+            
+            // Handle input for autocomplete
+            newInput.addEventListener('input', function() {
+                const value = this.value.trim().toLowerCase();
                 
-                if (value.length < 1) {
+                if (value.length === 0) {
                     dropdown.classList.remove('show');
-                    clearStatusMessage();
                     return;
                 }
-
-                const filteredNames = mediaCatalogNames.filter(name => 
-                    name.toLowerCase().includes(value)
+                
+                // Filter matching names that haven't been selected yet
+                const matches = mediaCatalogNames.filter(name => 
+                    name.toLowerCase().includes(value) && 
+                    !selectedMediaNames.includes(name)
                 );
-
-                if (filteredNames.length > 0) {
-                    filteredNames.forEach(name => {
+                
+                dropdown.innerHTML = '';
+                
+                if (matches.length > 0) {
+                    matches.forEach(name => {
                         const item = document.createElement('button');
                         item.className = 'dropdown-item';
                         item.type = 'button';
                         item.textContent = name;
                         item.addEventListener('click', function(e) {
                             e.preventDefault();
-                            input.value = name;
-                            dropdown.classList.remove('show');
-                            isNewMediaCatalog = false;
-                            updateStatusMessage(`Using existing: "${name}"`, 'success');
-                            updateMediaTypeFromExisting(name);
+                            selectMediaFromDropdown(name);
                         });
                         dropdown.appendChild(item);
                     });
-                    
-                    // Check if current value exactly matches any existing name
-                    const exactMatch = mediaCatalogNames.find(name => 
-                        name.toLowerCase() === value
-                    );
-                    isNewMediaCatalog = !exactMatch;
-                    
-                    if (exactMatch) {
-                        updateStatusMessage(`Using existing: "${exactMatch}"`, 'success');
-                    } else {
-                        updateStatusMessage(`Will create new: "${input.value}"`, 'warning');
-                    }
-                    
                     dropdown.classList.add('show');
                 } else {
-                    // No matches found - this will be a new entry
-                    isNewMediaCatalog = true;
-                    const newItem = document.createElement('button');
-                    newItem.className = 'dropdown-item text-success';
-                    newItem.type = 'button';
-                    newItem.innerHTML = `<small><i class="fas fa-plus me-2"></i>Create new: "${input.value}"</small>`;
-                    newItem.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        // Keep the current value in the input (it's already there)
-                        dropdown.classList.remove('show');
-                        isNewMediaCatalog = true;
-                        updateStatusMessage(`Will create new: "${input.value}"`, 'warning');
-                    });
-                    dropdown.appendChild(newItem);
-                    dropdown.classList.add('show');
-                }
-            });
-
-            // Hide dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
                     dropdown.classList.remove('show');
                 }
             });
-
-            // Hide dropdown on escape key
-            input.addEventListener('keydown', function(e) {
+            
+            // Handle Enter key and comma separation
+            newInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const value = this.value.trim();
+                    if (value && !selectedMediaNames.includes(value)) {
+                        addMediaName(value);
+                        this.value = '';
+                        dropdown.classList.remove('show');
+                    }
+                }
+                
+                // Handle backspace when input is empty to remove last tag
+                if (e.key === 'Backspace' && this.value === '' && selectedMediaNames.length > 0) {
+                    removeMediaName(selectedMediaNames[selectedMediaNames.length - 1]);
+                }
+                
+                // Hide dropdown on escape key
                 if (e.key === 'Escape') {
                     dropdown.classList.remove('show');
                 }
             });
+            
+            // Hide dropdown when clicking outside (use event delegation to avoid duplicates)
+            if (!document.hasAttribute('data-multimedia-click-handler')) {
+                document.addEventListener('click', function(e) {
+                    const activeDropdown = document.getElementById('mediaCatalogNameDropdown');
+                    const activeInput = document.getElementById('mediaCatalogNameInput');
+                    
+                    if (activeDropdown && activeInput && 
+                        !activeInput.contains(e.target) && 
+                        !activeDropdown.contains(e.target)) {
+                        activeDropdown.classList.remove('show');
+                    }
+                });
+                document.setAttribute('data-multimedia-click-handler', 'true');
+            }
+        }
+
+        function selectMediaFromDropdown(name) {
+            addMediaName(name);
+            const input = document.getElementById('mediaCatalogNameInput');
+            if (input) {
+                input.value = '';
+            }
+            const dropdown = document.getElementById('mediaCatalogNameDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        function addMediaName(name) {
+            const cleanName = name.trim();
+            if (!cleanName || selectedMediaNames.includes(cleanName)) {
+                return;
+            }
+            
+            selectedMediaNames.push(cleanName);
+            updateMediaNameTags();
+            updateHiddenInput();
+            
+            // Show selected names container if it's the first item
+            if (selectedMediaNames.length === 1) {
+                const container = document.getElementById('selectedMediaNames');
+                if (container) {
+                    container.style.display = 'block';
+                }
+            }
+            
+            updateStatusMessage(`Added: "${cleanName}"`, 'success');
+        }
+
+        function removeMediaName(name) {
+            const index = selectedMediaNames.indexOf(name);
+            if (index > -1) {
+                selectedMediaNames.splice(index, 1);
+                updateMediaNameTags();
+                updateHiddenInput();
+                
+                // Hide selected names container if empty
+                if (selectedMediaNames.length === 0) {
+                    const container = document.getElementById('selectedMediaNames');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                }
+                
+                updateStatusMessage(`Removed: "${name}"`, 'info');
+            }
+        }
+
+        function updateMediaNameTags() {
+            const tagsContainer = document.getElementById('mediaNameTags');
+            if (!tagsContainer) return;
+            
+            tagsContainer.innerHTML = selectedMediaNames.map(name => {
+                const isExisting = mediaCatalogNames.includes(name);
+                const tagClass = isExisting ? 'existing-media' : 'new-media';
+                const tagTitle = isExisting ? 'Existing media' : 'New media (will be created)';
+                
+                return `
+                    <div class="media-name-tag ${tagClass}" title="${tagTitle}">
+                        ${name}
+                        <button type="button" class="remove-tag" onclick="removeMediaName('${name}')" title="Remove">×</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateHiddenInput() {
+            const hiddenInput = document.getElementById('mediaCatalogName');
+            if (hiddenInput) {
+                hiddenInput.value = selectedMediaNames.join(',');
+            }
+        }
+
+        function updateStatusMessage(message, type) {
+            const statusDiv = document.getElementById('mediaCatalogNameStatus');
+            
+            if (statusDiv) {
+                statusDiv.style.display = 'block';
+                
+                if (type === 'success') {
+                    statusDiv.innerHTML = `<small class="text-success"><i class="fas fa-check-circle me-1"></i><span>${message}</span></small>`;
+                } else if (type === 'warning') {
+                    statusDiv.innerHTML = `<small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i><span>${message}</span></small>`;
+                } else if (type === 'info') {
+                    statusDiv.innerHTML = `<small class="text-info"><i class="fas fa-info-circle me-1"></i><span>${message}</span></small>`;
+                }
+                
+                // Auto-hide success/info messages after 3 seconds
+                if (type === 'success' || type === 'info') {
+                    setTimeout(() => {
+                        if (statusDiv) {
+                            statusDiv.style.display = 'none';
+                        }
+                    }, 3000);
+                }
+            }
+        }
+
+        function clearStatusMessage() {
+            const statusDiv = document.getElementById('mediaCatalogNameStatus');
+            if (statusDiv) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        // Reset multi-media form
+        function resetMultiMediaForm() {
+            selectedMediaNames = [];
+            updateMediaNameTags();
+            updateHiddenInput();
+            
+            const container = document.getElementById('selectedMediaNames');
+            if (container) {
+                container.style.display = 'none';
+            }
+            
+            const input = document.getElementById('mediaCatalogNameInput');
+            if (input) {
+                input.value = '';
+            }
+            
+            clearStatusMessage();
         }
 
         function updateMediaTypeFromExisting(mediaName) {
+            if (!mediaName) return;
+            
             // Fetch media catalog details to auto-fill media type
             fetch(`/api/media-catalog/search?name=${encodeURIComponent(mediaName)}`)
                 .then(response => response.json())

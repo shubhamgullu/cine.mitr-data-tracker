@@ -13,7 +13,7 @@ public class ContentCatalog extends BaseEntity {
     @Column(name = "media_catalog_type", nullable = false)
     private MediaType mediaCatalogType;
     
-    @Column(name = "media_catalog_name", nullable = false)
+    @Column(name = "media_catalog_name", nullable = false, columnDefinition = "TEXT")
     private String mediaCatalogName;
     
     @Enumerated(EnumType.STRING)
@@ -162,5 +162,69 @@ public class ContentCatalog extends BaseEntity {
     
     public void setLinkedUploadCatalogId(Long linkedUploadCatalogId) {
         this.linkedUploadCatalogId = linkedUploadCatalogId;
+    }
+    
+    // Helper methods for multiple media catalog names
+    public String[] getMediaCatalogNameArray() {
+        if (mediaCatalogName == null || mediaCatalogName.trim().isEmpty()) {
+            return new String[0];
+        }
+        return mediaCatalogName.split(",");
+    }
+    
+    public void setMediaCatalogNameArray(String[] names) {
+        if (names == null || names.length == 0) {
+            this.mediaCatalogName = "";
+            return;
+        }
+        
+        // Clean and join the names
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i].trim();
+            if (!name.isEmpty()) {
+                if (sb.length() > 0) {
+                    sb.append(",");
+                }
+                sb.append(name);
+            }
+        }
+        this.mediaCatalogName = sb.toString();
+    }
+    
+    public void addMediaCatalogName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return;
+        }
+        
+        String cleanName = name.trim();
+        if (mediaCatalogName == null || mediaCatalogName.trim().isEmpty()) {
+            this.mediaCatalogName = cleanName;
+        } else {
+            // Check if name already exists
+            String[] existing = getMediaCatalogNameArray();
+            for (String existingName : existing) {
+                if (existingName.trim().equalsIgnoreCase(cleanName)) {
+                    return; // Already exists, don't add duplicate
+                }
+            }
+            this.mediaCatalogName += "," + cleanName;
+        }
+    }
+    
+    public boolean hasMediaCatalogName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+        
+        String[] names = getMediaCatalogNameArray();
+        String cleanName = name.trim();
+        
+        for (String existingName : names) {
+            if (existingName.trim().equalsIgnoreCase(cleanName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
