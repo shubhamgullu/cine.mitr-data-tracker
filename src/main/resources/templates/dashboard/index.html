@@ -797,8 +797,63 @@
                 <!-- States Catalog Tab -->
                 <div class="tab-content" id="states-catalog">
                     <div class="form-container">
-                        <h2 class="section-title">States Catalog - User Analytics</h2>
-                        <form class="entry-form">
+                        <!-- Action Bar -->
+                        <div class="action-bar mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="section-title mb-0">States Catalog - User Analytics</h2>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-primary me-2" onclick="showAddStatesForm()">
+                                        <i class="fas fa-plus me-2"></i>Add New Entry
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateStatesForm()">
+                                        <i class="fas fa-edit me-2"></i>Update Existing
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="refreshStatesTable()">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- States Table Container -->
+                        <div class="table-container mb-4" id="statesTableContainer">
+                            <div class="table-header">
+                                <h3 class="table-title">Analytics Records</h3>
+                                <div class="table-controls">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="showBulkDeleteConfirmation('states')" id="statesBulkDeleteBtn" disabled>
+                                        <i class="fas fa-trash-alt me-2"></i>Delete Selected (<span id="statesSelectedCount">0</span>)
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="data-table" id="statesTable">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="statesSelectAll" onchange="toggleAllStatesSelection()"></th>
+                                            <th>ID</th>
+                                            <th>Views</th>
+                                            <th>Subscribers</th>
+                                            <th>Interactions</th>
+                                            <th>Reach</th>
+                                            <th>Engagement Rate</th>
+                                            <th>Followers Gained</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="statesTableBody">
+                                        <tr>
+                                            <td colspan="10" class="text-center">Loading...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Form (Initially Hidden) -->
+                        <div id="statesFormContainer" style="display: none;">
+                        <form th:action="@{/dashboard/states-catalog}" method="post" class="entry-form" id="statesForm">
                             <!-- Basic Metrics -->
                             <div class="form-row">
                                 <div class="form-group">
@@ -955,10 +1010,16 @@
                                        max="100">
                             </div>
 
-                            <button type="submit" class="btn-save">
-                                Save States Catalog Entry
-                            </button>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn btn-success me-2" id="statesSaveBtn">
+                                    <i class="fas fa-save me-2"></i>Save States Catalog Entry
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="hideStatesForm()">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
                         </form>
+                        </div>
                     </div>
                 </div>
 
@@ -3300,7 +3361,24 @@
             updateBulkActions();
         }
         
-        function showBulkDeleteConfirmation() {
+        function showBulkDeleteConfirmation(type = null) {
+            if (type === 'states') {
+                // Handle states catalog bulk delete
+                if (selectedStatesIds.length === 0) {
+                    alert('Please select records to delete.');
+                    return;
+                }
+                
+                const confirmMessage = `Are you sure you want to delete ${selectedStatesIds.length} selected States Catalog records?\n\n` +
+                    `This action cannot be undone.`;
+                
+                if (confirm(confirmMessage)) {
+                    performStatessBulkDelete();
+                }
+                return;
+            }
+            
+            // Handle existing bulk delete functionality
             const mediaChecked = document.querySelectorAll('.media-checkbox:checked');
             const contentChecked = document.querySelectorAll('.content-checkbox:checked');
             const uploadChecked = document.querySelectorAll('.upload-checkbox:checked');
@@ -3673,6 +3751,206 @@
         
         // Export dashboard functions globally
         window.refreshDashboard = refreshDashboard;
+
+        // ===== STATES CATALOG FUNCTIONS =====
+        
+        let statesData = [];
+        let selectedStatesIds = [];
+        
+        function refreshStatesTable() {
+            const tableBody = document.getElementById('statesTableBody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '<tr><td colspan="10" class="text-center">Loading...</td></tr>';
+            
+            fetch('/dashboard/api/states-catalog')
+                .then(response => response.json())
+                .then(data => {
+                    statesData = data;
+                    populateStatesTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching states catalog data:', error);
+                    tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading data</td></tr>';
+                });
+        }
+        
+        function populateStatesTable(data) {
+            const tableBody = document.getElementById('statesTableBody');
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="10" class="text-center">No analytics records found</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = data.map(states => `
+                <tr>
+                    <td><input type="checkbox" value="${states.id}" onchange="updateStatesSelection()"></td>
+                    <td>${states.id}</td>
+                    <td>${formatNumber(states.views)}</td>
+                    <td>${formatNumber(states.subscribers)}</td>
+                    <td>${formatNumber(states.interactions)}</td>
+                    <td>${formatNumber(states.reach)}</td>
+                    <td>${states.avgEngagementRate}%</td>
+                    <td>${formatNumber(states.followersGained)}</td>
+                    <td>${formatDate(states.createdOn)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                onclick="editStatesRecord(${states.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function showAddStatesForm() {
+            const container = document.getElementById('statesFormContainer');
+            const form = document.getElementById('statesForm');
+            const saveBtn = document.getElementById('statesSaveBtn');
+            
+            if (container && form && saveBtn) {
+                container.style.display = 'block';
+                form.action = '/dashboard/states-catalog';
+                form.reset();
+                saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save States Catalog Entry';
+                
+                // Scroll to form
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        function showUpdateStatesForm() {
+            showAddStatesForm();
+        }
+        
+        function hideStatesForm() {
+            const container = document.getElementById('statesFormContainer');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+        
+        function editStatesRecord(id) {
+            const states = statesData.find(s => s.id === id);
+            if (!states) return;
+            
+            // Show form container
+            const container = document.getElementById('statesFormContainer');
+            const form = document.getElementById('statesForm');
+            const saveBtn = document.getElementById('statesSaveBtn');
+            
+            if (container && form && saveBtn) {
+                container.style.display = 'block';
+                
+                // Populate form fields
+                document.getElementById('views').value = states.views || 0;
+                document.getElementById('subscribers').value = states.subscribers || 0;
+                document.getElementById('interactions').value = states.interactions || 0;
+                document.getElementById('totalContent').value = states.totalContent || 0;
+                document.getElementById('reach').value = states.reach || 0;
+                document.getElementById('impressions').value = states.impressions || 0;
+                document.getElementById('profileVisits').value = states.profileVisits || 0;
+                document.getElementById('websiteClicks').value = states.websiteClicks || 0;
+                document.getElementById('emailClicks').value = states.emailClicks || 0;
+                document.getElementById('callClicks').value = states.callClicks || 0;
+                document.getElementById('followersGained').value = states.followersGained || 0;
+                document.getElementById('followersLost').value = states.followersLost || 0;
+                document.getElementById('reelsCount').value = states.reelsCount || 0;
+                document.getElementById('storiesCount').value = states.storiesCount || 0;
+                document.getElementById('avgEngagementRate').value = states.avgEngagementRate || 0;
+                
+                // Update form action and button text
+                form.action = `/dashboard/states-catalog/${id}/edit`;
+                saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Update States Catalog Entry';
+                
+                // Scroll to form
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        function updateStatesSelection() {
+            const checkboxes = document.querySelectorAll('#statesTable tbody input[type="checkbox"]');
+            const selectAllCheckbox = document.getElementById('statesSelectAll');
+            const selectedCountEl = document.getElementById('statesSelectedCount');
+            const bulkDeleteBtn = document.getElementById('statesBulkDeleteBtn');
+            
+            selectedStatesIds = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value));
+            
+            if (selectedCountEl) selectedCountEl.textContent = selectedStatesIds.length;
+            if (bulkDeleteBtn) bulkDeleteBtn.disabled = selectedStatesIds.length === 0;
+            
+            // Update "select all" checkbox state
+            if (selectAllCheckbox) {
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        }
+        
+        function toggleAllStatesSelection() {
+            const selectAllCheckbox = document.getElementById('statesSelectAll');
+            const checkboxes = document.querySelectorAll('#statesTable tbody input[type="checkbox"]');
+            
+            checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            updateStatesSelection();
+        }
+        
+        function formatNumber(num) {
+            return num ? num.toLocaleString() : '0';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString();
+        }
+        
+        // Initialize states table when states catalog tab becomes active
+        document.addEventListener('DOMContentLoaded', function() {
+            const statesTabBtn = document.querySelector('[data-tab="states-catalog"]');
+            if (statesTabBtn) {
+                statesTabBtn.addEventListener('click', function() {
+                    setTimeout(refreshStatesTable, 100);
+                });
+            }
+        });
+        
+        function performStatessBulkDelete() {
+            if (selectedStatesIds.length === 0) return;
+            
+            fetch('/dashboard/api/states-catalog/bulk-delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedStatesIds)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    selectedStatesIds = [];
+                    refreshStatesTable();
+                    updateStatesSelection();
+                } else if (data.error) {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting records:', error);
+                alert('Error occurred while deleting records. Please try again.');
+            });
+        }
+        
+        // Export states functions globally
+        window.refreshStatesTable = refreshStatesTable;
+        window.showAddStatesForm = showAddStatesForm;
+        window.showUpdateStatesForm = showUpdateStatesForm;
+        window.hideStatesForm = hideStatesForm;
     </script>
 </body>
 </html>

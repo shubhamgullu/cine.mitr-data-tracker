@@ -13,6 +13,8 @@ import com.cinemitr.service.MovieInstagramLinkService;
 import com.cinemitr.service.BulkUploadService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +25,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import java.util.Optional;
+
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/dashboard")
@@ -1066,7 +1066,7 @@ public class InstagramLinkController {
         try {
             if (ids == null || ids.isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No IDs provided for deletion"));
+                    .body(createMap("error", "No IDs provided for deletion"));
             }
             
             long deletedCount = 0;
@@ -1078,11 +1078,11 @@ public class InstagramLinkController {
             }
             
             return ResponseEntity.ok()
-                .body(Map.of("message", "Successfully deleted " + deletedCount + " media catalog records"));
+                .body(createMap("message", "Successfully deleted " + deletedCount + " media catalog records"));
                 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error deleting media catalog records: " + e.getMessage()));
+                .body(createMap("error", "Error deleting media catalog records: " + e.getMessage()));
         }
     }
     
@@ -1092,7 +1092,7 @@ public class InstagramLinkController {
         try {
             if (ids == null || ids.isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No IDs provided for deletion"));
+                    .body(createMap("error", "No IDs provided for deletion"));
             }
             
             long deletedCount = 0;
@@ -1110,11 +1110,11 @@ public class InstagramLinkController {
             }
             
             return ResponseEntity.ok()
-                .body(Map.of("message", "Successfully deleted " + deletedCount + " content catalog records"));
+                .body(createMap("message", "Successfully deleted " + deletedCount + " content catalog records"));
                 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error deleting content catalog records: " + e.getMessage()));
+                .body(createMap("error", "Error deleting content catalog records: " + e.getMessage()));
         }
     }
     
@@ -1124,7 +1124,7 @@ public class InstagramLinkController {
         try {
             if (ids == null || ids.isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "No IDs provided for deletion"));
+                    .body(createMap("error", "No IDs provided for deletion"));
             }
             
             long deletedCount = 0;
@@ -1142,11 +1142,153 @@ public class InstagramLinkController {
             }
             
             return ResponseEntity.ok()
-                .body(Map.of("message", "Successfully deleted " + deletedCount + " upload catalog records"));
+                .body(createMap("message", "Successfully deleted " + deletedCount + " upload catalog records"));
                 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error deleting upload catalog records: " + e.getMessage()));
+                .body(createMap("error", "Error deleting upload catalog records: " + e.getMessage()));
         }
+    }
+    
+    // ===== STATES CATALOG ENDPOINTS =====
+    
+    @PostMapping("/states-catalog")
+    public String addStatesCatalog(@RequestParam Integer views,
+                                 @RequestParam Integer subscribers,
+                                 @RequestParam Integer interactions,
+                                 @RequestParam Integer totalContent,
+                                 @RequestParam Integer reach,
+                                 @RequestParam Integer impressions,
+                                 @RequestParam Integer profileVisits,
+                                 @RequestParam Integer websiteClicks,
+                                 @RequestParam Integer emailClicks,
+                                 @RequestParam Integer callClicks,
+                                 @RequestParam Integer followersGained,
+                                 @RequestParam Integer followersLost,
+                                 @RequestParam Integer reelsCount,
+                                 @RequestParam Integer storiesCount,
+                                 @RequestParam BigDecimal avgEngagementRate,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            StatesCatalog statesCatalog = new StatesCatalog();
+            statesCatalog.setViews(views);
+            statesCatalog.setSubscribers(subscribers);
+            statesCatalog.setInteractions(interactions);
+            statesCatalog.setTotalContent(totalContent);
+            statesCatalog.setReach(reach);
+            statesCatalog.setImpressions(impressions);
+            statesCatalog.setProfileVisits(profileVisits);
+            statesCatalog.setWebsiteClicks(websiteClicks);
+            statesCatalog.setEmailClicks(emailClicks);
+            statesCatalog.setCallClicks(callClicks);
+            statesCatalog.setFollowersGained(followersGained);
+            statesCatalog.setFollowersLost(followersLost);
+            statesCatalog.setReelsCount(reelsCount);
+            statesCatalog.setStoriesCount(storiesCount);
+            statesCatalog.setAvgEngagementRate(avgEngagementRate);
+            
+            statesCatalogRepository.save(statesCatalog);
+            redirectAttributes.addFlashAttribute("success", "States catalog entry saved successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error saving states catalog: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/states-catalog/{id}/edit")
+    public String updateStatesCatalog(@PathVariable Long id,
+                                    @RequestParam Integer views,
+                                    @RequestParam Integer subscribers,
+                                    @RequestParam Integer interactions,
+                                    @RequestParam Integer totalContent,
+                                    @RequestParam Integer reach,
+                                    @RequestParam Integer impressions,
+                                    @RequestParam Integer profileVisits,
+                                    @RequestParam Integer websiteClicks,
+                                    @RequestParam Integer emailClicks,
+                                    @RequestParam Integer callClicks,
+                                    @RequestParam Integer followersGained,
+                                    @RequestParam Integer followersLost,
+                                    @RequestParam Integer reelsCount,
+                                    @RequestParam Integer storiesCount,
+                                    @RequestParam BigDecimal avgEngagementRate,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            Optional<StatesCatalog> optionalStates = statesCatalogRepository.findById(id);
+            if (optionalStates.isPresent()) {
+                StatesCatalog statesCatalog = optionalStates.get();
+                statesCatalog.setViews(views);
+                statesCatalog.setSubscribers(subscribers);
+                statesCatalog.setInteractions(interactions);
+                statesCatalog.setTotalContent(totalContent);
+                statesCatalog.setReach(reach);
+                statesCatalog.setImpressions(impressions);
+                statesCatalog.setProfileVisits(profileVisits);
+                statesCatalog.setWebsiteClicks(websiteClicks);
+                statesCatalog.setEmailClicks(emailClicks);
+                statesCatalog.setCallClicks(callClicks);
+                statesCatalog.setFollowersGained(followersGained);
+                statesCatalog.setFollowersLost(followersLost);
+                statesCatalog.setReelsCount(reelsCount);
+                statesCatalog.setStoriesCount(storiesCount);
+                statesCatalog.setAvgEngagementRate(avgEngagementRate);
+                statesCatalog.setUpdatedBy("system");
+                
+                statesCatalogRepository.save(statesCatalog);
+                redirectAttributes.addFlashAttribute("success", "States catalog updated successfully!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "States catalog not found!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating states catalog: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    // API endpoint for States Catalog data
+    @GetMapping("/api/states-catalog")
+    @ResponseBody
+    public ResponseEntity<List<StatesCatalog>> getStatesCatalog() {
+        try {
+            List<StatesCatalog> statesList = statesCatalogRepository.findAllOrderByCreatedOnDesc();
+            return ResponseEntity.ok(statesList);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+    
+    @DeleteMapping("/api/states-catalog/bulk-delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> bulkDeleteStatesCatalog(@RequestBody List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(createMap("error", "No IDs provided for deletion"));
+            }
+            
+            long deletedCount = 0;
+            for (Long id : ids) {
+                if (statesCatalogRepository.existsById(id)) {
+                    statesCatalogRepository.deleteById(id);
+                    deletedCount++;
+                }
+            }
+            
+            return ResponseEntity.ok()
+                .body(createMap("message", "Successfully deleted " + deletedCount + " states catalog records"));
+                
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createMap("error", "Error deleting states catalog records: " + e.getMessage()));
+        }
+    }
+    
+    // Helper method for Java 8 compatibility (Map.of() is Java 9+)
+    private Map<String, String> createMap(String key, String value) {
+        Map<String, String> map = new HashMap<>();
+        map.put(key, value);
+        return map;
     }
 }

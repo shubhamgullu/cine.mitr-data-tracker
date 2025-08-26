@@ -1,6 +1,6 @@
 # Cine Mitr - Comprehensive Media Catalog Management System
 
-A modern, comprehensive media catalog management system built with Spring Boot, Thymeleaf, and Bootstrap. Cine Mitr provides a centralized dashboard to manage media catalogs, content tracking, upload operations, user analytics, and Instagram links with advanced search and CRUD functionality.
+A modern, comprehensive media catalog management system built with Spring Boot, Thymeleaf, and Bootstrap. Cine Mitr provides a centralized dashboard to manage media catalogs, content tracking, upload operations, user analytics, and Instagram links with advanced search, CRUD functionality, and real-time table management.
 
 ## 🎬 Features
 
@@ -8,7 +8,7 @@ A modern, comprehensive media catalog management system built with Spring Boot, 
 - **Media Catalog**: Manage movies, albums, web series, documentaries with platform details, download status, and metadata
 - **Content Catalog**: Track content links with status management, priority levels, and upload integration
 - **Upload Catalog**: Handle upload operations with content linking and status tracking
-- **States Catalog**: Comprehensive user analytics including views, subscribers, engagement metrics
+- **States Catalog**: Comprehensive user analytics with interactive table interface, bulk operations, and engagement metrics tracking
 - **Instagram Link Management**: Traditional Instagram link management with category organization
 
 ### 🎨 Enhanced User Experience
@@ -21,11 +21,14 @@ A modern, comprehensive media catalog management system built with Spring Boot, 
 
 ### ⚡ Advanced Functionality
 - **CRUD Operations**: Full Create, Read, Update, Delete operations for all catalogs
+- **Interactive Tables**: Real-time table management with sort, search, and bulk operations
+- **Bulk Operations**: Multi-select delete functionality across all catalog types
 - **Search & Filter**: Advanced search functionality with multiple filter criteria
 - **Real-time Updates**: AJAX-powered interactions for seamless user experience
 - **Analytics Tracking**: Comprehensive tracking for views, clicks, and engagement metrics
 - **Database Integration**: JPA/Hibernate with H2 database and complete audit trail
 - **Form Validation**: Client and server-side validation with proper error handling
+- **Java 8 Compatibility**: Backward compatible implementation with proper error handling
 
 ## 🛠️ Technology Stack
 
@@ -143,13 +146,17 @@ Once the application starts successfully:
    - Bulk upload operations support
 
 4. **States Catalog Tab** (`/dashboard/states-catalog`)
-   - Comprehensive analytics dashboard
-   - Views, subscribers, and interactions tracking
-   - Reach and impressions metrics
-   - Profile visits and contact clicks
-   - Follower growth analysis
-   - Content performance metrics (reels, stories)
-   - Engagement rate calculations
+   - **Interactive Table Interface**: Real-time table with sortable columns and bulk selection
+   - **Analytics Management**: Complete CRUD operations for analytics entries
+   - **Bulk Operations**: Multi-select delete functionality with confirmation
+   - **Views, subscribers, and interactions tracking**
+   - **Reach and impressions metrics**
+   - **Profile visits and contact clicks monitoring**
+   - **Follower growth analysis** (gained/lost tracking)
+   - **Content performance metrics** (reels, stories count)
+   - **Engagement rate calculations** with percentage display
+   - **Add/Edit Forms**: Collapsible forms with all analytics fields
+   - **Real-time Updates**: AJAX-powered table refresh and data management
 
 5. **Dashboard Tab** (`/dashboard`)
    - Instagram link management
@@ -328,11 +335,11 @@ mvn clean test jacoco:report
 - `DELETE /api/upload-catalog/{id}` - Delete upload catalog entry
 
 #### States Catalog API
-- `GET /api/states-catalog` - List all analytics entries
-- `GET /api/states-catalog/{id}` - Get specific analytics entry
-- `POST /api/states-catalog` - Create new analytics entry
-- `PUT /api/states-catalog/{id}` - Update analytics entry
-- `DELETE /api/states-catalog/{id}` - Delete analytics entry
+- `GET /api/states-catalog` - List all analytics entries with sorting
+- `POST /dashboard/states-catalog` - Create new analytics entry
+- `POST /dashboard/states-catalog/{id}/edit` - Update existing analytics entry
+- `DELETE /api/states-catalog/bulk-delete` - Bulk delete analytics entries
+- `GET /dashboard/states-catalog` - Direct tab access with table interface
 
 #### Direct Tab Access Endpoints
 - `GET /dashboard/media-catalog` - Open directly to Media Catalog tab
@@ -353,6 +360,31 @@ mvn clean test jacoco:report
 - **SQL Injection Prevention**: JPA/Hibernate parameter binding
 - **XSS Protection**: Thymeleaf automatic HTML escaping
 - **Input Sanitization**: Proper data validation and sanitization
+
+## 📋 Recent Updates
+
+### v1.2.0 - Enhanced States Catalog & Fixes (Latest)
+- ✅ **States Catalog Table Interface**: Complete table functionality similar to Media Catalog
+- ✅ **Interactive Analytics Management**: Add/Edit/Delete operations with real-time updates
+- ✅ **Bulk Operations**: Multi-select delete functionality for analytics entries
+- ✅ **Java 8 Compatibility**: Fixed `Map.of()` compilation errors with custom helper methods
+- ✅ **Enhanced API Endpoints**: Added REST API endpoints for States Catalog operations
+- ✅ **Improved UX**: Consistent interface pattern across all catalog types
+- ✅ **Form Validation**: Enhanced client-side and server-side validation
+- ✅ **Error Handling**: Improved error messaging and exception handling
+
+### Key Technical Fixes
+- Fixed Java 8 compatibility issues by replacing `Map.of()` with custom `createMap()` helper
+- Added missing BigDecimal import for States Catalog controller
+- Enhanced repository methods for States Catalog with proper sorting
+- Implemented bulk delete API endpoints for all catalog types
+- Added real-time table refresh and AJAX functionality
+
+### Development Improvements
+- Added comprehensive logging configuration ready
+- Updated SQL scripts for States Catalog table operations
+- Enhanced form handling with proper validation and error display
+- Improved table responsiveness and mobile compatibility
 
 ## 🐛 Troubleshooting
 

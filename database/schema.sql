@@ -79,6 +79,7 @@ CREATE TABLE content_catalog (
     like_states VARCHAR(20),
     comment_states TEXT,
     upload_content_status VARCHAR(50),
+    linked_upload_catalog_id BIGINT,
     created_by VARCHAR(100) DEFAULT 'system',
     updated_by VARCHAR(100) DEFAULT 'system',
     created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -89,7 +90,8 @@ CREATE TABLE content_catalog (
     INDEX idx_content_type (media_catalog_type),
     INDEX idx_content_name (media_catalog_name),
     INDEX idx_content_priority (priority),
-    INDEX idx_content_created_on (created_on)
+    INDEX idx_content_created_on (created_on),
+    INDEX idx_linked_upload (linked_upload_catalog_id)
 );
 
 -- =============================================================================
@@ -99,12 +101,14 @@ CREATE TABLE content_catalog (
 CREATE TABLE upload_catalog (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     content_catalog_link VARCHAR(500) NOT NULL,
+    content_block VARCHAR(255),
     media_catalog_type VARCHAR(50) NOT NULL,
     media_catalog_name VARCHAR(255) NOT NULL,
     content_catalog_location VARCHAR(500),
     upload_catalog_location VARCHAR(500),
     upload_status VARCHAR(50) NOT NULL,
     upload_catalog_caption TEXT,
+    linked_content_catalog_id BIGINT,
     created_by VARCHAR(100) DEFAULT 'system',
     updated_by VARCHAR(100) DEFAULT 'system',
     created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -114,7 +118,8 @@ CREATE TABLE upload_catalog (
     INDEX idx_upload_status (upload_status),
     INDEX idx_upload_type (media_catalog_type),
     INDEX idx_upload_name (media_catalog_name),
-    INDEX idx_upload_created_on (created_on)
+    INDEX idx_upload_created_on (created_on),
+    INDEX idx_linked_content (linked_content_catalog_id)
 );
 
 -- =============================================================================

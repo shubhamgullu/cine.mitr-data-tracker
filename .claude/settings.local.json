@@ -3,7 +3,11 @@
     "allow": [
       "Bash(rmdir:*)",
       "Bash(./mvnw:*)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "Bash(java:*)",
+      "Bash(dir)",
+      "Bash(where mvn)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
