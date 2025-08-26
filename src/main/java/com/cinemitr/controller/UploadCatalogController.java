@@ -77,8 +77,71 @@ public class UploadCatalogController {
     }
     
     @GetMapping("/search")
-    public List<UploadCatalog> searchUploadCatalogs(@RequestParam String name) {
-        return uploadCatalogRepository.findByMediaCatalogNameContainingIgnoreCaseOrderByCreatedOnDesc(name);
+    public ResponseEntity<List<UploadCatalog>> searchUploadCatalogs(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String link) {
+        try {
+            System.out.println("Upload catalog search - name: " + name + ", type: " + type + ", status: " + status + ", link: " + link);
+            
+            List<UploadCatalog> results = uploadCatalogRepository.findAll();
+            
+            // Apply filters
+            if (name != null && !name.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(upload -> upload.getMediaCatalogName() != null && 
+                            upload.getMediaCatalogName().toLowerCase().contains(name.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            if (type != null && !type.trim().isEmpty()) {
+                try {
+                    UploadCatalog.MediaType mediaType = UploadCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_"));
+                    results = results.stream()
+                        .filter(upload -> upload.getMediaCatalogType() == mediaType)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid upload media type: " + type);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            if (status != null && !status.trim().isEmpty()) {
+                try {
+                    UploadCatalog.UploadStatus uploadStatus = UploadCatalog.UploadStatus.valueOf(status.toUpperCase().replace("-", "_"));
+                    results = results.stream()
+                        .filter(upload -> upload.getUploadStatus() == uploadStatus)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid upload status: " + status);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            if (link != null && !link.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(upload -> upload.getContentCatalogLink() != null && 
+                            upload.getContentCatalogLink().toLowerCase().contains(link.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Sort by created date desc
+            results.sort((a, b) -> {
+                if (a.getCreatedOn() == null && b.getCreatedOn() == null) return 0;
+                if (a.getCreatedOn() == null) return 1;
+                if (b.getCreatedOn() == null) return -1;
+                return b.getCreatedOn().compareTo(a.getCreatedOn());
+            });
+            
+            System.out.println("Upload catalog search results count: " + results.size());
+            return ResponseEntity.ok(results);
+            
+        } catch (Exception e) {
+            System.err.println("Upload catalog search error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Collections.emptyList());
+        }
     }
     
     @GetMapping("/link")

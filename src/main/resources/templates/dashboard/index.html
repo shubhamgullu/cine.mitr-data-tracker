@@ -122,9 +122,14 @@
                                         <option value="partially-downloaded">Partially Downloaded</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <button type="button" class="btn btn-primary w-100" onclick="searchMedia()">
                                         <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearMediaFilters()" title="Clear All Filters">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
@@ -337,9 +342,14 @@
                                         <option value="high">High</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <button type="button" class="btn btn-primary w-100" onclick="searchContent()">
-                                        <i class="fas fa-search me-2"></i>Search Content
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearContentFilters()" title="Clear All Filters">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
@@ -597,6 +607,7 @@
                                 <div class="col-md-2">
                                     <select class="form-control" id="uploadSearchStatus">
                                         <option value="">All Status</option>
+                                        <option value="new">New</option>
                                         <option value="completed">Completed</option>
                                         <option value="in-progress">In Progress</option>
                                         <option value="uploaded">Uploaded</option>
@@ -605,9 +616,14 @@
                                 <div class="col-md-3">
                                     <input type="text" class="form-control" id="uploadSearchLink" placeholder="Search by link...">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <button type="button" class="btn btn-primary w-100" onclick="searchUpload()">
-                                        <i class="fas fa-search me-2"></i>Search
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearUploadFilters()" title="Clear All Filters">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
@@ -805,6 +821,9 @@
                                     <button type="button" class="btn btn-primary me-2" onclick="showAddStatesForm()">
                                         <i class="fas fa-plus me-2"></i>Add New Entry
                                     </button>
+                                    <button type="button" class="btn btn-success me-2" onclick="showBulkUploadModal('states')">
+                                        <i class="fas fa-file-upload me-2"></i>Bulk Upload
+                                    </button>
                                     <button type="button" class="btn btn-outline-primary me-2" onclick="showUpdateStatesForm()">
                                         <i class="fas fa-edit me-2"></i>Update Existing
                                     </button>
@@ -854,13 +873,26 @@
                         <!-- Add/Edit Form (Initially Hidden) -->
                         <div id="statesFormContainer" style="display: none;">
                         <form th:action="@{/dashboard/states-catalog}" method="post" class="entry-form" id="statesForm">
+                            <!-- Date Selection -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reportDate" class="form-label">Report Date</label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="reportDate" 
+                                           name="reportDate">
+                                    <small class="form-text text-muted">Select the date for this metrics report (allows backdate entries)</small>
+                                </div>
+                            </div>
+                            
                             <!-- Basic Metrics -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="views" class="form-label">Views</label>
                                     <input type="number" 
                                            class="form-control" 
-                                           id="views" 
+                                           id="views"
+                                           name="views"
                                            placeholder="Total views count" 
                                            min="0">
                                 </div>
@@ -869,7 +901,8 @@
                                     <label for="subscribers" class="form-label">Subscribers</label>
                                     <input type="number" 
                                            class="form-control" 
-                                           id="subscribers" 
+                                           id="subscribers"
+                                           name="subscribers"
                                            placeholder="Total subscribers" 
                                            min="0">
                                 </div>
@@ -880,7 +913,8 @@
                                     <label for="interactions" class="form-label">Interactions</label>
                                     <input type="number" 
                                            class="form-control" 
-                                           id="interactions" 
+                                           id="interactions"
+                                           name="interactions"
                                            placeholder="Total interactions" 
                                            min="0">
                                 </div>
@@ -889,7 +923,8 @@
                                     <label for="totalContent" class="form-label">Total Content</label>
                                     <input type="number" 
                                            class="form-control" 
-                                           id="totalContent" 
+                                           id="totalContent"
+                                           name="totalContent"
                                            placeholder="Total content pieces" 
                                            min="0">
                                 </div>
@@ -1551,19 +1586,46 @@
             const type = document.getElementById('mediaSearchType').value;
             const status = document.getElementById('mediaSearchStatus').value;
             
+            console.log('Media search params:', { name, type, status });
+            
             // Call API or refresh page with search parameters
             const params = new URLSearchParams();
             if (name) params.append('name', name);
             if (type) params.append('type', type);
             if (status) params.append('status', status);
             
-            fetch(`/api/media-catalog/search?${params.toString()}`)
-                .then(response => response.json())
+            const url = `/api/media-catalog/search?${params.toString()}`;
+            console.log('Media search URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Media search response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Media search results:', data);
                     // Update the recent records table with search results
                     updateMediaRecordsTable(data);
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Media search error:', error);
+                    updateMediaRecordsTable([]);
+                });
+        }
+
+        function clearMediaFilters() {
+            // Clear all input fields
+            document.getElementById('mediaSearchName').value = '';
+            document.getElementById('mediaSearchType').value = '';
+            document.getElementById('mediaSearchStatus').value = '';
+            
+            // Refresh to show all results
+            refreshRecentMedia();
+            
+            console.log('Media filters cleared - showing all results');
         }
 
         function refreshRecentMedia() {
@@ -1686,16 +1748,46 @@
             const status = document.getElementById('contentSearchStatus').value;
             const priority = document.getElementById('contentSearchPriority').value;
             
+            console.log('Content search params:', { name, type, status, priority });
+            
             const params = new URLSearchParams();
             if (name) params.append('name', name);
             if (type) params.append('type', type);
             if (status) params.append('status', status);
             if (priority) params.append('priority', priority);
             
-            fetch(`/api/content-catalog/search?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => updateContentRecordsTable(data))
-                .catch(error => console.error('Error:', error));
+            const url = `/api/content-catalog/search?${params.toString()}`;
+            console.log('Content search URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Content search response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Content search results:', data);
+                    updateContentRecordsTable(data);
+                })
+                .catch(error => {
+                    console.error('Content search error:', error);
+                    updateContentRecordsTable([]);
+                });
+        }
+
+        function clearContentFilters() {
+            // Clear all input fields
+            document.getElementById('contentSearchName').value = '';
+            document.getElementById('contentSearchType').value = '';
+            document.getElementById('contentSearchStatus').value = '';
+            document.getElementById('contentSearchPriority').value = '';
+            
+            // Refresh to show all results
+            refreshRecentContent();
+            
+            console.log('Content filters cleared - showing all results');
         }
 
         function refreshRecentContent() {
@@ -1820,16 +1912,48 @@
             const name = document.getElementById('uploadSearchName')?.value || '';
             const type = document.getElementById('uploadSearchType')?.value || '';
             const status = document.getElementById('uploadSearchStatus')?.value || '';
+            const link = document.getElementById('uploadSearchLink')?.value || '';
+            
+            console.log('Upload search params:', { name, type, status, link });
             
             const params = new URLSearchParams();
             if (name) params.append('name', name);
             if (type) params.append('type', type);
             if (status) params.append('status', status);
+            if (link) params.append('link', link);
             
-            fetch(`/api/upload-catalog/search?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => updateUploadRecordsTable(data))
-                .catch(error => console.error('Error:', error));
+            const url = `/api/upload-catalog/search?${params.toString()}`;
+            console.log('Upload search URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Upload search response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Upload search results:', data);
+                    updateUploadRecordsTable(data);
+                })
+                .catch(error => {
+                    console.error('Upload search error:', error);
+                    updateUploadRecordsTable([]);
+                });
+        }
+
+        function clearUploadFilters() {
+            // Clear all input fields
+            document.getElementById('uploadSearchName').value = '';
+            document.getElementById('uploadSearchType').value = '';
+            document.getElementById('uploadSearchStatus').value = '';
+            document.getElementById('uploadSearchLink').value = '';
+            
+            // Refresh to show all results
+            refreshRecentUpload();
+            
+            console.log('Upload filters cleared - showing all results');
         }
 
         function refreshRecentUpload() {
@@ -2816,6 +2940,13 @@
             // Initialize upload edit form handler
             initializeUploadEditForm();
             
+            // Set default date to today for states catalog report date
+            const reportDateField = document.getElementById('reportDate');
+            if (reportDateField) {
+                const today = new Date().toISOString().split('T')[0];
+                reportDateField.value = today;
+            }
+            
             // Initialize bulk upload form handler
             initializeBulkUploadForm();
             
@@ -3203,6 +3334,18 @@
                         <i class="fas fa-file-csv me-2"></i>Download CSV Template
                     </a>
                     <a href="/dashboard/templates/media-catalog/json" class="btn btn-outline-success btn-sm mb-2">
+                        <i class="fas fa-file-code me-2"></i>Download JSON Template
+                    </a>
+                `;
+            } else if (type === 'states') {
+                title.textContent = 'Bulk Upload - States Catalog';
+                form.action = '/dashboard/bulk-upload/states-catalog';
+                
+                templateButtons.innerHTML = `
+                    <a href="/dashboard/templates/states-catalog/csv" class="btn btn-outline-primary btn-sm mb-2">
+                        <i class="fas fa-file-csv me-2"></i>Download CSV Template
+                    </a>
+                    <a href="/dashboard/templates/states-catalog/json" class="btn btn-outline-success btn-sm mb-2">
                         <i class="fas fa-file-code me-2"></i>Download JSON Template
                     </a>
                 `;

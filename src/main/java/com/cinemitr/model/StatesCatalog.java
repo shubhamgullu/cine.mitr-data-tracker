@@ -2,10 +2,15 @@ package com.cinemitr.model;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "states_catalog")
 public class StatesCatalog extends BaseEntity {
+    
+    // Report Date (allows backdate entries)
+    @Column(name = "report_date")
+    private LocalDate reportDate;
     
     // Basic Metrics
     @Column(name = "views")
@@ -61,6 +66,14 @@ public class StatesCatalog extends BaseEntity {
     public StatesCatalog() {}
     
     // Getters and Setters
+    public LocalDate getReportDate() {
+        return reportDate;
+    }
+    
+    public void setReportDate(LocalDate reportDate) {
+        this.reportDate = reportDate;
+    }
+    
     public Integer getViews() {
         return views;
     }

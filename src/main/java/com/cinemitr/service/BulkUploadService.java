@@ -2,9 +2,11 @@ package com.cinemitr.service;
 
 import com.cinemitr.model.ContentCatalog;
 import com.cinemitr.model.MediaCatalog;
+import com.cinemitr.model.StatesCatalog;
 import com.cinemitr.model.UploadCatalog;
 import com.cinemitr.repository.ContentCatalogRepository;
 import com.cinemitr.repository.MediaCatalogRepository;
+import com.cinemitr.repository.StatesCatalogRepository;
 import com.cinemitr.repository.UploadCatalogRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,9 @@ public class BulkUploadService {
 
     @Autowired
     private MediaCatalogRepository mediaCatalogRepository;
+
+    @Autowired
+    private StatesCatalogRepository statesCatalogRepository;
 
     public Map<String, Object> processContentCatalogBulkUpload(MultipartFile file) throws IOException {
         Map<String, Object> result = new HashMap<>();
@@ -650,5 +655,232 @@ public class BulkUploadService {
         }
         
         return result.toString();
+    }
+
+    public Map<String, Object> processStatesCatalogBulkUpload(MultipartFile file) throws IOException {
+        Map<String, Object> result = new HashMap<>();
+        List<StatesCatalog> successList = new ArrayList<>();
+        List<String> errorList = new ArrayList<>();
+        
+        String fileName = file.getOriginalFilename();
+        
+        try {
+            if (fileName.endsWith(".csv")) {
+                processStatesCatalogCSV(file, successList, errorList);
+            } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+                processStatesCatalogExcel(file, successList, errorList);
+            } else if (fileName.endsWith(".json")) {
+                processStatesCatalogJSON(file, successList, errorList);
+            } else {
+                throw new IllegalArgumentException("Unsupported file format. Please use CSV, Excel, or JSON files.");
+            }
+            
+            // Save successful entries
+            for (StatesCatalog statesCatalog : successList) {
+                try {
+                    statesCatalogRepository.save(statesCatalog);
+                } catch (Exception e) {
+                    errorList.add("Failed to save states catalog record: " + e.getMessage());
+                }
+            }
+            
+        } catch (Exception e) {
+            errorList.add("Processing error: " + e.getMessage());
+        }
+        
+        result.put("successCount", successList.size());
+        result.put("errorCount", errorList.size());
+        result.put("errors", errorList);
+        
+        return result;
+    }
+
+    private void processStatesCatalogCSV(MultipartFile file, List<StatesCatalog> successList, List<String> errorList) throws IOException {
+        try (CSVReader csvReader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
+            List<String[]> records = csvReader.readAll();
+            
+            if (records.size() <= 1) {
+                errorList.add("CSV file appears to be empty or has only headers");
+                return;
+            }
+            
+            // Skip header row
+            for (int i = 1; i < records.size(); i++) {
+                String[] record = records.get(i);
+                try {
+                    StatesCatalog statesCatalog = createStatesCatalogFromRecord(record, i + 1);
+                    successList.add(statesCatalog);
+                } catch (Exception e) {
+                    errorList.add("Row " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            errorList.add("CSV processing error: " + e.getMessage());
+        }
+    }
+
+    private void processStatesCatalogExcel(MultipartFile file, List<StatesCatalog> successList, List<String> errorList) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // Skip header row
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    try {
+                        StatesCatalog statesCatalog = createStatesCatalogFromRow(row, i + 1);
+                        successList.add(statesCatalog);
+                    } catch (Exception e) {
+                        errorList.add("Row " + (i + 1) + ": " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorList.add("Excel processing error: " + e.getMessage());
+        }
+    }
+
+    private void processStatesCatalogJSON(MultipartFile file, List<StatesCatalog> successList, List<String> errorList) throws IOException {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> jsonData = mapper.readValue(file.getInputStream(), new TypeReference<List<Map<String, Object>>>() {});
+            
+            for (int i = 0; i < jsonData.size(); i++) {
+                try {
+                    StatesCatalog statesCatalog = createStatesCatalogFromMap(jsonData.get(i), i + 1);
+                    successList.add(statesCatalog);
+                } catch (Exception e) {
+                    errorList.add("Record " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            errorList.add("JSON processing error: " + e.getMessage());
+        }
+    }
+
+    private StatesCatalog createStatesCatalogFromRecord(String[] record, int rowNumber) {
+        if (record.length < 15) {
+            throw new RuntimeException("Insufficient columns. Expected 15+ columns for states catalog data");
+        }
+        
+        StatesCatalog statesCatalog = new StatesCatalog();
+        
+        try {
+            // Parse each field with proper error handling
+            if (record[0] != null && !record[0].trim().isEmpty()) {
+                statesCatalog.setReportDate(java.time.LocalDate.parse(record[0]));
+            } else {
+                statesCatalog.setReportDate(java.time.LocalDate.now());
+            }
+            
+            statesCatalog.setViews(parseInteger(record[1], "views"));
+            statesCatalog.setSubscribers(parseInteger(record[2], "subscribers"));
+            statesCatalog.setInteractions(parseInteger(record[3], "interactions"));
+            statesCatalog.setTotalContent(parseInteger(record[4], "totalContent"));
+            statesCatalog.setReach(parseInteger(record[5], "reach"));
+            statesCatalog.setImpressions(parseInteger(record[6], "impressions"));
+            statesCatalog.setProfileVisits(parseInteger(record[7], "profileVisits"));
+            statesCatalog.setWebsiteClicks(parseInteger(record[8], "websiteClicks"));
+            statesCatalog.setEmailClicks(parseInteger(record[9], "emailClicks"));
+            statesCatalog.setCallClicks(parseInteger(record[10], "callClicks"));
+            statesCatalog.setFollowersGained(parseInteger(record[11], "followersGained"));
+            statesCatalog.setFollowersLost(parseInteger(record[12], "followersLost"));
+            statesCatalog.setReelsCount(parseInteger(record[13], "reelsCount"));
+            statesCatalog.setStoriesCount(parseInteger(record[14], "storiesCount"));
+            
+            if (record.length > 15) {
+                statesCatalog.setAvgEngagementRate(parseBigDecimal(record[15], "avgEngagementRate"));
+            } else {
+                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+            }
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing row data: " + e.getMessage());
+        }
+        
+        return statesCatalog;
+    }
+
+    private StatesCatalog createStatesCatalogFromRow(Row row, int rowNumber) {
+        StatesCatalog statesCatalog = new StatesCatalog();
+        
+        try {
+            // Parse date from first cell
+            Cell dateCell = row.getCell(0);
+            if (dateCell != null && dateCell.getCellType() == CellType.STRING && !dateCell.getStringCellValue().trim().isEmpty()) {
+                statesCatalog.setReportDate(java.time.LocalDate.parse(dateCell.getStringCellValue()));
+            } else if (dateCell != null && dateCell.getCellType() == CellType.NUMERIC) {
+                statesCatalog.setReportDate(dateCell.getLocalDateTimeCellValue().toLocalDate());
+            } else {
+                statesCatalog.setReportDate(java.time.LocalDate.now());
+            }
+            
+            statesCatalog.setViews(getCellValueAsInteger(row.getCell(1)));
+            statesCatalog.setSubscribers(getCellValueAsInteger(row.getCell(2)));
+            statesCatalog.setInteractions(getCellValueAsInteger(row.getCell(3)));
+            statesCatalog.setTotalContent(getCellValueAsInteger(row.getCell(4)));
+            statesCatalog.setReach(getCellValueAsInteger(row.getCell(5)));
+            statesCatalog.setImpressions(getCellValueAsInteger(row.getCell(6)));
+            statesCatalog.setProfileVisits(getCellValueAsInteger(row.getCell(7)));
+            statesCatalog.setWebsiteClicks(getCellValueAsInteger(row.getCell(8)));
+            statesCatalog.setEmailClicks(getCellValueAsInteger(row.getCell(9)));
+            statesCatalog.setCallClicks(getCellValueAsInteger(row.getCell(10)));
+            statesCatalog.setFollowersGained(getCellValueAsInteger(row.getCell(11)));
+            statesCatalog.setFollowersLost(getCellValueAsInteger(row.getCell(12)));
+            statesCatalog.setReelsCount(getCellValueAsInteger(row.getCell(13)));
+            statesCatalog.setStoriesCount(getCellValueAsInteger(row.getCell(14)));
+            
+            Cell engagementCell = row.getCell(15);
+            if (engagementCell != null) {
+                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.valueOf(getCellValueAsDouble(engagementCell)));
+            } else {
+                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+            }
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing Excel row: " + e.getMessage());
+        }
+        
+        return statesCatalog;
+    }
+
+    private StatesCatalog createStatesCatalogFromMap(Map<String, Object> map, int recordNumber) {
+        StatesCatalog statesCatalog = new StatesCatalog();
+        
+        try {
+            // Parse report date
+            Object reportDateObj = map.get("reportDate");
+            if (reportDateObj != null && !reportDateObj.toString().trim().isEmpty()) {
+                statesCatalog.setReportDate(java.time.LocalDate.parse(reportDateObj.toString()));
+            } else {
+                statesCatalog.setReportDate(java.time.LocalDate.now());
+            }
+            
+            statesCatalog.setViews(getMapValueAsInteger(map, "views"));
+            statesCatalog.setSubscribers(getMapValueAsInteger(map, "subscribers"));
+            statesCatalog.setInteractions(getMapValueAsInteger(map, "interactions"));
+            statesCatalog.setTotalContent(getMapValueAsInteger(map, "totalContent"));
+            statesCatalog.setReach(getMapValueAsInteger(map, "reach"));
+            statesCatalog.setImpressions(getMapValueAsInteger(map, "impressions"));
+            statesCatalog.setProfileVisits(getMapValueAsInteger(map, "profileVisits"));
+            statesCatalog.setWebsiteClicks(getMapValueAsInteger(map, "websiteClicks"));
+            statesCatalog.setEmailClicks(getMapValueAsInteger(map, "emailClicks"));
+            statesCatalog.setCallClicks(getMapValueAsInteger(map, "callClicks"));
+            statesCatalog.setFollowersGained(getMapValueAsInteger(map, "followersGained"));
+            statesCatalog.setFollowersLost(getMapValueAsInteger(map, "followersLost"));
+            statesCatalog.setReelsCount(getMapValueAsInteger(map, "reelsCount"));
+            statesCatalog.setStoriesCount(getMapValueAsInteger(map, "storiesCount"));
+            
+            Object avgEngagementRateObj = map.get("avgEngagementRate");
+            if (avgEngagementRateObj != null) {
+                statesCatalog.setAvgEngagementRate(new java.math.BigDecimal(avgEngagementRateObj.toString()));
+            } else {
+                statesCatalog.setAvgEngagementRate(java.math.BigDecimal.ZERO);
+            }
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing JSON data: " + e.getMessage());
+        }
+        
+        return statesCatalog;
     }
 }

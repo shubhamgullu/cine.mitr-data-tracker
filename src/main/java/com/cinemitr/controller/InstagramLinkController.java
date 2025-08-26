@@ -815,6 +815,25 @@ public class InstagramLinkController {
         }
     }
     
+    @GetMapping("/templates/states-catalog/{format}")
+    public ResponseEntity<Resource> downloadStatesCatalogTemplate(@PathVariable String format) {
+        try {
+            String fileName = "states_catalog_template." + format;
+            Resource resource = new ClassPathResource("static/templates/" + fileName);
+            
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     // ===== DASHBOARD METRICS API =====
     
     @GetMapping("/api/dashboard/metrics")
@@ -1046,6 +1065,40 @@ public class InstagramLinkController {
         }
     }
     
+    @GetMapping("/api/content-catalog/content-blocks")
+    @ResponseBody
+    public ResponseEntity<List<ContentCatalog>> searchContentBlocks(
+            @RequestParam(required = false) String search) {
+        try {
+            List<ContentCatalog> results = contentCatalogRepository.findAll();
+            
+            if (search != null && !search.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(content -> {
+                        // Search in multiple fields
+                        String searchLower = search.toLowerCase();
+                        return (content.getMediaCatalogName() != null && content.getMediaCatalogName().toLowerCase().contains(searchLower)) ||
+                               (content.getLink() != null && content.getLink().toLowerCase().contains(searchLower)) ||
+                               (content.getLocation() != null && content.getLocation().toLowerCase().contains(searchLower));
+                    })
+                    .collect(Collectors.toList());
+            }
+            
+            // Sort by created date desc and limit to 10 for dropdown
+            results.sort((a, b) -> {
+                if (a.getCreatedOn() == null && b.getCreatedOn() == null) return 0;
+                if (a.getCreatedOn() == null) return 1;
+                if (b.getCreatedOn() == null) return -1;
+                return b.getCreatedOn().compareTo(a.getCreatedOn());
+            });
+            
+            return ResponseEntity.ok(results.stream().limit(10).collect(Collectors.toList()));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+    
     @GetMapping("/api/upload-catalog") 
     @ResponseBody
     public ResponseEntity<List<UploadCatalog>> getUploadCatalog() {
@@ -1153,24 +1206,33 @@ public class InstagramLinkController {
     // ===== STATES CATALOG ENDPOINTS =====
     
     @PostMapping("/states-catalog")
-    public String addStatesCatalog(@RequestParam Integer views,
-                                 @RequestParam Integer subscribers,
-                                 @RequestParam Integer interactions,
-                                 @RequestParam Integer totalContent,
-                                 @RequestParam Integer reach,
-                                 @RequestParam Integer impressions,
-                                 @RequestParam Integer profileVisits,
-                                 @RequestParam Integer websiteClicks,
-                                 @RequestParam Integer emailClicks,
-                                 @RequestParam Integer callClicks,
-                                 @RequestParam Integer followersGained,
-                                 @RequestParam Integer followersLost,
-                                 @RequestParam Integer reelsCount,
-                                 @RequestParam Integer storiesCount,
-                                 @RequestParam BigDecimal avgEngagementRate,
+    public String addStatesCatalog(@RequestParam(required = false) String reportDate,
+                                 @RequestParam(required = false, defaultValue = "0") Integer views,
+                                 @RequestParam(required = false, defaultValue = "0") Integer subscribers,
+                                 @RequestParam(required = false, defaultValue = "0") Integer interactions,
+                                 @RequestParam(required = false, defaultValue = "0") Integer totalContent,
+                                 @RequestParam(required = false, defaultValue = "0") Integer reach,
+                                 @RequestParam(required = false, defaultValue = "0") Integer impressions,
+                                 @RequestParam(required = false, defaultValue = "0") Integer profileVisits,
+                                 @RequestParam(required = false, defaultValue = "0") Integer websiteClicks,
+                                 @RequestParam(required = false, defaultValue = "0") Integer emailClicks,
+                                 @RequestParam(required = false, defaultValue = "0") Integer callClicks,
+                                 @RequestParam(required = false, defaultValue = "0") Integer followersGained,
+                                 @RequestParam(required = false, defaultValue = "0") Integer followersLost,
+                                 @RequestParam(required = false, defaultValue = "0") Integer reelsCount,
+                                 @RequestParam(required = false, defaultValue = "0") Integer storiesCount,
+                                 @RequestParam(required = false, defaultValue = "0.0") BigDecimal avgEngagementRate,
                                  RedirectAttributes redirectAttributes) {
         try {
             StatesCatalog statesCatalog = new StatesCatalog();
+            
+            // Parse and set report date
+            if (reportDate != null && !reportDate.trim().isEmpty()) {
+                statesCatalog.setReportDate(java.time.LocalDate.parse(reportDate));
+            } else {
+                statesCatalog.setReportDate(java.time.LocalDate.now()); // Default to today
+            }
+            
             statesCatalog.setViews(views);
             statesCatalog.setSubscribers(subscribers);
             statesCatalog.setInteractions(interactions);
@@ -1198,26 +1260,33 @@ public class InstagramLinkController {
     
     @PostMapping("/states-catalog/{id}/edit")
     public String updateStatesCatalog(@PathVariable Long id,
-                                    @RequestParam Integer views,
-                                    @RequestParam Integer subscribers,
-                                    @RequestParam Integer interactions,
-                                    @RequestParam Integer totalContent,
-                                    @RequestParam Integer reach,
-                                    @RequestParam Integer impressions,
-                                    @RequestParam Integer profileVisits,
-                                    @RequestParam Integer websiteClicks,
-                                    @RequestParam Integer emailClicks,
-                                    @RequestParam Integer callClicks,
-                                    @RequestParam Integer followersGained,
-                                    @RequestParam Integer followersLost,
-                                    @RequestParam Integer reelsCount,
-                                    @RequestParam Integer storiesCount,
-                                    @RequestParam BigDecimal avgEngagementRate,
+                                    @RequestParam(required = false) String reportDate,
+                                    @RequestParam(required = false, defaultValue = "0") Integer views,
+                                    @RequestParam(required = false, defaultValue = "0") Integer subscribers,
+                                    @RequestParam(required = false, defaultValue = "0") Integer interactions,
+                                    @RequestParam(required = false, defaultValue = "0") Integer totalContent,
+                                    @RequestParam(required = false, defaultValue = "0") Integer reach,
+                                    @RequestParam(required = false, defaultValue = "0") Integer impressions,
+                                    @RequestParam(required = false, defaultValue = "0") Integer profileVisits,
+                                    @RequestParam(required = false, defaultValue = "0") Integer websiteClicks,
+                                    @RequestParam(required = false, defaultValue = "0") Integer emailClicks,
+                                    @RequestParam(required = false, defaultValue = "0") Integer callClicks,
+                                    @RequestParam(required = false, defaultValue = "0") Integer followersGained,
+                                    @RequestParam(required = false, defaultValue = "0") Integer followersLost,
+                                    @RequestParam(required = false, defaultValue = "0") Integer reelsCount,
+                                    @RequestParam(required = false, defaultValue = "0") Integer storiesCount,
+                                    @RequestParam(required = false, defaultValue = "0.0") BigDecimal avgEngagementRate,
                                     RedirectAttributes redirectAttributes) {
         try {
             Optional<StatesCatalog> optionalStates = statesCatalogRepository.findById(id);
             if (optionalStates.isPresent()) {
                 StatesCatalog statesCatalog = optionalStates.get();
+                
+                // Parse and set report date
+                if (reportDate != null && !reportDate.trim().isEmpty()) {
+                    statesCatalog.setReportDate(java.time.LocalDate.parse(reportDate));
+                }
+                
                 statesCatalog.setViews(views);
                 statesCatalog.setSubscribers(subscribers);
                 statesCatalog.setInteractions(interactions);
@@ -1242,6 +1311,37 @@ public class InstagramLinkController {
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error updating states catalog: " + e.getMessage());
+        }
+        
+        return "redirect:/dashboard";
+    }
+    
+    @PostMapping("/bulk-upload/states-catalog")
+    public String bulkUploadStatesCatalog(@RequestParam("file") MultipartFile file,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            if (file.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
+                return "redirect:/dashboard";
+            }
+
+            Map<String, Object> result = bulkUploadService.processStatesCatalogBulkUpload(file);
+            int successCount = (Integer) result.get("successCount");
+            int errorCount = (Integer) result.get("errorCount");
+            List<String> errors = (List<String>) result.get("errors");
+            
+            if (successCount > 0) {
+                redirectAttributes.addFlashAttribute("success", 
+                    String.format("Successfully uploaded %d states catalog records!", successCount));
+            }
+            
+            if (errorCount > 0) {
+                redirectAttributes.addFlashAttribute("warning", 
+                    String.format("Failed to upload %d records. Errors: %s", errorCount, String.join(", ", errors)));
+            }
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error processing bulk upload: " + e.getMessage());
         }
         
         return "redirect:/dashboard";

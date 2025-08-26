@@ -89,8 +89,76 @@ public class ContentCatalogController {
     }
     
     @GetMapping("/search")
-    public List<ContentCatalog> searchContentCatalogs(@RequestParam String name) {
-        return contentCatalogRepository.findByMediaCatalogNameContainingIgnoreCaseOrderByCreatedOnDesc(name);
+    public ResponseEntity<List<ContentCatalog>> searchContentCatalogs(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority) {
+        try {
+            System.out.println("Content catalog search - name: " + name + ", type: " + type + ", status: " + status + ", priority: " + priority);
+            
+            List<ContentCatalog> results = contentCatalogRepository.findAll();
+            
+            // Apply filters
+            if (name != null && !name.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(content -> content.getMediaCatalogName() != null && 
+                            content.getMediaCatalogName().toLowerCase().contains(name.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            if (type != null && !type.trim().isEmpty()) {
+                try {
+                    ContentCatalog.MediaType mediaType = ContentCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_"));
+                    results = results.stream()
+                        .filter(content -> content.getMediaCatalogType() == mediaType)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid content media type: " + type);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            if (status != null && !status.trim().isEmpty()) {
+                try {
+                    ContentCatalog.ContentStatus contentStatus = ContentCatalog.ContentStatus.valueOf(status.toUpperCase().replace("-", "_"));
+                    results = results.stream()
+                        .filter(content -> content.getStatus() == contentStatus)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid content status: " + status);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            if (priority != null && !priority.trim().isEmpty()) {
+                try {
+                    ContentCatalog.Priority priorityEnum = ContentCatalog.Priority.valueOf(priority.toUpperCase());
+                    results = results.stream()
+                        .filter(content -> content.getPriority() == priorityEnum)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid priority: " + priority);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            // Sort by created date desc
+            results.sort((a, b) -> {
+                if (a.getCreatedOn() == null && b.getCreatedOn() == null) return 0;
+                if (a.getCreatedOn() == null) return 1;
+                if (b.getCreatedOn() == null) return -1;
+                return b.getCreatedOn().compareTo(a.getCreatedOn());
+            });
+            
+            System.out.println("Content catalog search results count: " + results.size());
+            return ResponseEntity.ok(results);
+            
+        } catch (Exception e) {
+            System.err.println("Content catalog search error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Collections.emptyList());
+        }
     }
     
     @GetMapping("/upload-status/{uploadStatus}")

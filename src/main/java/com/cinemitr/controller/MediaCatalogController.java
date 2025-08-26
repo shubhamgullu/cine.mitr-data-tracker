@@ -90,8 +90,66 @@ public class MediaCatalogController {
     }
     
     @GetMapping("/search")
-    public List<MediaCatalog> searchMediaCatalogs(@RequestParam String name) {
-        return mediaCatalogRepository.findByNameContainingIgnoreCaseOrderByCreatedOnDesc(name);
+    public ResponseEntity<List<MediaCatalog>> searchMediaCatalogs(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status) {
+        try {
+            System.out.println("Media catalog search - name: " + name + ", type: " + type + ", status: " + status);
+            
+            List<MediaCatalog> results = mediaCatalogRepository.findAll();
+            
+            // Apply filters
+            if (name != null && !name.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(media -> media.getName() != null && media.getName().toLowerCase().contains(name.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            if (type != null && !type.trim().isEmpty()) {
+                try {
+                    String typeFormatted = type.toUpperCase().replace("-", "_");
+                    System.out.println("Formatted type: " + typeFormatted);
+                    MediaCatalog.MediaType mediaType = MediaCatalog.MediaType.valueOf(typeFormatted);
+                    results = results.stream()
+                        .filter(media -> media.getType() == mediaType)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid media type: " + type);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            if (status != null && !status.trim().isEmpty()) {
+                try {
+                    String statusFormatted = status.toUpperCase().replace("-", "_");
+                    System.out.println("Formatted status: " + statusFormatted);
+                    MediaCatalog.DownloadStatus downloadStatus = MediaCatalog.DownloadStatus.valueOf(statusFormatted);
+                    results = results.stream()
+                        .filter(media -> media.getDownloadStatus() == downloadStatus)
+                        .collect(java.util.stream.Collectors.toList());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Invalid download status: " + status);
+                    return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+                }
+            }
+            
+            // Sort by updated date desc
+            results.sort((a, b) -> {
+                if (a.getUpdatedOn() == null && b.getUpdatedOn() == null) return 0;
+                if (a.getUpdatedOn() == null) return 1;
+                if (b.getUpdatedOn() == null) return -1;
+                return b.getUpdatedOn().compareTo(a.getUpdatedOn());
+            });
+            
+            System.out.println("Media catalog search results count: " + results.size());
+            return ResponseEntity.ok(results);
+            
+        } catch (Exception e) {
+            System.err.println("Media catalog search error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Collections.emptyList());
+        }
     }
     
     @GetMapping("/download-status/{status}")
