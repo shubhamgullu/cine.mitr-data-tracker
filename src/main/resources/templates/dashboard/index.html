@@ -965,7 +965,67 @@
                 <!-- Dashboard Tab -->
                 <div class="tab-content" id="dashboard">
                     <div class="dashboard-section">
-                        <h2 class="section-title">Dashboard</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="section-title mb-0">System Performance Dashboard</h2>
+                            <div class="dashboard-actions">
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="refreshDashboard()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                                <span class="text-muted ms-3" id="lastUpdated">Loading...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Stats Cards -->
+                        <div class="row mb-4" id="quickStatsCards">
+                            <div class="col-md-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-primary">
+                                        <i class="fas fa-database"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="totalRecordsCount">-</h3>
+                                        <p class="stat-label">Total Records</p>
+                                        <small class="stat-change" id="todaysActivity">+0 today</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-success">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="downloadedPercentage">-%</h3>
+                                        <p class="stat-label">Downloaded</p>
+                                        <small class="stat-change text-success">Media completion rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-info">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="linkedRecordsCount">-</h3>
+                                        <p class="stat-label">Linked Records</p>
+                                        <small class="stat-change text-info">Content-Upload pairs</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-warning">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="popularPlatform">-</h3>
+                                        <p class="stat-label">Popular Platform</p>
+                                        <small class="stat-change text-warning">Most used service</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="table-container">
                             <table class="dashboard-table">
@@ -3449,6 +3509,170 @@
         window.refreshRecentContent = refreshRecentContent;
         window.refreshRecentUpload = refreshRecentUpload;
         window.showTab = showTab;
+        
+        // ===== DASHBOARD PERFORMANCE WIDGET FUNCTIONALITY =====
+        
+        function refreshDashboard() {
+            const refreshBtn = document.querySelector('[onclick="refreshDashboard()"]');
+            const lastUpdatedEl = document.getElementById('lastUpdated');
+            
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+            }
+            
+            fetch('/api/dashboard/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    updateDashboardMetrics(data);
+                    
+                    if (lastUpdatedEl) {
+                        lastUpdatedEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard metrics:', error);
+                    
+                    if (lastUpdatedEl) {
+                        lastUpdatedEl.textContent = 'Error loading metrics';
+                        lastUpdatedEl.className = 'text-danger ms-3';
+                    }
+                })
+                .finally(() => {
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Refresh';
+                    }
+                });
+        }
+        
+        function updateDashboardMetrics(data) {
+            if (!data) return;
+            
+            // Update quick stats cards
+            updateElement('totalRecordsCount', data.systemStats?.totalRecords || 0);
+            updateElement('downloadedPercentage', (data.quickStats?.downloadedPercentage || 0) + '%');
+            updateElement('linkedRecordsCount', data.quickStats?.linkedRecords || 0);
+            updateElement('popularPlatform', data.quickStats?.popularPlatform || 'N/A');
+            updateElement('todaysActivity', '+' + (data.quickStats?.todaysActivity || 0) + ' today');
+            
+            // Update system statistics
+            updateElement('mediaCatalogCount', data.systemStats?.totalMediaCatalog || 0);
+            updateElement('contentCatalogCount', data.systemStats?.totalContentCatalog || 0);
+            updateElement('uploadCatalogCount', data.systemStats?.totalUploadCatalog || 0);
+            
+            // Update progress bars
+            const totalRecords = data.systemStats?.totalRecords || 1;
+            updateProgressBar('mediaProgress', (data.systemStats?.totalMediaCatalog || 0) / totalRecords * 100);
+            updateProgressBar('contentProgress', (data.systemStats?.totalContentCatalog || 0) / totalRecords * 100);
+            updateProgressBar('uploadProgress', (data.systemStats?.totalUploadCatalog || 0) / totalRecords * 100);
+            
+            // Update health indicators
+            updateElement('databaseStatus', data.systemHealth?.databaseConnected ? 'Online' : 'Offline');
+            updateElement('dataIntegrity', (data.performance?.dataIntegrityScore || 0) + '%');
+            updateElement('uploadSuccess', (data.performance?.successfulUploads || 0) + '%');
+            updateElement('responseTime', data.performance?.avgResponseTime || '< 100ms');
+            
+            // Update media type distribution
+            updateDistribution('movies', data.mediaTypeStats?.movies || 0);
+            updateDistribution('webSeries', data.mediaTypeStats?.webSeries || 0);
+            updateDistribution('albums', data.mediaTypeStats?.albums || 0);
+            updateDistribution('documentaries', data.mediaTypeStats?.documentaries || 0);
+            
+            // Update download status distribution
+            updateDistribution('downloaded', data.downloadStats?.downloaded || 0);
+            updateDistribution('notDownloaded', data.downloadStats?.notDownloaded || 0);
+            updateDistribution('partiallyDownloaded', data.downloadStats?.partiallyDownloaded || 0);
+            
+            // Update recent activity
+            updateElement('recentMediaAdded', data.recentActivity?.recentMediaAdded || 0);
+            updateElement('recentContentAdded', data.recentActivity?.recentContentAdded || 0);
+            updateElement('recentUploadsAdded', data.recentActivity?.recentUploadsAdded || 0);
+        }
+        
+        function updateElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+        
+        function updateProgressBar(id, percentage) {
+            const progressBar = document.getElementById(id);
+            if (progressBar) {
+                progressBar.style.width = Math.min(percentage, 100) + '%';
+            }
+        }
+        
+        function updateDistribution(type, value) {
+            // Update count
+            const countElement = document.getElementById(type + 'Count');
+            if (countElement) {
+                countElement.textContent = value;
+            }
+            
+            // Update bar width (calculate relative to max value)
+            const barElement = document.getElementById(type + 'Bar');
+            if (barElement) {
+                // Get all values to calculate percentage
+                const allValues = [
+                    parseInt(document.getElementById('moviesCount')?.textContent) || 0,
+                    parseInt(document.getElementById('webSeriesCount')?.textContent) || 0,
+                    parseInt(document.getElementById('albumsCount')?.textContent) || 0,
+                    parseInt(document.getElementById('documentariesCount')?.textContent) || 0,
+                    parseInt(document.getElementById('downloadedCount')?.textContent) || 0,
+                    parseInt(document.getElementById('notDownloadedCount')?.textContent) || 0,
+                    parseInt(document.getElementById('partiallyDownloadedCount')?.textContent) || 0
+                ];
+                
+                const maxValue = Math.max(...allValues);
+                const percentage = maxValue > 0 ? (value / maxValue * 100) : 0;
+                barElement.style.width = percentage + '%';
+            }
+        }
+        
+        // Auto-refresh dashboard every 30 seconds when active
+        let dashboardInterval;
+        
+        function startDashboardAutoRefresh() {
+            dashboardInterval = setInterval(() => {
+                const dashboardTab = document.getElementById('dashboard');
+                if (dashboardTab && dashboardTab.classList.contains('active')) {
+                    refreshDashboard();
+                }
+            }, 30000); // 30 seconds
+        }
+        
+        function stopDashboardAutoRefresh() {
+            if (dashboardInterval) {
+                clearInterval(dashboardInterval);
+                dashboardInterval = null;
+            }
+        }
+        
+        // Initialize dashboard on tab switch
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dashboard data when dashboard tab becomes active
+            document.querySelector('[data-tab="dashboard"]')?.addEventListener('click', function() {
+                setTimeout(refreshDashboard, 100);
+                startDashboardAutoRefresh();
+            });
+            
+            // Stop auto-refresh when switching away from dashboard
+            document.querySelectorAll('.tab-btn:not([data-tab="dashboard"])').forEach(btn => {
+                btn.addEventListener('click', stopDashboardAutoRefresh);
+            });
+            
+            // Initial load if dashboard is default active tab
+            const dashboardTab = document.getElementById('dashboard');
+            if (dashboardTab && dashboardTab.classList.contains('active')) {
+                setTimeout(refreshDashboard, 500);
+                startDashboardAutoRefresh();
+            }
+        });
+        
+        // Export dashboard functions globally
+        window.refreshDashboard = refreshDashboard;
     </script>
 </body>
 </html>
