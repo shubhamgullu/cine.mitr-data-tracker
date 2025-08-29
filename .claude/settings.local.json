@@ -11,7 +11,8 @@
       "Bash(curl:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(dir mvn:*)"
+      "Bash(dir mvn:*)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": []

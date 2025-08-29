@@ -3,7 +3,8 @@ package com.cinemitr.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "media_catalog")
+@Table(name = "media_catalog", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"name", "language"}))
 public class MediaCatalog extends BaseEntity {
     
     @Column(name = "name", nullable = false)
@@ -28,6 +29,15 @@ public class MediaCatalog extends BaseEntity {
     
     @Column(name = "fun_facts", columnDefinition = "TEXT")
     private String funFacts;
+    
+    @Column(name = "language")
+    private String language;
+    
+    @Column(name = "main_genre")
+    private String mainGenre;
+    
+    @Column(name = "sub_genres", columnDefinition = "TEXT")
+    private String subGenres;
     
     // Enums
     public enum MediaType {
@@ -101,5 +111,29 @@ public class MediaCatalog extends BaseEntity {
     
     public void setFunFacts(String funFacts) {
         this.funFacts = funFacts;
+    }
+    
+    public String getLanguage() {
+        return language;
+    }
+    
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+    
+    public String getMainGenre() {
+        return mainGenre;
+    }
+    
+    public void setMainGenre(String mainGenre) {
+        this.mainGenre = mainGenre;
+    }
+    
+    public String getSubGenres() {
+        return subGenres;
+    }
+    
+    public void setSubGenres(String subGenres) {
+        this.subGenres = subGenres;
     }
 }

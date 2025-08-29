@@ -252,8 +252,20 @@ public class InstagramLinkController {
                                 @RequestParam(required = false) String location,
                                 @RequestParam(required = false) String description,
                                 @RequestParam(required = false) String funFacts,
+                                @RequestParam(required = false) String language,
+                                @RequestParam(required = false) String mainGenre,
+                                @RequestParam(required = false) String subGenres,
                                 RedirectAttributes redirectAttributes) {
         try {
+            // Check for duplicate name + language combination
+            Optional<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(name, language);
+            if (existingMedia.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", 
+                    "A media catalog entry with the name '" + name + "' and language '" + 
+                    (language != null ? language : "N/A") + "' already exists!");
+                return "redirect:/dashboard";
+            }
+            
             MediaCatalog mediaCatalog = new MediaCatalog();
             mediaCatalog.setName(name);
             mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
@@ -267,8 +279,13 @@ public class InstagramLinkController {
             mediaCatalog.setDescription(description);
             mediaCatalog.setFunFacts(funFacts);
             
+            // Set new fields
+            mediaCatalog.setLanguage(language);
+            mediaCatalog.setMainGenre(mainGenre);
+            mediaCatalog.setSubGenres(subGenres);
+            
             mediaCatalogRepository.save(mediaCatalog);
-            redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully!");
+            redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully with unique validation!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving media catalog: " + e.getMessage());
         }
@@ -285,26 +302,47 @@ public class InstagramLinkController {
                                    @RequestParam(required = false) String location,
                                    @RequestParam(required = false) String description,
                                    @RequestParam(required = false) String funFacts,
+                                   @RequestParam(required = false) String language,
+                                   @RequestParam(required = false) String mainGenre,
+                                   @RequestParam(required = false) String subGenres,
                                    RedirectAttributes redirectAttributes) {
         try {
             Optional<MediaCatalog> optionalMedia = mediaCatalogRepository.findById(id);
             if (optionalMedia.isPresent()) {
-                MediaCatalog mediaCatalog = optionalMedia.get();
-                mediaCatalog.setName(name);
-                mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
-                mediaCatalog.setPlatform(platform);
+                MediaCatalog existingMedia = optionalMedia.get();
                 
-                if (downloadStatus != null && !downloadStatus.isEmpty()) {
-                    mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+                // Check for duplicate if name or language changed
+                if (!existingMedia.getName().equals(name) || 
+                    !Objects.equals(existingMedia.getLanguage(), language)) {
+                    Optional<MediaCatalog> duplicateMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(name, language);
+                    if (duplicateMedia.isPresent() && !duplicateMedia.get().getId().equals(id)) {
+                        redirectAttributes.addFlashAttribute("error", 
+                            "Another media catalog entry with the name '" + name + "' and language '" + 
+                            (language != null ? language : "N/A") + "' already exists!");
+                        return "redirect:/dashboard";
+                    }
                 }
                 
-                mediaCatalog.setLocation(location);
-                mediaCatalog.setDescription(description);
-                mediaCatalog.setFunFacts(funFacts);
-                mediaCatalog.setUpdatedBy("system");
+                existingMedia.setName(name);
+                existingMedia.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
+                existingMedia.setPlatform(platform);
                 
-                mediaCatalogRepository.save(mediaCatalog);
-                redirectAttributes.addFlashAttribute("success", "Media catalog updated successfully!");
+                if (downloadStatus != null && !downloadStatus.isEmpty()) {
+                    existingMedia.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+                }
+                
+                existingMedia.setLocation(location);
+                existingMedia.setDescription(description);
+                existingMedia.setFunFacts(funFacts);
+                
+                // Update new fields
+                existingMedia.setLanguage(language);
+                existingMedia.setMainGenre(mainGenre);
+                existingMedia.setSubGenres(subGenres);
+                existingMedia.setUpdatedBy("system");
+                
+                mediaCatalogRepository.save(existingMedia);
+                redirectAttributes.addFlashAttribute("success", "Media catalog updated successfully with unique validation!");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Media catalog not found!");
             }
@@ -757,22 +795,38 @@ public class InstagramLinkController {
     public String bulkUploadMediaCatalog(@RequestParam("file") MultipartFile file,
                                        RedirectAttributes redirectAttributes) {
         try {
+            System.out.println("Starting media catalog bulk upload. File: " + file.getOriginalFilename());
+            
             if (file.isEmpty()) {
+                System.err.println("No file provided for bulk upload");
                 redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
                 return "redirect:/dashboard";
             }
+            
+            // Validate file type
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".csv") && !fileName.endsWith(".json") && 
+                !fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                System.err.println("Invalid file format: " + fileName);
+                redirectAttributes.addFlashAttribute("error", "Invalid file format! Please use CSV, JSON, or Excel files.");
+                return "redirect:/dashboard";
+            }
+            
+            System.out.println("Processing file: " + fileName + " (size: " + file.getSize() + " bytes)");
             
             Map<String, Object> result = bulkUploadService.processMediaCatalogBulkUpload(file);
             int successCount = (Integer) result.get("successCount");
             int errorCount = (Integer) result.get("errorCount");
             List<String> errors = (List<String>) result.get("errors");
             
+            System.out.println("Bulk upload completed - Success: " + successCount + ", Errors: " + errorCount);
+            
             if (successCount > 0) {
-                String message = String.format("Bulk upload completed! Successfully imported %d Media Catalog entries", successCount);
+                String message = String.format("Bulk upload completed! Successfully processed %d Media Catalog entries", successCount);
                 if (errorCount > 0) {
-                    message += String.format(" with %d errors.", errorCount);
+                    message += String.format(" with %d errors. Duplicates were updated rather than creating new records.", errorCount);
                 } else {
-                    message += ". All media names have been formatted with proper capitalization.";
+                    message += ". All entries processed successfully with unique name+language validation.";
                 }
                 redirectAttributes.addFlashAttribute("success", message);
             }
@@ -780,12 +834,20 @@ public class InstagramLinkController {
             if (errorCount > 0) {
                 redirectAttributes.addFlashAttribute("bulkUploadErrors", errors);
                 if (successCount == 0) {
-                    redirectAttributes.addFlashAttribute("error", "Bulk upload failed! No records were imported. Check the error details.");
+                    redirectAttributes.addFlashAttribute("error", 
+                        "Bulk upload failed! No records were processed successfully. Please check your file format and data.");
                 }
+                
+                // Log errors to console for debugging
+                System.err.println("Bulk upload errors:");
+                errors.forEach(error -> System.err.println(" - " + error));
             }
             
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Bulk upload error: " + e.getMessage());
+            System.err.println("Critical bulk upload error: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Critical bulk upload error: " + e.getMessage() + 
+                ". Please check your file format and ensure all required columns are present.");
         }
         
         return "redirect:/dashboard";

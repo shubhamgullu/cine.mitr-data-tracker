@@ -96,12 +96,42 @@ public class BulkUploadService {
                 throw new IllegalArgumentException("Unsupported file format. Please use CSV, Excel, or JSON files.");
             }
             
-            // Save successful entries
+            // Save successful entries with duplicate checking
             for (MediaCatalog mediaCatalog : successList) {
                 try {
-                    mediaCatalogRepository.save(mediaCatalog);
+                    // Check for duplicates before saving
+                    Optional<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(
+                        mediaCatalog.getName(), mediaCatalog.getLanguage());
+                    
+                    if (existingMedia.isPresent()) {
+                        // Update existing record instead of creating duplicate
+                        MediaCatalog existing = existingMedia.get();
+                        existing.setType(mediaCatalog.getType());
+                        existing.setDownloadStatus(mediaCatalog.getDownloadStatus());
+                        existing.setPlatform(mediaCatalog.getPlatform());
+                        existing.setLocation(mediaCatalog.getLocation());
+                        existing.setDescription(mediaCatalog.getDescription());
+                        existing.setFunFacts(mediaCatalog.getFunFacts());
+                        existing.setLanguage(mediaCatalog.getLanguage());
+                        existing.setMainGenre(mediaCatalog.getMainGenre());
+                        existing.setSubGenres(mediaCatalog.getSubGenres());
+                        existing.setUpdatedBy("bulk-upload");
+                        
+                        mediaCatalogRepository.save(existing);
+                        System.out.println("Updated existing media catalog: " + mediaCatalog.getName() + " (" + mediaCatalog.getLanguage() + ")");
+                    } else {
+                        // Create new record
+                        mediaCatalog.setCreatedBy("bulk-upload");
+                        mediaCatalog.setUpdatedBy("bulk-upload");
+                        mediaCatalogRepository.save(mediaCatalog);
+                        System.out.println("Created new media catalog: " + mediaCatalog.getName() + " (" + mediaCatalog.getLanguage() + ")");
+                    }
                 } catch (Exception e) {
-                    errorList.add("Error saving media catalog: " + mediaCatalog.getName() + " - " + e.getMessage());
+                    String errorMsg = "Error processing media catalog: " + mediaCatalog.getName() + 
+                                    " (" + mediaCatalog.getLanguage() + ") - " + e.getMessage();
+                    errorList.add(errorMsg);
+                    System.err.println(errorMsg);
+                    e.printStackTrace();
                 }
             }
             
@@ -537,8 +567,19 @@ public class BulkUploadService {
         String name = record[0].replaceAll("\"", "").trim();
         mediaCatalog.setName(formatProperCase(name));
         
-        mediaCatalog.setType(MediaCatalog.MediaType.valueOf(record[1].replaceAll("\"", "").toUpperCase().replace("-", "_")));
-        mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(record[2].replaceAll("\"", "").toUpperCase().replace("-", "_")));
+        String typeStr = record[1].replaceAll("\"", "").toUpperCase().replace("-", "_");
+        try {
+            mediaCatalog.setType(MediaCatalog.MediaType.valueOf(typeStr));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid media type: " + typeStr + ". Valid types: MOVIE, ALBUM, WEB_SERIES, DOCUMENTARY");
+        }
+        
+        String statusStr = record[2].replaceAll("\"", "").toUpperCase().replace("-", "_");
+        try {
+            mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(statusStr));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid download status: " + statusStr + ". Valid statuses: NOT_DOWNLOADED, DOWNLOADED, PARTIALLY_DOWNLOADED");
+        }
         
         // Optional fields (matching MediaCatalog model fields)
         if (record.length > 3 && !record[3].trim().isEmpty()) {
@@ -552,6 +593,17 @@ public class BulkUploadService {
         }
         if (record.length > 6 && !record[6].trim().isEmpty()) {
             mediaCatalog.setFunFacts(record[6].replaceAll("\"", "").trim());
+        }
+        
+        // New fields - language, main genre, and sub genres
+        if (record.length > 7 && !record[7].trim().isEmpty()) {
+            mediaCatalog.setLanguage(record[7].replaceAll("\"", "").trim());
+        }
+        if (record.length > 8 && !record[8].trim().isEmpty()) {
+            mediaCatalog.setMainGenre(record[8].replaceAll("\"", "").trim());
+        }
+        if (record.length > 9 && !record[9].trim().isEmpty()) {
+            mediaCatalog.setSubGenres(record[9].replaceAll("\"", "").trim());
         }
         
         return mediaCatalog;
@@ -583,6 +635,17 @@ public class BulkUploadService {
         }
         if (record.containsKey("funFacts") && record.get("funFacts") != null) {
             mediaCatalog.setFunFacts(((String) record.get("funFacts")).trim());
+        }
+        
+        // New fields - language, main genre, and sub genres
+        if (record.containsKey("language") && record.get("language") != null) {
+            mediaCatalog.setLanguage(((String) record.get("language")).trim());
+        }
+        if (record.containsKey("mainGenre") && record.get("mainGenre") != null) {
+            mediaCatalog.setMainGenre(((String) record.get("mainGenre")).trim());
+        }
+        if (record.containsKey("subGenres") && record.get("subGenres") != null) {
+            mediaCatalog.setSubGenres(((String) record.get("subGenres")).trim());
         }
         
         return mediaCatalog;
@@ -626,6 +689,26 @@ public class BulkUploadService {
             String funFacts = getCellValueAsString(row.getCell(6)).trim();
             if (!funFacts.isEmpty()) {
                 mediaCatalog.setFunFacts(funFacts);
+            }
+        }
+        
+        // New fields - language, main genre, and sub genres
+        if (row.getCell(7) != null) {
+            String language = getCellValueAsString(row.getCell(7)).trim();
+            if (!language.isEmpty()) {
+                mediaCatalog.setLanguage(language);
+            }
+        }
+        if (row.getCell(8) != null) {
+            String mainGenre = getCellValueAsString(row.getCell(8)).trim();
+            if (!mainGenre.isEmpty()) {
+                mediaCatalog.setMainGenre(mainGenre);
+            }
+        }
+        if (row.getCell(9) != null) {
+            String subGenres = getCellValueAsString(row.getCell(9)).trim();
+            if (!subGenres.isEmpty()) {
+                mediaCatalog.setSubGenres(subGenres);
             }
         }
         

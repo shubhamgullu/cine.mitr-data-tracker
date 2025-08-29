@@ -101,11 +101,11 @@
 
                         <!-- Search Bar (Initially Hidden) -->
                         <div id="mediaSearchBar" class="search-bar mb-4" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-4">
+                            <div class="row mb-2">
+                                <div class="col-md-3">
                                     <input type="text" class="form-control" id="mediaSearchName" placeholder="Search by name...">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select class="form-control" id="mediaSearchType">
                                         <option value="">All Types</option>
                                         <option value="movie">Movie</option>
@@ -114,7 +114,7 @@
                                         <option value="documentary">Documentary</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select class="form-control" id="mediaSearchStatus">
                                         <option value="">All Status</option>
                                         <option value="downloaded">Downloaded</option>
@@ -122,10 +122,56 @@
                                         <option value="partially-downloaded">Partially Downloaded</option>
                                     </select>
                                 </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="mediaSearchLanguage">
+                                        <option value="">All Languages</option>
+                                        <option value="English">English</option>
+                                        <option value="Hindi">Hindi</option>
+                                        <option value="Tamil">Tamil</option>
+                                        <option value="Telugu">Telugu</option>
+                                        <option value="Malayalam">Malayalam</option>
+                                        <option value="Kannada">Kannada</option>
+                                        <option value="Bengali">Bengali</option>
+                                        <option value="Marathi">Marathi</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="mediaSearchMainGenre">
+                                        <option value="">All Genres</option>
+                                        <option value="Action">Action</option>
+                                        <option value="Adventure">Adventure</option>
+                                        <option value="Comedy">Comedy</option>
+                                        <option value="Drama">Drama</option>
+                                        <option value="Horror">Horror</option>
+                                        <option value="Romance">Romance</option>
+                                        <option value="Sci-Fi">Sci-Fi</option>
+                                        <option value="Thriller">Thriller</option>
+                                        <option value="Fantasy">Fantasy</option>
+                                        <option value="Crime">Crime</option>
+                                        <option value="Documentary">Documentary</option>
+                                        <option value="Pop">Pop</option>
+                                        <option value="Rock">Rock</option>
+                                        <option value="Hip-Hop">Hip-Hop</option>
+                                        <option value="Electronic">Electronic</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
                                 <div class="col-md-1">
-                                    <button type="button" class="btn btn-primary w-100" onclick="searchMedia()">
+                                    <button type="button" class="btn btn-primary w-100" onclick="searchMedia()" title="Search">
                                         <i class="fas fa-search"></i>
                                     </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="mediaSearchSubGenres" placeholder="Search sub-genres (e.g., Superhero, Adventure)">
+                                </div>
+                                <div class="col-md-7">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Use the fields above to filter media by type, status, language, genre, and sub-genres. Leave blank to search all.
+                                    </small>
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-outline-secondary w-100" onclick="clearMediaFilters()" title="Clear All Filters">
@@ -221,6 +267,80 @@
                                           rows="3"></textarea>
                             </div>
 
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="language" class="form-label">Language</label>
+                                    <select class="form-control" 
+                                            id="language" 
+                                            name="language">
+                                        <option value="">Select Language</option>
+                                        <option value="english">English</option>
+                                        <option value="hindi">Hindi</option>
+                                        <option value="tamil">Tamil</option>
+                                        <option value="telugu">Telugu</option>
+                                        <option value="malayalam">Malayalam</option>
+                                        <option value="kannada">Kannada</option>
+                                        <option value="bengali">Bengali</option>
+                                        <option value="marathi">Marathi</option>
+                                        <option value="gujarati">Gujarati</option>
+                                        <option value="punjabi">Punjabi</option>
+                                        <option value="spanish">Spanish</option>
+                                        <option value="french">French</option>
+                                        <option value="german">German</option>
+                                        <option value="italian">Italian</option>
+                                        <option value="portuguese">Portuguese</option>
+                                        <option value="russian">Russian</option>
+                                        <option value="japanese">Japanese</option>
+                                        <option value="korean">Korean</option>
+                                        <option value="chinese">Chinese</option>
+                                        <option value="arabic">Arabic</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="mainGenre" class="form-label">Main Genre</label>
+                                    <select class="form-control" 
+                                            id="mainGenre" 
+                                            name="mainGenre">
+                                        <option value="">Select Main Genre</option>
+                                        <option value="action">Action</option>
+                                        <option value="adventure">Adventure</option>
+                                        <option value="comedy">Comedy</option>
+                                        <option value="drama">Drama</option>
+                                        <option value="horror">Horror</option>
+                                        <option value="romance">Romance</option>
+                                        <option value="sci-fi">Sci-Fi</option>
+                                        <option value="thriller">Thriller</option>
+                                        <option value="fantasy">Fantasy</option>
+                                        <option value="crime">Crime</option>
+                                        <option value="documentary">Documentary</option>
+                                        <option value="biography">Biography</option>
+                                        <option value="animation">Animation</option>
+                                        <option value="musical">Musical</option>
+                                        <option value="western">Western</option>
+                                        <option value="pop">Pop</option>
+                                        <option value="rock">Rock</option>
+                                        <option value="hip-hop">Hip-Hop</option>
+                                        <option value="electronic">Electronic</option>
+                                        <option value="classical">Classical</option>
+                                        <option value="jazz">Jazz</option>
+                                        <option value="country">Country</option>
+                                        <option value="r&b">R&B</option>
+                                        <option value="folk">Folk</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subGenres" class="form-label">Sub Genres</label>
+                                <input type="text" class="form-control" 
+                                       id="subGenres" 
+                                       name="subGenres"
+                                       placeholder="Enter sub-genres separated by commas...">
+                            </div>
+
                             <div class="form-actions mt-3">
                                 <button type="submit" class="btn-save me-2">
                                     <i class="fas fa-save me-2"></i>Save Media Entry
@@ -250,6 +370,8 @@
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Platform</th>
+                                            <th>Language</th>
+                                            <th>Main Genre</th>
                                             <th>Status</th>
                                             <th>Updated</th>
                                             <th>Actions</th>
@@ -263,6 +385,11 @@
                                             <td th:text="${media.name}">Sample Movie</td>
                                             <td><span class="badge bg-secondary" th:text="${media.type}">MOVIE</span></td>
                                             <td th:text="${media.platform}">Netflix</td>
+                                            <td th:text="${media.language ?: 'N/A'}">English</td>
+                                            <td>
+                                                <span class="badge bg-primary" th:text="${media.mainGenre ?: 'N/A'}" 
+                                                      th:title="${media.subGenres}">Action</span>
+                                            </td>
                                             <td>
                                                 <span class="badge" th:classappend="${media.downloadStatus == 'DOWNLOADED'} ? 'bg-success' : (${media.downloadStatus == 'NOT_DOWNLOADED'} ? 'bg-warning' : 'bg-info')"
                                                       th:text="${media.downloadStatus}">DOWNLOADED</span>
@@ -1605,14 +1732,20 @@
             const name = document.getElementById('mediaSearchName').value;
             const type = document.getElementById('mediaSearchType').value;
             const status = document.getElementById('mediaSearchStatus').value;
+            const language = document.getElementById('mediaSearchLanguage')?.value || '';
+            const mainGenre = document.getElementById('mediaSearchMainGenre')?.value || '';
+            const subGenres = document.getElementById('mediaSearchSubGenres')?.value || '';
             
-            console.log('Media search params:', { name, type, status });
+            console.log('Media search params:', { name, type, status, language, mainGenre, subGenres });
             
             // Call API or refresh page with search parameters
             const params = new URLSearchParams();
             if (name) params.append('name', name);
             if (type) params.append('type', type);
             if (status) params.append('status', status);
+            if (language) params.append('language', language);
+            if (mainGenre) params.append('mainGenre', mainGenre);
+            if (subGenres) params.append('subGenres', subGenres);
             
             const url = `/api/media-catalog/search?${params.toString()}`;
             console.log('Media search URL:', url);
@@ -1641,6 +1774,9 @@
             document.getElementById('mediaSearchName').value = '';
             document.getElementById('mediaSearchType').value = '';
             document.getElementById('mediaSearchStatus').value = '';
+            if (document.getElementById('mediaSearchLanguage')) document.getElementById('mediaSearchLanguage').value = '';
+            if (document.getElementById('mediaSearchMainGenre')) document.getElementById('mediaSearchMainGenre').value = '';
+            if (document.getElementById('mediaSearchSubGenres')) document.getElementById('mediaSearchSubGenres').value = '';
             
             // Refresh to show all results
             refreshRecentMedia();
@@ -1692,6 +1828,9 @@
                     document.getElementById('location').value = data.location || '';
                     document.getElementById('mediaDescription').value = data.description || '';
                     document.getElementById('funFacts').value = data.funFacts || '';
+                    document.getElementById('language').value = data.language || '';
+                    document.getElementById('mainGenre').value = data.mainGenre || '';
+                    document.getElementById('subGenres').value = data.subGenres || '';
                     
                     // Update form action for update
                     document.getElementById('mediaForm').action = `/dashboard/media-catalog/${id}/edit`;
@@ -2259,6 +2398,10 @@
                     <td>${media.name}</td>
                     <td><span class="badge bg-secondary">${media.type}</span></td>
                     <td>${media.platform || 'N/A'}</td>
+                    <td>${media.language || 'N/A'}</td>
+                    <td>
+                        <span class="badge bg-primary" title="${media.subGenres || ''}">${media.mainGenre || 'N/A'}</span>
+                    </td>
                     <td><span class="badge ${getStatusBadgeClass(media.downloadStatus)}">${media.downloadStatus}</span></td>
                     <td>${formatDate(media.updatedOn)}</td>
                     <td>

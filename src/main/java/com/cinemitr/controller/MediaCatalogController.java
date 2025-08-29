@@ -8,8 +8,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/media-catalog")
@@ -43,12 +46,32 @@ public class MediaCatalogController {
     }
     
     @PostMapping
-    public MediaCatalog createMediaCatalog(@RequestBody MediaCatalog mediaCatalog) {
-        // Set default values if null
-        if (mediaCatalog.getDownloadStatus() == null) {
-            mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.NOT_DOWNLOADED);
+    public ResponseEntity<?> createMediaCatalog(@RequestBody MediaCatalog mediaCatalog) {
+        try {
+            // Set default values if null
+            if (mediaCatalog.getDownloadStatus() == null) {
+                mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.NOT_DOWNLOADED);
+            }
+            
+            // Check for duplicates
+            Optional<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(
+                mediaCatalog.getName(), mediaCatalog.getLanguage());
+            
+            if (existingMedia.isPresent()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "A media catalog entry with this name and language already exists");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            MediaCatalog savedMedia = mediaCatalogRepository.save(mediaCatalog);
+            return ResponseEntity.ok(savedMedia);
+            
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error creating media catalog: " + e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
         }
-        return mediaCatalogRepository.save(mediaCatalog);
     }
     
     @PutMapping("/{id}")
@@ -64,6 +87,9 @@ public class MediaCatalogController {
             mediaCatalog.setLocation(mediaCatalogDetails.getLocation());
             mediaCatalog.setDescription(mediaCatalogDetails.getDescription());
             mediaCatalog.setFunFacts(mediaCatalogDetails.getFunFacts());
+            mediaCatalog.setLanguage(mediaCatalogDetails.getLanguage());
+            mediaCatalog.setMainGenre(mediaCatalogDetails.getMainGenre());
+            mediaCatalog.setSubGenres(mediaCatalogDetails.getSubGenres());
             mediaCatalog.setUpdatedBy("system");
             
             return ResponseEntity.ok(mediaCatalogRepository.save(mediaCatalog));
@@ -93,9 +119,13 @@ public class MediaCatalogController {
     public ResponseEntity<List<MediaCatalog>> searchMediaCatalogs(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String language,
+            @RequestParam(required = false) String mainGenre,
+            @RequestParam(required = false) String subGenres) {
         try {
-            System.out.println("Media catalog search - name: " + name + ", type: " + type + ", status: " + status);
+            System.out.println("Media catalog search - name: " + name + ", type: " + type + ", status: " + status + 
+                             ", language: " + language + ", mainGenre: " + mainGenre + ", subGenres: " + subGenres);
             
             List<MediaCatalog> results = mediaCatalogRepository.findAll();
             
@@ -132,6 +162,27 @@ public class MediaCatalogController {
                     System.err.println("Invalid download status: " + status);
                     return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
                 }
+            }
+            
+            // Filter by language
+            if (language != null && !language.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(media -> media.getLanguage() != null && media.getLanguage().toLowerCase().contains(language.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Filter by main genre
+            if (mainGenre != null && !mainGenre.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(media -> media.getMainGenre() != null && media.getMainGenre().toLowerCase().contains(mainGenre.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Filter by sub genres
+            if (subGenres != null && !subGenres.trim().isEmpty()) {
+                results = results.stream()
+                    .filter(media -> media.getSubGenres() != null && media.getSubGenres().toLowerCase().contains(subGenres.toLowerCase()))
+                    .collect(java.util.stream.Collectors.toList());
             }
             
             // Sort by updated date desc
@@ -177,5 +228,32 @@ public class MediaCatalogController {
             .sorted()
             .collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(names);
+    }
+    
+    @GetMapping("/language/{language}")
+    public List<MediaCatalog> getMediaCatalogsByLanguage(@PathVariable String language) {
+        return mediaCatalogRepository.findByLanguageOrderByCreatedOnDesc(language);
+    }
+    
+    @GetMapping("/main-genre/{genre}")
+    public List<MediaCatalog> getMediaCatalogsByMainGenre(@PathVariable String genre) {
+        return mediaCatalogRepository.findByMainGenreOrderByCreatedOnDesc(genre);
+    }
+    
+    @GetMapping("/sub-genre/{subGenre}")
+    public List<MediaCatalog> getMediaCatalogsBySubGenre(@PathVariable String subGenre) {
+        return mediaCatalogRepository.findBySubGenresContaining(subGenre);
+    }
+    
+    @GetMapping("/languages")
+    public ResponseEntity<List<String>> getAllLanguages() {
+        List<String> languages = mediaCatalogRepository.findAllDistinctLanguages();
+        return ResponseEntity.ok(languages);
+    }
+    
+    @GetMapping("/main-genres")
+    public ResponseEntity<List<String>> getAllMainGenres() {
+        List<String> genres = mediaCatalogRepository.findAllDistinctMainGenres();
+        return ResponseEntity.ok(genres);
     }
 }
