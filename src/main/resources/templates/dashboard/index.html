@@ -3561,10 +3561,15 @@
                     
                     const fileInput = document.getElementById('bulkUploadFile');
                     const progressDiv = document.getElementById('uploadProgress');
-                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const submitBtn = document.querySelector('button[form="bulkUploadForm"][type="submit"]');
                     
                     if (!fileInput.files.length) {
                         alert('Please select a file to upload');
+                        return;
+                    }
+                    
+                    if (!this.action) {
+                        alert('Form action not set. Please close and reopen the upload dialog.');
                         return;
                     }
                     
