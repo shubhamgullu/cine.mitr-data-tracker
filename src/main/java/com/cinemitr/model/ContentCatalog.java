@@ -3,10 +3,13 @@ package com.cinemitr.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "content_catalog")
+@Table(name = "content_catalog",
+       uniqueConstraints = {
+           @UniqueConstraint(name = "uk_content_catalog_link", columnNames = {"link"})
+       })
 public class ContentCatalog extends BaseEntity {
     
-    @Column(name = "link", nullable = false)
+    @Column(name = "link", nullable = false, unique = true)
     private String link;
     
     @Enumerated(EnumType.STRING)
@@ -29,6 +32,13 @@ public class ContentCatalog extends BaseEntity {
     
     @Column(name = "metadata", columnDefinition = "TEXT")
     private String metadata;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "local_status")
+    private LocalStatus localStatus;
+    
+    @Column(name = "location_path", columnDefinition = "TEXT")
+    private String locationPath;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "like_states")
@@ -63,6 +73,10 @@ public class ContentCatalog extends BaseEntity {
     
     public enum UploadContentStatus {
         PENDING_UPLOAD, UPLOADING, UPLOADED, UPLOAD_FAILED
+    }
+    
+    public enum LocalStatus {
+        AVAILABLE, NOT_AVAILABLE, PARTIALLY_AVAILABLE, DOWNLOADING, PROCESSING, CORRUPTED
     }
     
     // Constructors
@@ -162,6 +176,22 @@ public class ContentCatalog extends BaseEntity {
     
     public void setLinkedUploadCatalogId(Long linkedUploadCatalogId) {
         this.linkedUploadCatalogId = linkedUploadCatalogId;
+    }
+    
+    public LocalStatus getLocalStatus() {
+        return localStatus;
+    }
+    
+    public void setLocalStatus(LocalStatus localStatus) {
+        this.localStatus = localStatus;
+    }
+    
+    public String getLocationPath() {
+        return locationPath;
+    }
+    
+    public void setLocationPath(String locationPath) {
+        this.locationPath = locationPath;
     }
     
     // Helper methods for multiple media catalog names

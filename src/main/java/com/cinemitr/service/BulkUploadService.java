@@ -163,10 +163,21 @@ public class BulkUploadService {
                 throw new IllegalArgumentException("Unsupported file format. Please use CSV, Excel, or JSON files.");
             }
             
-            // Save successful entries
+            // Save successful entries and auto-create content catalog entries
             for (UploadCatalog uploadCatalog : successList) {
                 try {
-                    uploadCatalogRepository.save(uploadCatalog);
+                    // First, check if content catalog entry exists with this link
+                    ContentCatalog contentCatalog = findOrCreateContentCatalogEntry(uploadCatalog);
+                    
+                    // Save upload catalog with linked content catalog ID
+                    uploadCatalog.setLinkedContentCatalogId(contentCatalog.getId());
+                    UploadCatalog savedUpload = uploadCatalogRepository.save(uploadCatalog);
+                    
+                    // Update content catalog with linked upload ID if not already set
+                    if (contentCatalog.getLinkedUploadCatalogId() == null) {
+                        contentCatalog.setLinkedUploadCatalogId(savedUpload.getId());
+                        contentCatalogRepository.save(contentCatalog);
+                    }
                 } catch (Exception e) {
                     errorList.add("Error saving upload catalog: " + uploadCatalog.getMediaCatalogName() + " - " + e.getMessage());
                 }
@@ -293,6 +304,10 @@ public class BulkUploadService {
         if (record.length > 9 && !record[9].trim().isEmpty()) {
             contentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.valueOf(record[9].replaceAll("\"", "").toUpperCase().replace("-", "_")));
         }
+        if (record.length > 10 && !record[10].trim().isEmpty()) {
+            contentCatalog.setLocalStatus(ContentCatalog.LocalStatus.valueOf(record[10].replaceAll("\"", "").toUpperCase().replace("-", "_")));
+        }
+        if (record.length > 11) contentCatalog.setLocationPath(record[11].replaceAll("\"", ""));
         
         return contentCatalog;
     }
@@ -343,6 +358,12 @@ public class BulkUploadService {
         }
         if (record.containsKey("uploadContentStatus")) {
             contentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.valueOf(((String) record.get("uploadContentStatus")).toUpperCase().replace("-", "_")));
+        }
+        if (record.containsKey("localStatus")) {
+            contentCatalog.setLocalStatus(ContentCatalog.LocalStatus.valueOf(((String) record.get("localStatus")).toUpperCase().replace("-", "_")));
+        }
+        if (record.containsKey("locationPath")) {
+            contentCatalog.setLocationPath((String) record.get("locationPath"));
         }
         
         return contentCatalog;
@@ -1040,6 +1061,62 @@ public class BulkUploadService {
             }
         } catch (Exception e) {
             return 0;
+        }
+    }
+    
+    /**
+     * Finds existing content catalog entry by link or creates a new one from upload catalog data
+     */
+    private ContentCatalog findOrCreateContentCatalogEntry(UploadCatalog uploadCatalog) {
+        // First, try to find existing content catalog entry with the same link
+        Optional<ContentCatalog> existingContent = contentCatalogRepository.findByLink(uploadCatalog.getContentCatalogLink());
+        
+        if (existingContent.isPresent()) {
+            ContentCatalog existing = existingContent.get();
+            
+            // Update the existing entry with new media catalog name if it contains the upload's name
+            String existingNames = existing.getMediaCatalogName();
+            String newName = uploadCatalog.getMediaCatalogName();
+            
+            if (!existing.hasMediaCatalogName(newName)) {
+                existing.addMediaCatalogName(newName);
+                existing.setUpdatedBy("upload-catalog-integration");
+                return contentCatalogRepository.save(existing);
+            }
+            
+            return existing;
+        } else {
+            // Create new content catalog entry
+            ContentCatalog newContentCatalog = new ContentCatalog();
+            newContentCatalog.setLink(uploadCatalog.getContentCatalogLink());
+            newContentCatalog.setMediaCatalogType(mapUploadMediaTypeToContentMediaType(uploadCatalog.getMediaCatalogType()));
+            newContentCatalog.setMediaCatalogName(uploadCatalog.getMediaCatalogName());
+            newContentCatalog.setStatus(ContentCatalog.ContentStatus.NEW);
+            newContentCatalog.setPriority(ContentCatalog.Priority.MEDIUM);
+            newContentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.PENDING_UPLOAD);
+            newContentCatalog.setLocation(uploadCatalog.getContentCatalogLocation());
+            newContentCatalog.setCreatedBy("upload-catalog-integration");
+            newContentCatalog.setUpdatedBy("upload-catalog-integration");
+            
+            return contentCatalogRepository.save(newContentCatalog);
+        }
+    }
+    
+    /**
+     * Maps upload catalog media type to content catalog media type
+     */
+    private ContentCatalog.MediaType mapUploadMediaTypeToContentMediaType(UploadCatalog.MediaType uploadMediaType) {
+        switch (uploadMediaType) {
+            case MOVIE:
+                return ContentCatalog.MediaType.MOVIE;
+            case ALBUM:
+                return ContentCatalog.MediaType.ALBUM;
+            case WEB_SERIES:
+                return ContentCatalog.MediaType.WEB_SERIES;
+            case DOCUMENTARY:
+                return ContentCatalog.MediaType.DOCUMENTARY;
+            default:
+                return ContentCatalog.MediaType.MOVIE;
         }
     }
 }

@@ -25,4 +25,10 @@ public interface UploadCatalogRepository extends JpaRepository<UploadCatalog, Lo
     Long countByUploadStatus(@Param("status") UploadCatalog.UploadStatus status);
     
     Optional<UploadCatalog> findByLinkedContentCatalogId(Long linkedContentCatalogId);
+    
+    @Query("SELECT u FROM UploadCatalog u WHERE u.mediaCatalogName LIKE %:name% ORDER BY u.createdOn DESC")
+    List<UploadCatalog> findByMediaCatalogNameContaining(@Param("name") String name);
+    
+    @Query("SELECT u FROM UploadCatalog u WHERE u.mediaCatalogName LIKE %:name% AND u.mediaCatalogType = :type ORDER BY u.createdOn DESC")
+    List<UploadCatalog> findByMediaCatalogNameContainingAndMediaCatalogType(@Param("name") String name, @Param("type") UploadCatalog.MediaType type);
 }

@@ -184,6 +184,7 @@
                         <!-- Add/Edit Form (Initially Hidden) -->
                         <div id="mediaFormContainer" style="display: none;">
                             <form th:action="@{/dashboard/media-catalog}" method="post" class="entry-form" id="mediaForm">
+                                <input type="hidden" id="mediaCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="mediaName" class="form-label">Name</label>
                                 <input type="text" 
@@ -482,6 +483,7 @@
                             </div>
                         </div>
                         <form class="entry-form" action="/dashboard/content-catalog" method="post" id="contentCatalogForm" style="display: none;">
+                            <input type="hidden" id="contentCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="contentLink" class="form-label">Link</label>
                                 <input type="url" 
@@ -629,6 +631,53 @@
                                           placeholder="Default (null) - Enter comments if needed..."
                                           rows="3"></textarea>
                             </div>
+                            
+                            <!-- New Enhanced Fields -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="localStatus" class="form-label">Local Status <i class="fas fa-hdd ms-1 text-info" title="Local availability status"></i></label>
+                                    <select class="form-control" 
+                                            id="localStatus"
+                                            name="localStatus">
+                                        <option value="" selected>Select Local Status...</option>
+                                        <option value="available">Available</option>
+                                        <option value="not-available">Not Available</option>
+                                        <option value="partially-available">Partially Available</option>
+                                        <option value="downloading">Downloading</option>
+                                        <option value="processing">Processing</option>
+                                        <option value="corrupted">Corrupted</option>
+                                    </select>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Indicates whether the content is locally stored and accessible
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="locationPath" class="form-label">Location Path <i class="fas fa-folder-open ms-1 text-warning" title="Physical storage path"></i></label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="locationPath"
+                                           name="locationPath"
+                                           placeholder="e.g., /storage/media/movies/title-name/ or C:\Media\Movies\Title\"
+                                           autocomplete="off">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Full file system path where the content is stored locally
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="enhancedMetadata" class="form-label">Enhanced Metadata <i class="fas fa-tags ms-1 text-success" title="Detailed content information"></i></label>
+                                <textarea class="form-control" 
+                                          id="enhancedMetadata" 
+                                          name="metadata"
+                                          placeholder='{"quality": "1080p", "size": "2.5GB", "codec": "H.264", "audio": "AAC", "subtitles": ["en", "es"], "genre": "Action", "year": "2024", "duration": "120min", "rating": "8.5"}'
+                                          rows="4"></textarea>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Detailed content metadata in JSON format (quality, size, codecs, subtitles, etc.)
+                                </small>
+                            </div>
 
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary me-2" onclick="hideContentForm()">Cancel</button>
@@ -656,6 +705,9 @@
                                             <th>Type</th>
                                             <th>Status</th>
                                             <th>Priority</th>
+                                            <th>Local Status</th>
+                                            <th>Location Path</th>
+                                            <th>Metadata</th>
                                             <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
@@ -779,6 +831,7 @@
                         <!-- Add/Edit Form (Initially Hidden) -->
                         <div id="uploadFormContainer" style="display: none;">
                         <form th:action="@{/dashboard/upload-catalog}" method="post" class="entry-form" id="uploadForm">
+                            <input type="hidden" id="uploadCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="contentCatalogLink" class="form-label">Content Catalog Link / Description</label>
                                 <textarea class="form-control" 
@@ -840,13 +893,60 @@
                                 <label class="form-label">
                                     <i class="fas fa-link me-2"></i>Linked Content for Selected Media
                                 </label>
+                                
+                                <!-- Add New Link Option -->
+                                <div class="linked-content-add-section mb-3" style="display: none;" id="addLinkedContentSection">
+                                    <div class="card card-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-plus me-2"></i>Add New Content Link
+                                            </h6>
+                                            <div class="form-group mb-3">
+                                                <label for="newLinkedContentLink" class="form-label">Content Link (URL)</label>
+                                                <input type="url" 
+                                                       class="form-control" 
+                                                       id="newLinkedContentLink"
+                                                       placeholder="Enter content URL (e.g., https://example.com/content)"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label for="newLinkedContentDescription" class="form-label">Description (Optional)</label>
+                                                <textarea class="form-control" 
+                                                          id="newLinkedContentDescription"
+                                                          rows="2"
+                                                          placeholder="Brief description of this content..."></textarea>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-success btn-sm" onclick="addNewLinkedContent()">
+                                                    <i class="fas fa-plus me-1"></i>Add Content
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideAddLinkedContentForm()">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Existing Linked Content -->
                                 <div id="linkedContentList" class="linked-content-container">
                                     <!-- Linked content will be populated here -->
                                 </div>
+                                
+                                <!-- Controls -->
+                                <div class="linked-content-controls mt-2" id="linkedContentControls" style="display: none;">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="showAddLinkedContentForm()">
+                                        <i class="fas fa-plus me-1"></i>Add New Link
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="refreshLinkedContent()">
+                                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                
                                 <div class="mt-2">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Content records linked to the selected media catalog will appear above
+                                        Content records matching the selected media catalog name and type. Click to select or add new links.
                                     </small>
                                 </div>
                             </div>
@@ -862,7 +962,7 @@
                                            class="form-control" 
                                            id="contentBlock" 
                                            name="contentBlock"
-                                           placeholder="Type to search from Content Catalog or leave empty..." 
+                                           placeholder="Search by name or link from Content Catalog, or leave empty..." 
                                            autocomplete="off">
                                     <div id="contentBlockDropdown" class="dropdown-menu"></div>
                                 </div>
@@ -872,7 +972,7 @@
                                 <div class="mt-1">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        You can leave this empty to upload without linking to specific content
+                                        Search by media name or content link. Creates new content entry if link not found. Leave empty to upload without linking.
                                     </small>
                                 </div>
                             </div>
@@ -1689,11 +1789,53 @@
             new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
+        // Helper function to get current active tab
+        function getCurrentActiveTab() {
+            // First check URL parameters (most reliable)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) return tabParam;
+            
+            // Check active tab element
+            const activeTab = document.querySelector('.nav-pills .nav-link.active');
+            if (activeTab) {
+                // Extract tab name from the href or data attribute
+                const href = activeTab.getAttribute('href') || activeTab.getAttribute('data-bs-target');
+                if (href) {
+                    if (href.includes('movies')) return 'movies';
+                    if (href.includes('content-status')) return 'content-status';
+                    if (href.includes('add-entry')) return 'add-entry';
+                    if (href.includes('states')) return 'states-catalog';
+                }
+                
+                // Check aria-controls attribute (Bootstrap 5 specific)
+                const ariaControls = activeTab.getAttribute('aria-controls');
+                if (ariaControls) {
+                    return ariaControls;
+                }
+            }
+            
+            // Check which tab pane is currently active/visible
+            const activePane = document.querySelector('.tab-content .tab-pane.active') || 
+                               document.querySelector('.tab-content .active') ||
+                               document.querySelector('.tab-content [style*="display: block"]');
+            if (activePane) {
+                return activePane.id;
+            }
+            
+            // Default fallback
+            return 'movies';
+        }
+
         // Media Catalog Functions
         function showAddMediaForm() {
             // Hide records container and show form
             document.getElementById('mediaRecordsContainer').style.display = 'none';
             document.getElementById('mediaFormContainer').style.display = 'block';
+            
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            document.getElementById('mediaCurrentTab').value = currentTab;
             
             // Clear form for new entry
             document.getElementById('mediaForm').reset();
@@ -1871,6 +2013,10 @@
                 return;
             }
             
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            document.getElementById('contentCurrentTab').value = currentTab;
+            
             form.style.display = 'block';
             form.reset();
             
@@ -2020,6 +2166,11 @@
                     document.getElementById('commentStates').value = content.commentStates || '';
                     document.getElementById('uploadContentStatus').value = content.uploadContentStatus?.toLowerCase().replace('_', '-') || '';
                     
+                    // New enhanced fields
+                    document.getElementById('localStatus').value = content.localStatus?.toLowerCase().replace('_', '-') || '';
+                    document.getElementById('locationPath').value = content.locationPath || '';
+                    document.getElementById('enhancedMetadata').value = content.metadata || '';
+                    
                     // Update form to edit mode
                     const form = document.getElementById('contentCatalogForm');
                     form.action = `/dashboard/content-catalog/${id}/edit`;
@@ -2060,10 +2211,17 @@
             document.getElementById('uploadRecordsContainer').style.display = 'none';
             document.getElementById('uploadFormContainer').style.display = 'block';
             
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            console.log('Upload form - detected current tab:', currentTab);
+            document.getElementById('uploadCurrentTab').value = currentTab;
+            
             // Reset form
             const form = document.getElementById('uploadForm');
             if (form) {
+                const tabValue = document.getElementById('uploadCurrentTab').value; // Save tab value
                 form.reset();
+                document.getElementById('uploadCurrentTab').value = tabValue; // Restore tab value
                 form.action = '/dashboard/upload-catalog'; // Reset to create mode
                 
                 // Update button text
@@ -2442,6 +2600,9 @@
                     <td><span class="badge bg-secondary">${content.mediaCatalogType}</span></td>
                     <td><span class="badge ${getContentStatusBadgeClass(content.status)}">${content.status}</span></td>
                     <td><span class="badge ${getPriorityBadgeClass(content.priority)}">${content.priority}</span></td>
+                    <td><span class="badge ${getLocalStatusBadgeClass(content.localStatus)}" title="${content.localStatus || 'Not Set'}">${content.localStatus || '-'}</span></td>
+                    <td><div class="location-path-cell" title="${content.locationPath || 'No path specified'}">${content.locationPath ? (content.locationPath.length > 30 ? content.locationPath.substring(0, 30) + '...' : content.locationPath) : '-'}</div></td>
+                    <td><div class="metadata-cell" title="${content.metadata ? (content.metadata.length > 100 ? content.metadata.substring(0, 100) + '...' : content.metadata) : 'No metadata'}">${content.metadata ? (content.metadata.length > 50 ? content.metadata.substring(0, 50) + '...' : content.metadata) : '-'}</div></td>
                     <td>${formatDate(content.createdOn)}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="editContentRecord(this)" data-id="${content.id}">
@@ -2480,6 +2641,18 @@
                 case 'HIGH': return 'bg-danger';
                 case 'MEDIUM': return 'bg-warning';
                 case 'LOW': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getLocalStatusBadgeClass(localStatus) {
+            switch(localStatus?.toUpperCase()) {
+                case 'AVAILABLE': return 'bg-success';
+                case 'NOT_AVAILABLE': return 'bg-danger';
+                case 'PARTIALLY_AVAILABLE': return 'bg-warning';
+                case 'DOWNLOADING': return 'bg-info';
+                case 'PROCESSING': return 'bg-primary';
+                case 'CORRUPTED': return 'bg-danger';
                 default: return 'bg-secondary';
             }
         }
@@ -2975,11 +3148,21 @@
             // Show loading state
             showLinkedContentLoading();
 
-            // Fetch linked content from Content Catalog
-            fetch(`/api/content-catalog/search?mediaCatalogName=${encodeURIComponent(mediaName)}`)
+            // Get selected media type for filtering
+            const mediaTypeSelect = document.getElementById('uploadMediaCatalogType');
+            const selectedMediaType = mediaTypeSelect ? mediaTypeSelect.value : null;
+            
+            // Build API URL with type filtering for comprehensive search
+            let apiUrl = `/api/content-catalog/all-linked-content?mediaCatalogName=${encodeURIComponent(mediaName)}`;
+            if (selectedMediaType && selectedMediaType !== '') {
+                apiUrl += `&mediaType=${encodeURIComponent(selectedMediaType)}`;
+            }
+            
+            // Fetch linked content from both Content and Upload Catalogs with type filtering
+            fetch(apiUrl)
                 .then(response => response.json())
-                .then(contentList => {
-                    displayLinkedContent(contentList, mediaName);
+                .then(allLinkedData => {
+                    displayAllLinkedContent(allLinkedData, mediaName, selectedMediaType);
                 })
                 .catch(error => {
                     console.error('Error fetching linked content:', error);
@@ -3002,9 +3185,10 @@
             }
         }
 
-        function displayLinkedContent(contentList, mediaName) {
+        function displayLinkedContent(contentList, mediaName, mediaType) {
             const section = document.getElementById('linkedContentSection');
             const container = document.getElementById('linkedContentList');
+            const controls = document.getElementById('linkedContentControls');
             
             if (!section || !container) return;
 
@@ -3048,18 +3232,21 @@
             container.innerHTML = contentHtml;
         }
 
-        function selectLinkedContent(contentId, contentLink) {
+        function selectLinkedContent(id, link, type) {
+            type = type || 'content'; // Default to content for backward compatibility
+            
             // Update the Content ID field
             const contentBlockInput = document.getElementById('contentBlock');
             if (contentBlockInput) {
-                contentBlockInput.value = contentId;
-                updateContentBlockStatusMessage(`Selected: Content ID ${contentId}`, 'success');
+                contentBlockInput.value = id;
+                const typeName = type === 'upload' ? 'Upload' : 'Content';
+                updateContentBlockStatusMessage(`Selected: ${typeName} ID ${id}`, 'success');
             }
 
             // Auto-fill the content catalog link if it's empty
             const linkTextarea = document.getElementById('contentCatalogLink');
-            if (linkTextarea && contentLink && !linkTextarea.value.trim()) {
-                linkTextarea.value = contentLink;
+            if (linkTextarea && link && !linkTextarea.value.trim()) {
+                linkTextarea.value = link;
             }
 
             // Update visual selection
@@ -3069,7 +3256,8 @@
             event.target.closest('.linked-content-item').classList.add('selected');
 
             // Show feedback
-            showNotification(`Content ID ${contentId} selected and auto-filled`, 'success');
+            const typeName = type === 'upload' ? 'Upload' : 'Content';
+            showNotification(`${typeName} ID ${id} selected and auto-filled`, 'success');
         }
 
         function hideLinkedContent() {
@@ -3088,6 +3276,278 @@
                         Error loading linked content. Please try again.
                     </div>
                 `;
+            }
+        }
+        
+        // New functions for adding linked content
+        function showAddLinkedContentForm() {
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) {
+                addSection.style.display = 'block';
+                // Clear previous input
+                document.getElementById('newLinkedContentLink').value = '';
+                document.getElementById('newLinkedContentDescription').value = '';
+                document.getElementById('newLinkedContentLink').focus();
+            }
+        }
+        
+        function hideAddLinkedContentForm() {
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) {
+                addSection.style.display = 'none';
+            }
+        }
+        
+        function addNewLinkedContent() {
+            const linkInput = document.getElementById('newLinkedContentLink');
+            const descriptionInput = document.getElementById('newLinkedContentDescription');
+            
+            const link = linkInput.value.trim();
+            const description = descriptionInput.value.trim();
+            
+            if (!link) {
+                alert('Please enter a content link.');
+                linkInput.focus();
+                return;
+            }
+            
+            if (!window.currentLinkedMediaName) {
+                alert('No media catalog selected. Please select a media catalog first.');
+                return;
+            }
+            
+            // Create new content catalog entry
+            const newContentData = {
+                link: link,
+                mediaCatalogName: window.currentLinkedMediaName,
+                mediaCatalogType: window.currentLinkedMediaType || 'MOVIE',
+                status: 'NEW',
+                priority: 'MEDIUM',
+                metadata: description || null
+            };
+            
+            // Show loading state
+            const addButton = document.querySelector('button[onclick="addNewLinkedContent()"]');
+            const originalText = addButton.innerHTML;
+            addButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+            addButton.disabled = true;
+            
+            // Send to backend
+            fetch('/api/content-catalog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newContentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                addButton.innerHTML = originalText;
+                addButton.disabled = false;
+                
+                // Hide form
+                hideAddLinkedContentForm();
+                
+                // Show success message
+                showNotification(`New content link added successfully (ID: ${data.id})`, 'success');
+                
+                // Refresh linked content list
+                refreshLinkedContent();
+            })
+            .catch(error => {
+                console.error('Error adding new content:', error);
+                // Reset button
+                addButton.innerHTML = originalText;
+                addButton.disabled = false;
+                
+                alert('Error adding new content link. Please try again.');
+            });
+        }
+        
+        function refreshLinkedContent() {
+            if (window.currentLinkedMediaName) {
+                loadLinkedContentForMedia(window.currentLinkedMediaName);
+            }
+        }
+        
+        // Enhanced function to show controls when content is displayed
+        function enhanceDisplayLinkedContent(originalContentList) {
+            const controls = document.getElementById('linkedContentControls');
+            if (controls && originalContentList && originalContentList.length > 0) {
+                controls.style.display = 'block';
+            }
+        }
+        
+        // New function to display both content catalog and upload catalog results
+        function displayAllLinkedContent(allLinkedData, mediaName, mediaType) {
+            const section = document.getElementById('linkedContentSection');
+            const container = document.getElementById('linkedContentList');
+            const controls = document.getElementById('linkedContentControls');
+            
+            if (!section || !container) return;
+            section.style.display = 'block';
+            
+            // Store current media info for adding new content
+            window.currentLinkedMediaName = mediaName;
+            window.currentLinkedMediaType = mediaType;
+            
+            const contentCatalog = allLinkedData.contentCatalog || [];
+            const uploadCatalog = allLinkedData.uploadCatalog || [];
+            const totalResults = contentCatalog.length + uploadCatalog.length;
+            
+            if (totalResults === 0) {
+                const typeText = mediaType ? ` and type "${mediaType}"` : '';
+                container.innerHTML = `
+                    <div class="linked-content-empty">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No content or upload records found for "${mediaName}"${typeText}
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddLinkedContentForm()">
+                                <i class="fas fa-plus me-1"></i>Add First Content Link
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (controls) controls.style.display = 'none';
+                return;
+            }
+            
+            let contentHtml = '';
+            
+            // Display Content Catalog results
+            if (contentCatalog.length > 0) {
+                contentHtml += `
+                    <div class="linked-content-section mb-3">
+                        <h6 class="linked-content-section-title">
+                            <i class="fas fa-video me-2 text-primary"></i>Content Catalog (${contentCatalog.length})
+                        </h6>
+                `;
+                
+                contentCatalog.forEach(content => {
+                    const statusClass = getContentStatusClass(content.status);
+                    const truncatedLink = content.link ? 
+                        (content.link.length > 50 ? content.link.substring(0, 50) + '...' : content.link) : 
+                        'No link provided';
+                    const locationPath = content.locationPath ? 
+                        (content.locationPath.length > 40 ? content.locationPath.substring(0, 40) + '...' : content.locationPath) : 
+                        null;
+                    contentHtml += `
+                        <div class="linked-content-item" onclick="selectLinkedContent(${content.id}, '${content.link || ''}', 'content')">
+                            <div class="linked-content-info">
+                                <div class="linked-content-id">
+                                    <i class="fas fa-video me-1"></i>Content ID: ${content.id}
+                                </div>
+                                <div class="linked-content-link" title="${content.link || 'No link provided'}">
+                                    ${content.link ? 
+                                        `<i class="fas fa-link me-1"></i>${truncatedLink}` : 
+                                        `<i class="fas fa-file-text me-1"></i>Text content`
+                                    }
+                                </div>
+                                ${locationPath ? 
+                                    `<div class="linked-content-path" title="${content.locationPath}">
+                                        <i class="fas fa-folder me-1 text-muted"></i><small class="text-muted">${locationPath}</small>
+                                    </div>` : 
+                                    ''
+                                }
+                            </div>
+                            <div class="linked-content-status">
+                                <span class="badge ${statusClass}">${content.status || 'Unknown'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentHtml += '</div>';
+            }
+            
+            // Display Upload Catalog results
+            if (uploadCatalog.length > 0) {
+                contentHtml += `
+                    <div class="linked-content-section mb-3">
+                        <h6 class="linked-content-section-title">
+                            <i class="fas fa-upload me-2 text-success"></i>Upload Catalog (${uploadCatalog.length})
+                        </h6>
+                `;
+                
+                uploadCatalog.forEach(upload => {
+                    const statusClass = getUploadStatusClass(upload.uploadStatus);
+                    const truncatedLink = upload.contentCatalogLink ? 
+                        (upload.contentCatalogLink.length > 50 ? upload.contentCatalogLink.substring(0, 50) + '...' : upload.contentCatalogLink) : 
+                        'No link provided';
+                    contentHtml += `
+                        <div class="linked-content-item" onclick="selectLinkedContent(${upload.id}, '${upload.contentCatalogLink || ''}', 'upload')">
+                            <div class="linked-content-info">
+                                <div class="linked-content-id">
+                                    <i class="fas fa-upload me-1"></i>Upload ID: ${upload.id}
+                                </div>
+                                <div class="linked-content-link" title="${upload.contentCatalogLink || 'No link provided'}">
+                                    ${upload.contentCatalogLink ? 
+                                        `<i class="fas fa-link me-1"></i>${truncatedLink}` : 
+                                        `<i class="fas fa-file-text me-1"></i>Text content`
+                                    }
+                                </div>
+                                ${upload.uploadCatalogCaption ? 
+                                    `<div class="linked-content-caption"><small class="text-muted">${upload.uploadCatalogCaption}</small></div>` : 
+                                    ''
+                                }
+                            </div>
+                            <div class="linked-content-status">
+                                <span class="badge ${statusClass}">${upload.uploadStatus || 'Unknown'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentHtml += '</div>';
+            }
+            
+            container.innerHTML = contentHtml;
+            
+            // Show controls when we have content
+            if (controls) {
+                controls.style.display = 'block';
+            }
+            
+            // Hide add form if it was open
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) addSection.style.display = 'none';
+        }
+        
+        // Override original displayLinkedContent to add controls support
+        const originalDisplayLinkedContent = window.displayLinkedContent;
+        window.displayLinkedContent = function(contentList, mediaName, mediaType) {
+            // Call original function
+            if (originalDisplayLinkedContent) {
+                originalDisplayLinkedContent.call(this, contentList, mediaName);
+            }
+            
+            // Store current media info and show controls
+            window.currentLinkedMediaName = mediaName;
+            window.currentLinkedMediaType = mediaType;
+            
+            const controls = document.getElementById('linkedContentControls');
+            const addSection = document.getElementById('addLinkedContentSection');
+            
+            if (contentList && contentList.length > 0) {
+                if (controls) controls.style.display = 'block';
+            } else {
+                if (controls) controls.style.display = 'none';
+            }
+            
+            // Hide add form if it was open
+            if (addSection) addSection.style.display = 'none';
+        };
+
+        function getUploadStatusClass(status) {
+            switch(status?.toUpperCase()) {
+                case 'UPLOADED': return 'bg-success';
+                case 'IN_PROGRESS': return 'bg-warning';
+                case 'NEW': return 'bg-info';
+                case 'ERROR': return 'bg-danger';
+                case 'FAILED': return 'bg-danger';
+                case 'COMPLETED': return 'bg-success';
+                default: return 'bg-secondary';
             }
         }
 
@@ -3179,14 +3639,25 @@
                 item.type = 'button';
                 
                 // Create display text with ID and name
-                const displayText = `${content.id} - ${content.mediaCatalogName}`;
                 const statusBadge = getContentStatusBadge(content.status);
+                const isLinkMatch = content.link && content.link.toLowerCase().includes(searchValue.toLowerCase());
+                const isNameMatch = content.mediaCatalogName && content.mediaCatalogName.toLowerCase().includes(searchValue.toLowerCase());
+                
+                let matchIndicator = '';
+                if (isLinkMatch && isNameMatch) {
+                    matchIndicator = '<i class="fas fa-link text-primary me-1" title="Link match"></i><i class="fas fa-tag text-success me-1" title="Name match"></i>';
+                } else if (isLinkMatch) {
+                    matchIndicator = '<i class="fas fa-link text-primary me-1" title="Link match"></i>';
+                } else if (isNameMatch) {
+                    matchIndicator = '<i class="fas fa-tag text-success me-1" title="Name match"></i>';
+                }
                 
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>ID: ${content.id}</strong><br>
+                            <strong>ID: ${content.id}</strong> ${matchIndicator}<br>
                             <small class="text-muted">${content.mediaCatalogName}</small>
+                            ${isLinkMatch ? `<br><small class="text-info"><i class="fas fa-link me-1"></i>${content.link.substring(0, 50)}${content.link.length > 50 ? '...' : ''}</small>` : ''}
                         </div>
                         <span class="badge ${statusBadge}">${content.status}</span>
                     </div>
@@ -3197,7 +3668,12 @@
                     const input = document.getElementById('contentBlock');
                     input.value = `${content.id}`;
                     dropdown.classList.remove('show');
-                    updateContentBlockStatusMessage(`Selected: "${content.mediaCatalogName}" (ID: ${content.id})`, 'success');
+                    
+                    let statusMessage = `Selected: "${content.mediaCatalogName}" (ID: ${content.id})`;
+                    if (isLinkMatch) {
+                        statusMessage += ` - Link matched`;
+                    }
+                    updateContentBlockStatusMessage(statusMessage, 'success');
                     
                     // Auto-fill content catalog link/description if available
                     if (content.link) {
@@ -3311,7 +3787,9 @@
         // Auto-activate tab based on server-side activeTab parameter
         document.addEventListener('DOMContentLoaded', function() {
             const activeTab = /*[[${activeTab}]]*/ 'dashboard';
+            console.log('Page loaded with activeTab:', activeTab);
             if (activeTab && activeTab !== 'dashboard') {
+                console.log('Activating tab:', activeTab);
                 showTab(activeTab);
             }
             
@@ -3524,6 +4002,11 @@
                         input.value = item.link || item.id; // Show link, fallback to ID
                         input.setAttribute('data-content-id', item.id); // Store ID for backend
                         dropdown.style.display = 'none';
+                        
+                        // Auto-populate content catalog location if this is the edit form
+                        if (input.id === 'editContentBlock') {
+                            fetchAndPopulateContentCatalogLocation(item.id);
+                        }
                     });
                     
                     dropdown.appendChild(option);
@@ -3537,6 +4020,52 @@
                 dropdown.appendChild(noResults);
                 dropdown.style.display = 'block';
             }
+        }
+        
+        function fetchAndPopulateContentCatalogLocation(contentId) {
+            if (!contentId) {
+                return;
+            }
+            
+            // Show loading state in the location field
+            const locationInput = document.getElementById('editContentCatalogLocation');
+            if (locationInput) {
+                locationInput.value = 'Loading location...';
+                locationInput.disabled = true;
+            }
+            
+            // Fetch location data from the new API endpoint
+            fetch(`/api/content-catalog/${contentId}/location`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                })
+                .then(data => {
+                    if (locationInput) {
+                        // Populate with location path if available, otherwise use location
+                        const locationValue = data.locationPath || data.location || '';
+                        locationInput.value = locationValue;
+                        locationInput.disabled = false;
+                        
+                        if (locationValue) {
+                            console.log('Auto-populated content catalog location:', locationValue);
+                            showNotification(`Location auto-populated from Content ID ${contentId}`, 'success');
+                        } else {
+                            showNotification(`No location data found for Content ID ${contentId}`, 'warning');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching content catalog location:', error);
+                    if (locationInput) {
+                        locationInput.value = '';
+                        locationInput.disabled = false;
+                        locationInput.placeholder = 'Location not found for this content ID';
+                    }
+                    showNotification(`Could not fetch location for Content ID ${contentId}`, 'warning');
+                });
         }
         
         function initializeUploadFormContentBlock() {
