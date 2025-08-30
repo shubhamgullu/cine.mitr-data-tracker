@@ -964,11 +964,13 @@ public class InstagramLinkController {
             long mediaCount = mediaCatalogRepository.count();
             long contentCount = contentCatalogRepository.count();
             long uploadCount = uploadCatalogRepository.count();
+            long statesCount = instagramLinkRepository.count(); // Using Instagram links as states catalog
             
             systemStats.put("totalMediaCatalog", mediaCount);
             systemStats.put("totalContentCatalog", contentCount);
             systemStats.put("totalUploadCatalog", uploadCount);
-            systemStats.put("totalRecords", mediaCount + contentCount + uploadCount);
+            systemStats.put("totalStatesCatalog", statesCount);
+            systemStats.put("totalRecords", mediaCount + contentCount + uploadCount + statesCount);
             
             System.out.println("System stats calculated: Media=" + mediaCount + ", Content=" + contentCount + ", Upload=" + uploadCount);
             
@@ -990,11 +992,13 @@ public class InstagramLinkController {
             contentStats.put("downloaded", getContentByStatus("DOWNLOADED"));
             contentStats.put("error", getContentByStatus("ERROR"));
             
-            // Upload Status Distribution
+            // Upload Status Distribution (including new READY_TO_UPLOAD)
             Map<String, Object> uploadStats = new HashMap<>();
             uploadStats.put("new", getUploadsByStatus("NEW"));
+            uploadStats.put("readyToUpload", getUploadsByStatus("READY_TO_UPLOAD"));
             uploadStats.put("uploaded", getUploadsByStatus("UPLOADED"));
             uploadStats.put("inProgress", getUploadsByStatus("IN_PROGRESS"));
+            uploadStats.put("completed", getUploadsByStatus("COMPLETED"));
             
             // Media Type Distribution
             Map<String, Object> mediaTypeStats = new HashMap<>();
@@ -1020,6 +1024,7 @@ public class InstagramLinkController {
             Map<String, Object> quickStats = new HashMap<>();
             long todaysActivity = getRecentRecordsCount("media") + getRecentRecordsCount("content") + getRecentRecordsCount("upload");
             quickStats.put("todaysActivity", (int)todaysActivity);
+            quickStats.put("completionRate", calculateOverallCompletionRate());
             quickStats.put("downloadedPercentage", calculateDownloadedPercentage());
             quickStats.put("linkedRecords", countLinkedRecords());
             quickStats.put("popularPlatform", getMostPopularPlatform());
@@ -1149,6 +1154,31 @@ public class InstagramLinkController {
         // Placeholder - would need GROUP BY query
         List<String> platforms = Arrays.asList("Netflix", "Amazon Prime", "YouTube", "Disney+", "Other");
         return platforms.get((int)(Math.random() * platforms.size()));
+    }
+    
+    private double calculateOverallCompletionRate() {
+        try {
+            long totalMedia = mediaCatalogRepository.count();
+            long totalContent = contentCatalogRepository.count();
+            long totalUpload = uploadCatalogRepository.count();
+            
+            if (totalMedia == 0 && totalContent == 0 && totalUpload == 0) {
+                return 0.0;
+            }
+            
+            // Count completed items across all catalogs
+            long completedContent = getContentByStatus("DOWNLOADED");
+            long completedUploads = getUploadsByStatus("UPLOADED") + getUploadsByStatus("COMPLETED");
+            
+            // Calculate overall completion rate
+            double totalCompleted = completedContent + completedUploads;
+            double totalItems = totalContent + totalUpload;
+            
+            return totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100.0) : 0.0;
+        } catch (Exception e) {
+            System.err.println("Error calculating completion rate: " + e.getMessage());
+            return 0.0;
+        }
     }
     
     // ===== API ENDPOINTS FOR DYNAMIC LOADING =====

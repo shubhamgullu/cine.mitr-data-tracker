@@ -41,7 +41,7 @@ public class UploadCatalog extends BaseEntity {
     }
     
     public enum UploadStatus {
-        NEW, COMPLETED, IN_PROGRESS, UPLOADED
+        NEW, COMPLETED, IN_PROGRESS, UPLOADED, READY_TO_UPLOAD
     }
     
     // Constructors

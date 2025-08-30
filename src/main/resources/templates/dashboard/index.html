@@ -807,6 +807,7 @@
                                     <select class="form-control" id="uploadSearchStatus">
                                         <option value="">All Status</option>
                                         <option value="new">New</option>
+                                        <option value="ready-to-upload">Ready to Upload</option>
                                         <option value="completed">Completed</option>
                                         <option value="in-progress">In Progress</option>
                                         <option value="uploaded">Uploaded</option>
@@ -1005,6 +1006,7 @@
                                         required>
                                     <option value="">Select Status</option>
                                     <option value="new">New</option>
+                                    <option value="ready-to-upload">Ready to Upload</option>
                                     <option value="in-progress">In Progress</option>
                                     <option value="completed">Completed</option>
                                     <option value="uploaded">Uploaded</option>
@@ -1309,18 +1311,23 @@
                 <div class="tab-content" id="dashboard">
                     <div class="dashboard-section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2 class="section-title mb-0">System Performance Dashboard</h2>
+                            <h2 class="section-title mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>Comprehensive Analytics Dashboard
+                            </h2>
                             <div class="dashboard-actions">
-                                <button type="button" class="btn btn-outline-info btn-sm" onclick="refreshDashboard()">
-                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="refreshDashboard()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
                                 </button>
-                                <span class="text-muted ms-3" id="lastUpdated">Loading...</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="exportDashboardData()">
+                                    <i class="fas fa-download me-1"></i>Export
+                                </button>
+                                <span class="badge bg-secondary" id="lastUpdated">Loading...</span>
                             </div>
                         </div>
                         
-                        <!-- Quick Stats Cards -->
+                        <!-- Quick Stats Overview Cards -->
                         <div class="row mb-4" id="quickStatsCards">
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
                                     <div class="card-icon bg-primary">
                                         <i class="fas fa-database"></i>
@@ -1332,93 +1339,388 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="dashboard-card stat-card">
-                                    <div class="card-icon bg-success">
-                                        <i class="fas fa-download"></i>
-                                    </div>
-                                    <div class="card-content">
-                                        <h3 class="stat-number" id="downloadedPercentage">-%</h3>
-                                        <p class="stat-label">Downloaded</p>
-                                        <small class="stat-change text-success">Media completion rate</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
                                     <div class="card-icon bg-info">
-                                        <i class="fas fa-link"></i>
+                                        <i class="fas fa-film"></i>
                                     </div>
                                     <div class="card-content">
-                                        <h3 class="stat-number" id="linkedRecordsCount">-</h3>
-                                        <p class="stat-label">Linked Records</p>
-                                        <small class="stat-change text-info">Content-Upload pairs</small>
+                                        <h3 class="stat-number" id="mediaCatalogCount">-</h3>
+                                        <p class="stat-label">Media Catalog</p>
+                                        <small class="stat-change text-info">Movies, Albums, etc.</small>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
-                                    <div class="card-icon bg-warning">
-                                        <i class="fas fa-trophy"></i>
+                                    <div class="card-icon bg-success">
+                                        <i class="fas fa-folder-open"></i>
                                     </div>
                                     <div class="card-content">
-                                        <h3 class="stat-number" id="popularPlatform">-</h3>
-                                        <p class="stat-label">Popular Platform</p>
-                                        <small class="stat-change text-warning">Most used service</small>
+                                        <h3 class="stat-number" id="contentCatalogCount">-</h3>
+                                        <p class="stat-label">Content Catalog</p>
+                                        <small class="stat-change text-success">Download status</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-warning">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="uploadCatalogCount">-</h3>
+                                        <p class="stat-label">Upload Catalog</p>
+                                        <small class="stat-change text-warning">Upload status</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-secondary">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="statesCatalogCount">-</h3>
+                                        <p class="stat-label">States Catalog</p>
+                                        <small class="stat-change text-secondary">Analytics data</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-danger">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="completionRate">-%</h3>
+                                        <p class="stat-label">Completion Rate</p>
+                                        <small class="stat-change text-danger">Overall progress</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="table-container">
-                            <table class="dashboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Instagram Link</th>
-                                        <th>Movie Name</th>
-                                        <th>Category</th>
-                                        <th>Created On</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="link, linkStat : ${activeLinks}" th:if="${linkStat.index < 10}">
-                                        <td th:text="${linkStat.index + 1}">1</td>
-                                        <td>
-                                            <a th:href="${link.instagramLink}" 
-                                               target="_blank" 
-                                               class="instagram-link"
-                                               th:onclick="'trackClick(' + ${link.id} + ')'">
-                                                <span th:text="${#strings.abbreviate(link.instagramLink, 30)}">https://instagram.com</span>
-                                            </a>
-                                        </td>
-                                        <td th:text="${link.movieName}">Inception</td>
-                                        <td>
-                                            <span class="category-badge" th:text="${link.category}">Action</span>
-                                        </td>
-                                        <td th:text="${#temporals.format(link.createdAt, 'dd-MM-yyyy')}">24-08-2025</td>
-                                        <td class="actions-cell">
-                                            <button class="btn-edit" onclick="editLink(this)" 
-                                                    th:data-id="${link.id}"
-                                                    th:data-movie="${link.movieName}"
-                                                    th:data-category="${link.category}"
-                                                    th:data-link="${link.instagramLink}"
-                                                    th:data-description="${link.description}">
-                                                Edit
+                        <!-- Status Distribution Charts Row -->
+                        <div class="row mb-4">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-film me-2"></i>Media Types</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Movies</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-primary" id="moviesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="moviesCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Albums</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="albumsProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="albumsCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Web Series</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="webSeriesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="webSeriesCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Documentaries</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="documentariesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="documentariesCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-download me-2"></i>Download Status</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Downloaded</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="downloadedProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="downloadedCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">New</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="newContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="newContentCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">In Progress</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="inProgressContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="inProgressContentCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Error</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-danger" id="errorContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="errorContentCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Status</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Uploaded</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="uploadedProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="uploadedCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Ready to Upload</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-primary" id="readyToUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="readyToUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">In Progress</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="inProgressUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="inProgressUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">New</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="newUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="newUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Completed</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-secondary" id="completedUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="completedUploadCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>System Health</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="health-indicators">
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-success"></span>
+                                                <span class="health-label">Database</span>
+                                                <span class="health-status" id="dbStatus">Online</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-info"></span>
+                                                <span class="health-label">Storage</span>
+                                                <span class="health-status" id="storageStatus">Available</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-warning"></span>
+                                                <span class="health-label">API</span>
+                                                <span class="health-status" id="apiStatus">< 100ms</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-primary"></span>
+                                                <span class="health-label">Uptime</span>
+                                                <span class="health-status" id="uptimeStatus">99.9%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Data Overview Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Global Data Search & Filter</h5>
+                                        <div class="search-controls">
+                                            <select class="form-select form-select-sm me-2" id="globalSearchCategory" style="width: auto; display: inline-block;">
+                                                <option value="">All Categories</option>
+                                                <option value="media">Media Catalog</option>
+                                                <option value="content">Content Catalog</option>
+                                                <option value="upload">Upload Catalog</option>
+                                                <option value="states">States Catalog</option>
+                                            </select>
+                                            <select class="form-select form-select-sm me-2" id="globalSearchStatus" style="width: auto; display: inline-block;">
+                                                <option value="">All Status</option>
+                                                <option value="new">New</option>
+                                                <option value="downloaded">Downloaded</option>
+                                                <option value="uploaded">Uploaded</option>
+                                                <option value="ready-to-upload">Ready to Upload</option>
+                                                <option value="in-progress">In Progress</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="error">Error</option>
+                                            </select>
+                                            <input type="text" class="form-control form-control-sm me-2" id="globalSearchInput" placeholder="Search across all data..." style="width: 300px; display: inline-block;">
+                                            <button class="btn btn-primary btn-sm" onclick="performGlobalSearch()">
+                                                <i class="fas fa-search"></i>
                                             </button>
-                                            <form th:action="@{/dashboard/link/{id}/delete(id=${link.id})}" 
-                                                  method="post" 
-                                                  class="d-inline">
-                                                <button type="submit" 
-                                                        class="btn-delete"
-                                                        onclick="return confirm('Are you sure you want to delete this link?')">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="clearGlobalSearch()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="globalSearchResults">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fas fa-search fa-3x mb-3"></i>
+                                                <p>Use the search controls above to find data across all catalogs</p>
+                                                <p class="small">Search supports: Media names, content links, upload status, file paths, descriptions, and more</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Activity Summary -->
+                        <div class="row mb-4">
+                            <div class="col-lg-6 col-12 mb-3">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Activity (Last 24h)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="activity-list" id="recentActivityList">
+                                            <div class="activity-item">
+                                                <div class="activity-icon bg-primary">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                                <div class="activity-content">
+                                                    <span class="activity-title">Loading recent activity...</span>
+                                                    <span class="activity-time">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-3">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="loadRecentActivity()">
+                                                <i class="fas fa-refresh me-1"></i>Refresh Activity
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6 col-12 mb-3">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>System Alerts & Issues</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alerts-list" id="systemAlertsList">
+                                            <div class="alert-item">
+                                                <div class="alert-icon bg-success">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="alert-content">
+                                                    <span class="alert-title">All systems operational</span>
+                                                    <span class="alert-desc">No critical issues detected</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions Dashboard -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions & Insights</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('movies')">
+                                                    <div class="qa-icon bg-info">
+                                                        <i class="fas fa-film"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Manage Media</h6>
+                                                        <p>Add/Edit media catalog entries</p>
+                                                        <span class="qa-count" id="qaMediaCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('content-status')">
+                                                    <div class="qa-icon bg-success">
+                                                        <i class="fas fa-download"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Content Status</h6>
+                                                        <p>Track download progress</p>
+                                                        <span class="qa-count" id="qaContentCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('add-entry')">
+                                                    <div class="qa-icon bg-warning">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Upload Queue</h6>
+                                                        <p>Manage upload catalog</p>
+                                                        <span class="qa-count" id="qaUploadCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('states-catalog')">
+                                                    <div class="qa-icon bg-secondary">
+                                                        <i class="fas fa-chart-line"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Analytics</h6>
+                                                        <p>View user engagement data</p>
+                                                        <span class="qa-count" id="qaStatesCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                             </table>
 
                             <!-- Empty State -->
@@ -1593,6 +1895,7 @@
                                     required>
                                 <option value="">Select Status</option>
                                 <option value="new">New</option>
+                                <option value="ready-to-upload">Ready to Upload</option>
                                 <option value="in-progress">In Progress</option>
                                 <option value="completed">Completed</option>
                                 <option value="uploaded">Uploaded</option>
@@ -2535,6 +2838,7 @@
         function getUploadStatusBadgeClass(status) {
             switch(status) {
                 case 'NEW': return 'bg-info';
+                case 'READY_TO_UPLOAD': return 'bg-primary';
                 case 'UPLOADED': return 'bg-success';
                 case 'COMPLETED': return 'bg-success';
                 case 'IN_PROGRESS': return 'bg-warning';
@@ -4687,43 +4991,64 @@
             
             // Update quick stats cards
             updateElement('totalRecordsCount', data.systemStats?.totalRecords || 0);
-            updateElement('downloadedPercentage', (data.quickStats?.downloadedPercentage || 0) + '%');
-            updateElement('linkedRecordsCount', data.quickStats?.linkedRecords || 0);
-            updateElement('popularPlatform', data.quickStats?.popularPlatform || 'N/A');
+            updateElement('completionRate', (data.quickStats?.completionRate || 0) + '%');
             updateElement('todaysActivity', '+' + (data.quickStats?.todaysActivity || 0) + ' today');
             
             // Update system statistics
             updateElement('mediaCatalogCount', data.systemStats?.totalMediaCatalog || 0);
             updateElement('contentCatalogCount', data.systemStats?.totalContentCatalog || 0);
             updateElement('uploadCatalogCount', data.systemStats?.totalUploadCatalog || 0);
-            
-            // Update progress bars
-            const totalRecords = data.systemStats?.totalRecords || 1;
-            updateProgressBar('mediaProgress', (data.systemStats?.totalMediaCatalog || 0) / totalRecords * 100);
-            updateProgressBar('contentProgress', (data.systemStats?.totalContentCatalog || 0) / totalRecords * 100);
-            updateProgressBar('uploadProgress', (data.systemStats?.totalUploadCatalog || 0) / totalRecords * 100);
-            
-            // Update health indicators
-            updateElement('databaseStatus', data.systemHealth?.databaseConnected ? 'Online' : 'Offline');
-            updateElement('dataIntegrity', (data.performance?.dataIntegrityScore || 0) + '%');
-            updateElement('uploadSuccess', (data.performance?.successfulUploads || 0) + '%');
-            updateElement('responseTime', data.performance?.avgResponseTime || '< 100ms');
+            updateElement('statesCatalogCount', data.systemStats?.totalStatesCatalog || 0);
             
             // Update media type distribution
-            updateDistribution('movies', data.mediaTypeStats?.movies || 0);
-            updateDistribution('webSeries', data.mediaTypeStats?.webSeries || 0);
-            updateDistribution('albums', data.mediaTypeStats?.albums || 0);
-            updateDistribution('documentaries', data.mediaTypeStats?.documentaries || 0);
+            updateChartData('movies', data.mediaTypeStats?.movies || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('albums', data.mediaTypeStats?.albums || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('webSeries', data.mediaTypeStats?.webSeries || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('documentaries', data.mediaTypeStats?.documentaries || 0, data.systemStats?.totalMediaCatalog || 1);
             
-            // Update download status distribution
-            updateDistribution('downloaded', data.downloadStats?.downloaded || 0);
-            updateDistribution('notDownloaded', data.downloadStats?.notDownloaded || 0);
-            updateDistribution('partiallyDownloaded', data.downloadStats?.partiallyDownloaded || 0);
+            // Update download status distribution  
+            updateChartData('downloaded', data.contentStats?.downloaded || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('newContent', data.contentStats?.new || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('inProgressContent', data.contentStats?.inProgress || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('errorContent', data.contentStats?.error || 0, data.systemStats?.totalContentCatalog || 1);
+            
+            // Update upload status distribution (including new READY_TO_UPLOAD)
+            updateChartData('uploaded', data.uploadStats?.uploaded || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('readyToUpload', data.uploadStats?.readyToUpload || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('inProgressUpload', data.uploadStats?.inProgress || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('newUpload', data.uploadStats?.new || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('completedUpload', data.uploadStats?.completed || 0, data.systemStats?.totalUploadCatalog || 1);
+            
+            // Update health indicators
+            updateElement('dbStatus', data.systemHealth?.databaseConnected ? 'Online' : 'Offline');
+            updateElement('storageStatus', data.systemHealth?.diskSpace || 'Available');
+            updateElement('apiStatus', data.performance?.avgResponseTime || '< 100ms');
+            updateElement('uptimeStatus', data.systemHealth?.uptime || '99.9%');
+            
+            // Update quick action counts
+            updateElement('qaMediaCount', (data.systemStats?.totalMediaCatalog || 0) + ' items');
+            updateElement('qaContentCount', (data.systemStats?.totalContentCatalog || 0) + ' items');
+            updateElement('qaUploadCount', (data.systemStats?.totalUploadCatalog || 0) + ' items');
+            updateElement('qaStatesCount', (data.systemStats?.totalStatesCatalog || 0) + ' items');
             
             // Update recent activity
-            updateElement('recentMediaAdded', data.recentActivity?.recentMediaAdded || 0);
-            updateElement('recentContentAdded', data.recentActivity?.recentContentAdded || 0);
-            updateElement('recentUploadsAdded', data.recentActivity?.recentUploadsAdded || 0);
+            loadRecentActivity();
+            loadSystemAlerts();
+        }
+        
+        function updateChartData(id, value, total) {
+            // Update count
+            const countElement = document.getElementById(id + 'Count');
+            if (countElement) {
+                countElement.textContent = value;
+            }
+            
+            // Update progress bar
+            const progressElement = document.getElementById(id + 'Progress');
+            if (progressElement && total > 0) {
+                const percentage = Math.min((value / total) * 100, 100);
+                progressElement.style.width = percentage + '%';
+            }
         }
         
         function updateElement(id, value) {
@@ -4809,6 +5134,279 @@
         
         // Export dashboard functions globally
         window.refreshDashboard = refreshDashboard;
+        
+        // ===== ENHANCED DASHBOARD FUNCTIONS =====
+        
+        function performGlobalSearch() {
+            const category = document.getElementById('globalSearchCategory').value;
+            const status = document.getElementById('globalSearchStatus').value;
+            const searchTerm = document.getElementById('globalSearchInput').value.trim();
+            
+            if (!searchTerm && !category && !status) {
+                showGlobalSearchMessage('Please enter a search term or select filters');
+                return;
+            }
+            
+            const resultsContainer = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Searching...</p></div>';
+            
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('q', searchTerm);
+            if (category) params.append('category', category);
+            if (status) params.append('status', status);
+            
+            fetch(`/api/dashboard/search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => displayGlobalSearchResults(data))
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showGlobalSearchMessage('Search failed. Please try again.');
+                });
+        }
+        
+        function displayGlobalSearchResults(data) {
+            const resultsContainer = document.getElementById('globalSearchResults');
+            
+            if (!data || data.length === 0) {
+                showGlobalSearchMessage('No results found matching your search criteria');
+                return;
+            }
+            
+            let html = '';
+            data.forEach(item => {
+                const iconClass = getSearchResultIcon(item.type);
+                const statusBadge = getStatusBadge(item.status);
+                
+                html += `
+                    <div class="search-result-item" onclick="openSearchResult('${item.type}', '${item.id}')">
+                        <div class="search-result-icon ${iconClass}">
+                            <i class="fas ${getTypeIcon(item.type)}"></i>
+                        </div>
+                        <div class="search-result-content">
+                            <div class="search-result-title">${item.title}</div>
+                            <div class="search-result-desc">${item.description}</div>
+                            <div class="search-result-meta">
+                                ${statusBadge} | ${item.type} | ${formatDate(item.createdAt)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = html;
+        }
+        
+        function clearGlobalSearch() {
+            document.getElementById('globalSearchCategory').value = '';
+            document.getElementById('globalSearchStatus').value = '';
+            document.getElementById('globalSearchInput').value = '';
+            showGlobalSearchMessage('Use the search controls above to find data across all catalogs', 'Search supports: Media names, content links, upload status, file paths, descriptions, and more');
+        }
+        
+        function showGlobalSearchMessage(message, subMessage = '') {
+            const resultsContainer = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <p>${message}</p>
+                    ${subMessage ? `<p class="small">${subMessage}</p>` : ''}
+                </div>
+            `;
+        }
+        
+        function openSearchResult(type, id) {
+            // Switch to appropriate tab and highlight the result
+            const tabMap = {
+                'media': 'movies',
+                'content': 'content-status', 
+                'upload': 'add-entry',
+                'states': 'states-catalog'
+            };
+            
+            const targetTab = tabMap[type];
+            if (targetTab) {
+                switchTab(targetTab);
+                // Highlight the specific item after tab switch
+                setTimeout(() => {
+                    const targetElement = document.querySelector(`[data-id="${id}"]`);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetElement.style.backgroundColor = 'rgba(79, 128, 255, 0.2)';
+                        setTimeout(() => {
+                            targetElement.style.backgroundColor = '';
+                        }, 3000);
+                    }
+                }, 500);
+            }
+        }
+        
+        function getSearchResultIcon(type) {
+            switch(type) {
+                case 'media': return 'bg-info';
+                case 'content': return 'bg-success';
+                case 'upload': return 'bg-warning'; 
+                case 'states': return 'bg-secondary';
+                default: return 'bg-primary';
+            }
+        }
+        
+        function getTypeIcon(type) {
+            switch(type) {
+                case 'media': return 'fa-film';
+                case 'content': return 'fa-folder-open';
+                case 'upload': return 'fa-cloud-upload-alt';
+                case 'states': return 'fa-chart-line';
+                default: return 'fa-file';
+            }
+        }
+        
+        function getStatusBadge(status) {
+            const statusClass = getUploadStatusBadgeClass(status) || 'bg-secondary';
+            return `<span class="badge ${statusClass}">${formatUploadStatus(status)}</span>`;
+        }
+        
+        function loadRecentActivity() {
+            const activityContainer = document.getElementById('recentActivityList');
+            if (!activityContainer) return;
+            
+            fetch('/api/dashboard/recent-activity')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    if (data && data.length > 0) {
+                        data.forEach(activity => {
+                            const iconClass = getActivityIcon(activity.type);
+                            html += `
+                                <div class="activity-item">
+                                    <div class="activity-icon ${iconClass}">
+                                        <i class="fas ${getTypeIcon(activity.type)}"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">${activity.title}</span>
+                                        <span class="activity-time">${formatRelativeTime(activity.timestamp)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = '<div class="text-center text-muted py-3">No recent activity</div>';
+                    }
+                    activityContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading recent activity:', error);
+                    activityContainer.innerHTML = '<div class="text-center text-muted py-3">Error loading activity</div>';
+                });
+        }
+        
+        function loadSystemAlerts() {
+            const alertsContainer = document.getElementById('systemAlertsList');
+            if (!alertsContainer) return;
+            
+            fetch('/api/dashboard/system-alerts')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    if (data && data.length > 0) {
+                        data.forEach(alert => {
+                            const iconClass = getAlertIcon(alert.level);
+                            html += `
+                                <div class="alert-item">
+                                    <div class="alert-icon ${iconClass}">
+                                        <i class="fas ${getAlertTypeIcon(alert.level)}"></i>
+                                    </div>
+                                    <div class="alert-content">
+                                        <span class="alert-title">${alert.title}</span>
+                                        <span class="alert-desc">${alert.description}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = `
+                            <div class="alert-item">
+                                <div class="alert-icon bg-success">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <span class="alert-title">All systems operational</span>
+                                    <span class="alert-desc">No critical issues detected</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    alertsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading system alerts:', error);
+                });
+        }
+        
+        function getActivityIcon(type) {
+            switch(type) {
+                case 'media': return 'bg-info';
+                case 'content': return 'bg-success';
+                case 'upload': return 'bg-warning';
+                case 'states': return 'bg-secondary';
+                default: return 'bg-primary';
+            }
+        }
+        
+        function getAlertIcon(level) {
+            switch(level) {
+                case 'error': return 'bg-danger';
+                case 'warning': return 'bg-warning';
+                case 'info': return 'bg-info';
+                default: return 'bg-success';
+            }
+        }
+        
+        function getAlertTypeIcon(level) {
+            switch(level) {
+                case 'error': return 'fa-exclamation-circle';
+                case 'warning': return 'fa-exclamation-triangle';
+                case 'info': return 'fa-info-circle';
+                default: return 'fa-check';
+            }
+        }
+        
+        function formatRelativeTime(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffMs = now - time;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+        
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+        
+        function exportDashboardData() {
+            // Export dashboard data to CSV/Excel
+            fetch('/api/dashboard/export')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `dashboard-export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    alert('Export failed. Please try again.');
+                });
+        }
 
         // ===== STATES CATALOG FUNCTIONS =====
         
