@@ -12,7 +12,8 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(dir mvn:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(gradle build:*)"
     ],
     "deny": [],
     "ask": []

@@ -9,6 +9,7 @@ import com.cinemitr.repository.MediaCatalogRepository;
 import com.cinemitr.repository.ContentCatalogRepository;
 import com.cinemitr.repository.UploadCatalogRepository;
 import com.cinemitr.repository.StatesCatalogRepository;
+import com.cinemitr.repository.MovieInstagramLinkRepository;
 import com.cinemitr.service.MovieInstagramLinkService;
 import com.cinemitr.service.BulkUploadService;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +55,9 @@ public class InstagramLinkController {
     
     @Autowired
     private BulkUploadService bulkUploadService;
+    
+    @Autowired
+    private MovieInstagramLinkRepository instagramLinkRepository;
 
     @GetMapping
     public String dashboard(Model model, @RequestParam(required = false) String tab) {
