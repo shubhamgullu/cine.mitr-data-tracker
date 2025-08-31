@@ -24,7 +24,11 @@ public interface UploadCatalogRepository extends JpaRepository<UploadCatalog, Lo
     @Query("SELECT COUNT(u) FROM UploadCatalog u WHERE u.uploadStatus = :status")
     Long countByUploadStatus(@Param("status") UploadCatalog.UploadStatus status);
     
-    Optional<UploadCatalog> findByLinkedContentCatalogId(Long linkedContentCatalogId);
+    Optional<UploadCatalog> findByLinkedContentCatalogLink(String linkedContentCatalogLink);
+    
+    // Legacy compatibility method - finds by linked content catalog link using the link directly
+    @Query("SELECT u FROM UploadCatalog u JOIN ContentCatalog c ON u.linkedContentCatalogLink = c.link WHERE c.link = :contentLink")
+    Optional<UploadCatalog> findByLinkedContentCatalogId(@Param("contentLink") String contentLink);
     
     @Query("SELECT u FROM UploadCatalog u WHERE u.mediaCatalogName LIKE %:name% ORDER BY u.createdOn DESC")
     List<UploadCatalog> findByMediaCatalogNameContaining(@Param("name") String name);

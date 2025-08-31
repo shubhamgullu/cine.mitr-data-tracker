@@ -29,14 +29,14 @@ public class ContentCatalogController {
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ContentCatalog> getContentCatalogById(@PathVariable Long id) {
+    public ResponseEntity<ContentCatalog> getContentCatalogById(@PathVariable String id) {
         Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
         return contentCatalog.map(ResponseEntity::ok)
                             .orElse(ResponseEntity.notFound().build());
     }
     
     @GetMapping("/{id}/location")
-    public ResponseEntity<Map<String, String>> getContentCatalogLocation(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> getContentCatalogLocation(@PathVariable String id) {
         Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
         if (contentCatalog.isPresent()) {
             Map<String, String> response = new HashMap<>();
@@ -59,7 +59,7 @@ public class ContentCatalogController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ContentCatalog> updateContentCatalog(@PathVariable Long id, @RequestBody ContentCatalog contentCatalogDetails) {
+    public ResponseEntity<ContentCatalog> updateContentCatalog(@PathVariable String id, @RequestBody ContentCatalog contentCatalogDetails) {
         Optional<ContentCatalog> optionalContentCatalog = contentCatalogRepository.findById(id);
         
         if (optionalContentCatalog.isPresent()) {
@@ -83,7 +83,7 @@ public class ContentCatalogController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteContentCatalog(@PathVariable Long id) {
+    public ResponseEntity<?> deleteContentCatalog(@PathVariable String id) {
         Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
         
         if (contentCatalog.isPresent()) {

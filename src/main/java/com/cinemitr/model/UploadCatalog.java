@@ -32,8 +32,8 @@ public class UploadCatalog extends BaseEntity {
     @Column(name = "upload_catalog_caption", columnDefinition = "TEXT")
     private String uploadCatalogCaption;
     
-    @Column(name = "linked_content_catalog_id")
-    private Long linkedContentCatalogId;
+    @Column(name = "linked_content_catalog_link", length = 500)
+    private String linkedContentCatalogLink;
     
     // Enums
     public enum MediaType {
@@ -119,11 +119,11 @@ public class UploadCatalog extends BaseEntity {
         this.uploadCatalogCaption = uploadCatalogCaption;
     }
     
-    public Long getLinkedContentCatalogId() {
-        return linkedContentCatalogId;
+    public String getLinkedContentCatalogLink() {
+        return linkedContentCatalogLink;
     }
     
-    public void setLinkedContentCatalogId(Long linkedContentCatalogId) {
-        this.linkedContentCatalogId = linkedContentCatalogId;
+    public void setLinkedContentCatalogLink(String linkedContentCatalogLink) {
+        this.linkedContentCatalogLink = linkedContentCatalogLink;
     }
 }

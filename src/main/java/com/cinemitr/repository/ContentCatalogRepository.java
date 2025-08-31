@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, Long> {
+public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, String> {
     
     List<ContentCatalog> findByStatusOrderByCreatedOnDesc(ContentCatalog.ContentStatus status);
     
@@ -26,7 +26,7 @@ public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, 
     @Query("SELECT COUNT(c) FROM ContentCatalog c WHERE c.status = :status")
     Long countByStatus(@Param("status") ContentCatalog.ContentStatus status);
     
-    Optional<ContentCatalog> findByLinkedUploadCatalogId(Long linkedUploadCatalogId);
+    Optional<ContentCatalog> findByLinkedUploadCatalogLink(String linkedUploadCatalogLink);
     
     Optional<ContentCatalog> findByLink(String link);
     

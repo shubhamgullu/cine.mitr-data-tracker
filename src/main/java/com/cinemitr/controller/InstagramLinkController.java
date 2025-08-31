@@ -429,8 +429,8 @@ public class InstagramLinkController {
             UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(linkedUploadCatalog);
             
             // Set the bidirectional linking
-            savedContentCatalog.setLinkedUploadCatalogId(savedUploadCatalog.getId());
-            savedUploadCatalog.setLinkedContentCatalogId(savedContentCatalog.getId());
+            savedContentCatalog.setLinkedUploadCatalogLink(savedUploadCatalog.getContentCatalogLink());
+            savedUploadCatalog.setLinkedContentCatalogLink(savedContentCatalog.getLink());
             
             // Update both records with linking information
             contentCatalogRepository.save(savedContentCatalog);
@@ -448,7 +448,7 @@ public class InstagramLinkController {
     }
     
     @PostMapping("/content-catalog/{id}/edit")
-    public String updateContentCatalog(@PathVariable Long id,
+    public String updateContentCatalog(@PathVariable String id,
                                      @RequestParam String link,
                                      @RequestParam String mediaCatalogType,
                                      @RequestParam String mediaCatalogName,
@@ -517,8 +517,9 @@ public class InstagramLinkController {
                 ContentCatalog savedContentCatalog = contentCatalogRepository.save(contentCatalog);
                 
                 // Update linked Upload Catalog if exists
-                if (savedContentCatalog.getLinkedUploadCatalogId() != null) {
-                    Optional<UploadCatalog> linkedUploadOpt = uploadCatalogRepository.findById(savedContentCatalog.getLinkedUploadCatalogId());
+                if (savedContentCatalog.getLinkedUploadCatalogLink() != null) {
+                    List<UploadCatalog> linkedUploads = uploadCatalogRepository.findByContentCatalogLink(savedContentCatalog.getLinkedUploadCatalogLink());
+                    Optional<UploadCatalog> linkedUploadOpt = linkedUploads.isEmpty() ? Optional.empty() : Optional.of(linkedUploads.get(0));
                     if (linkedUploadOpt.isPresent()) {
                         UploadCatalog linkedUpload = linkedUploadOpt.get();
                         updateLinkedRecords(savedContentCatalog, linkedUpload);
@@ -603,8 +604,8 @@ public class InstagramLinkController {
                 UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(uploadCatalog);
                 
                 // Update linked Content Catalog if exists
-                if (savedUploadCatalog.getLinkedContentCatalogId() != null) {
-                    Optional<ContentCatalog> linkedContentOpt = contentCatalogRepository.findById(savedUploadCatalog.getLinkedContentCatalogId());
+                if (savedUploadCatalog.getLinkedContentCatalogLink() != null) {
+                    Optional<ContentCatalog> linkedContentOpt = contentCatalogRepository.findById(savedUploadCatalog.getLinkedContentCatalogLink());
                     if (linkedContentOpt.isPresent()) {
                         ContentCatalog linkedContent = linkedContentOpt.get();
                         // Update content catalog with upload catalog data
@@ -683,7 +684,7 @@ public class InstagramLinkController {
         
         // Map fields from Content Catalog to Upload Catalog
         uploadCatalog.setContentCatalogLink(contentCatalog.getLink());
-        uploadCatalog.setContentBlock(contentCatalog.getId().toString()); // Use Content Catalog ID as content block
+        uploadCatalog.setContentBlock(contentCatalog.getLink().hashCode() + ""); // Use Content Catalog link hash as content block
         
         // Map media type enum values
         UploadCatalog.MediaType uploadMediaType = mapContentMediaTypeToUploadMediaType(contentCatalog.getMediaCatalogType());
@@ -1303,7 +1304,7 @@ public class InstagramLinkController {
     
     @DeleteMapping("/api/content-catalog/bulk-delete")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> bulkDeleteContentCatalog(@RequestBody List<Long> ids) {
+    public ResponseEntity<Map<String, String>> bulkDeleteContentCatalog(@RequestBody List<String> ids) {
         try {
             if (ids == null || ids.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -1311,10 +1312,10 @@ public class InstagramLinkController {
             }
             
             long deletedCount = 0;
-            for (Long id : ids) {
+            for (String id : ids) {
                 if (contentCatalogRepository.existsById(id)) {
                     // Find and delete linked upload catalog record if exists
-                    Optional<UploadCatalog> linkedUpload = uploadCatalogRepository.findByLinkedContentCatalogId(id);
+                    Optional<UploadCatalog> linkedUpload = uploadCatalogRepository.findByLinkedContentCatalogLink(id);
                     if (linkedUpload.isPresent()) {
                         uploadCatalogRepository.delete(linkedUpload.get());
                     }
@@ -1346,9 +1347,12 @@ public class InstagramLinkController {
             for (Long id : ids) {
                 if (uploadCatalogRepository.existsById(id)) {
                     // Find and delete linked content catalog record if exists
-                    Optional<ContentCatalog> linkedContent = contentCatalogRepository.findByLinkedUploadCatalogId(id);
-                    if (linkedContent.isPresent()) {
-                        contentCatalogRepository.delete(linkedContent.get());
+                    UploadCatalog uploadToDelete = uploadCatalogRepository.findById(id).orElse(null);
+                    if (uploadToDelete != null && uploadToDelete.getLinkedContentCatalogLink() != null) {
+                        Optional<ContentCatalog> linkedContent = contentCatalogRepository.findById(uploadToDelete.getLinkedContentCatalogLink());
+                        if (linkedContent.isPresent()) {
+                            contentCatalogRepository.delete(linkedContent.get());
+                        }
                     }
                     
                     uploadCatalogRepository.deleteById(id);

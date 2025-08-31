@@ -14,6 +14,8 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,10 +24,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class BulkUploadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(BulkUploadService.class);
 
     @Autowired
     private ContentCatalogRepository contentCatalogRepository;
@@ -45,6 +50,9 @@ public class BulkUploadService {
         List<String> errorList = new ArrayList<>();
         
         String fileName = file.getOriginalFilename();
+        long fileSize = file.getSize();
+        
+        logger.info("Starting Content Catalog bulk upload - File: {}, Size: {} bytes", fileName, fileSize);
         
         try {
             if (fileName.endsWith(".csv")) {
@@ -64,7 +72,9 @@ public class BulkUploadService {
                     // Auto-create linked upload catalog
                     createLinkedUploadCatalog(saved);
                 } catch (Exception e) {
-                    errorList.add("Error saving content catalog: " + contentCatalog.getMediaCatalogName() + " - " + e.getMessage());
+                    String errorMsg = "Error saving content catalog: " + contentCatalog.getMediaCatalogName() + " - " + e.getMessage();
+                    errorList.add(errorMsg);
+                    logger.error("Failed to save content catalog entry: {}", contentCatalog.getMediaCatalogName(), e);
                 }
             }
             
@@ -169,13 +179,13 @@ public class BulkUploadService {
                     // First, check if content catalog entry exists with this link
                     ContentCatalog contentCatalog = findOrCreateContentCatalogEntry(uploadCatalog);
                     
-                    // Save upload catalog with linked content catalog ID
-                    uploadCatalog.setLinkedContentCatalogId(contentCatalog.getId());
+                    // Save upload catalog with linked content catalog link
+                    uploadCatalog.setLinkedContentCatalogLink(contentCatalog.getLink());
                     UploadCatalog savedUpload = uploadCatalogRepository.save(uploadCatalog);
                     
-                    // Update content catalog with linked upload ID if not already set
-                    if (contentCatalog.getLinkedUploadCatalogId() == null) {
-                        contentCatalog.setLinkedUploadCatalogId(savedUpload.getId());
+                    // Update content catalog with linked upload link if not already set
+                    if (contentCatalog.getLinkedUploadCatalogLink() == null) {
+                        contentCatalog.setLinkedUploadCatalogLink(savedUpload.getContentCatalogLink());
                         contentCatalogRepository.save(contentCatalog);
                     }
                 } catch (Exception e) {
@@ -480,19 +490,19 @@ public class BulkUploadService {
         try {
             UploadCatalog linkedUploadCatalog = new UploadCatalog();
             linkedUploadCatalog.setContentCatalogLink(contentCatalog.getLink());
-            linkedUploadCatalog.setContentBlock(contentCatalog.getId().toString());
+            linkedUploadCatalog.setContentBlock(contentCatalog.getLink().hashCode() + ""); // Use link hash as content block
             linkedUploadCatalog.setMediaCatalogType(mapContentMediaTypeToUploadMediaType(contentCatalog.getMediaCatalogType()));
             linkedUploadCatalog.setMediaCatalogName(contentCatalog.getMediaCatalogName());
             linkedUploadCatalog.setContentCatalogLocation(contentCatalog.getLocation());
             linkedUploadCatalog.setUploadCatalogLocation("");
             linkedUploadCatalog.setUploadStatus(UploadCatalog.UploadStatus.NEW);
             linkedUploadCatalog.setUploadCatalogCaption("Auto-created from bulk Content Catalog import: " + contentCatalog.getMediaCatalogName());
-            linkedUploadCatalog.setLinkedContentCatalogId(contentCatalog.getId());
+            linkedUploadCatalog.setLinkedContentCatalogLink(contentCatalog.getLink());
             
             UploadCatalog savedUpload = uploadCatalogRepository.save(linkedUploadCatalog);
             
             // Update content catalog with link
-            contentCatalog.setLinkedUploadCatalogId(savedUpload.getId());
+            contentCatalog.setLinkedUploadCatalogLink(savedUpload.getContentCatalogLink());
             contentCatalogRepository.save(contentCatalog);
             
         } catch (Exception e) {
