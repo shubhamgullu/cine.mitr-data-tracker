@@ -3048,18 +3048,39 @@
             if (!form || contentFormValidationSetup) return;
 
             form.addEventListener('submit', function(e) {
-                if (selectedMediaNames.length === 0) {
+                // Check if there are selected media names or if user typed something in the input field
+                const input = document.getElementById('mediaCatalogNameInput');
+                const inputValue = input ? input.value.trim() : '';
+                
+                if (selectedMediaNames.length === 0 && !inputValue) {
                     e.preventDefault();
-                    updateStatusMessage('Please select at least one media catalog name.', 'warning');
+                    updateStatusMessage('Please enter at least one media catalog name.', 'warning');
                     
                     // Focus on the input field
-                    const input = document.getElementById('mediaCatalogNameInput');
                     if (input) {
                         input.focus();
                     }
                     
                     return false;
                 }
+                
+                // If user typed something but didn't add it to the list, add it now
+                if (inputValue && !selectedMediaNames.includes(inputValue)) {
+                    addMediaName(inputValue);
+                    input.value = '';
+                }
+                
+                // Update the hidden field to ensure it has the final value
+                updateHiddenInput();
+                
+                // Final check to ensure hidden field has value
+                const hiddenInput = document.getElementById('mediaCatalogName');
+                if (!hiddenInput || !hiddenInput.value.trim()) {
+                    e.preventDefault();
+                    updateStatusMessage('Error: Media catalog name is required but not set properly.', 'warning');
+                    return false;
+                }
+                
                 return true;
             });
             

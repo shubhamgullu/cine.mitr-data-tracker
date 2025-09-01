@@ -437,8 +437,8 @@ public class InstagramLinkController {
             uploadCatalogRepository.save(savedUploadCatalog);
             
             String successMessage = createdCount > 1 
-                ? "Content catalog entry saved successfully with " + createdCount + " media catalogs! Linked upload record created automatically."
-                : "Content catalog entry saved successfully! Linked upload record created automatically.";
+                ? "Content catalog entry saved successfully with " + createdCount + " media catalogs! New media catalog entries were auto-created as needed. Linked upload record created automatically."
+                : "Content catalog entry saved successfully! New media catalog entry was auto-created if needed. Linked upload record created automatically.";
             redirectAttributes.addFlashAttribute("success", successMessage);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving content catalog: " + e.getMessage());
@@ -527,7 +527,7 @@ public class InstagramLinkController {
                     }
                 }
                 
-                redirectAttributes.addFlashAttribute("success", "Content catalog updated successfully! Linked upload record also updated.");
+                redirectAttributes.addFlashAttribute("success", "Content catalog updated successfully! New media catalog entries were auto-created as needed. Linked upload record also updated.");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Content catalog not found!");
             }
@@ -637,18 +637,18 @@ public class InstagramLinkController {
             return; // Don't create empty entries
         }
         
-        // Check if media catalog already exists by name (exact match)
-        List<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameContainingIgnoreCaseOrderByCreatedOnDesc(mediaCatalogName.trim());
+        String cleanName = mediaCatalogName.trim();
         
-        // If exact match found, no need to create
-        boolean exactMatchFound = existingMedia.stream()
-                .anyMatch(media -> media.getName().equalsIgnoreCase(mediaCatalogName.trim()));
+        // Check if media catalog already exists using the proper method that handles the unique constraint
+        // Since we're not setting a language, we use null for language parameter
+        Optional<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(cleanName, null);
         
-        if (!exactMatchFound) {
+        if (!existingMedia.isPresent())  {
             // Create new media catalog entry
             MediaCatalog newMediaCatalog = new MediaCatalog();
-            newMediaCatalog.setName(mediaCatalogName.trim());
+            newMediaCatalog.setName(cleanName);
             
+            // Set media type
             try {
                 if (mediaCatalogType != null && !mediaCatalogType.trim().isEmpty()) {
                     newMediaCatalog.setType(MediaCatalog.MediaType.valueOf(mediaCatalogType.toUpperCase().replace("-", "_")));
@@ -662,17 +662,20 @@ public class InstagramLinkController {
             
             // Set default values
             newMediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.NOT_DOWNLOADED);
-            newMediaCatalog.setDescription("Auto-created from Content Catalog");
+            newMediaCatalog.setDescription("Auto-created from Content Catalog entry");
+            newMediaCatalog.setLanguage(null); // Explicitly set language as null to match the constraint
+            newMediaCatalog.setCreatedBy("system_auto");
             
             try {
-                mediaCatalogRepository.save(newMediaCatalog);
-                System.out.println("Successfully created new media catalog: " + mediaCatalogName); // Debug log
+                MediaCatalog savedMedia = mediaCatalogRepository.save(newMediaCatalog);
+                System.out.println("Successfully created new media catalog: " + cleanName + " (ID: " + savedMedia.getId() + ")");
             } catch (Exception e) {
-                System.err.println("Error creating media catalog: " + e.getMessage()); // Debug log
-                throw e;
+                System.err.println("Error creating media catalog '" + cleanName + "': " + e.getMessage());
+                // Don't throw the exception, just log it to prevent breaking the content catalog creation
+                // The content catalog can still be created even if the media catalog creation fails
             }
         } else {
-            System.out.println("Media catalog already exists: " + mediaCatalogName); // Debug log
+            System.out.println("Media catalog already exists: " + cleanName + " (ID: " + existingMedia.get().getId() + ")");
         }
     }
     
