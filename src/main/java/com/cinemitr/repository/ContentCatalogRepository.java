@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, Long> {
+public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, String> {
     
     List<ContentCatalog> findByStatusOrderByCreatedOnDesc(ContentCatalog.ContentStatus status);
     
@@ -26,5 +26,26 @@ public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, 
     @Query("SELECT COUNT(c) FROM ContentCatalog c WHERE c.status = :status")
     Long countByStatus(@Param("status") ContentCatalog.ContentStatus status);
     
-    Optional<ContentCatalog> findByLinkedUploadCatalogId(Long linkedUploadCatalogId);
+    Optional<ContentCatalog> findByLinkedUploadCatalogLink(String linkedUploadCatalogLink);
+    
+    Optional<ContentCatalog> findByLink(String link);
+    
+    boolean existsByLink(String link);
+    
+    List<ContentCatalog> findByMediaCatalogNameContainingIgnoreCaseAndLink(String mediaCatalogName, String link);
+    
+    @Query("SELECT c FROM ContentCatalog c WHERE c.mediaCatalogName LIKE %:name% OR c.link = :link ORDER BY c.createdOn DESC")
+    List<ContentCatalog> findByMediaCatalogNameOrLink(@Param("name") String name, @Param("link") String link);
+    
+    @Query("SELECT c FROM ContentCatalog c WHERE c.mediaCatalogName LIKE %:name% ORDER BY c.createdOn DESC")
+    List<ContentCatalog> findByMediaCatalogNameContaining(@Param("name") String name);
+    
+    @Query("SELECT c FROM ContentCatalog c WHERE c.mediaCatalogName LIKE %:name% AND c.mediaCatalogType = :type ORDER BY c.createdOn DESC")
+    List<ContentCatalog> findByMediaCatalogNameContainingAndMediaCatalogType(@Param("name") String name, @Param("type") ContentCatalog.MediaType type);
+    
+    @Query("SELECT c FROM ContentCatalog c WHERE " +
+           "(c.mediaCatalogName LIKE %:name% OR c.mediaCatalogName IN :nameList) " +
+           "AND (:type IS NULL OR c.mediaCatalogType = :type) " +
+           "ORDER BY c.createdOn DESC")
+    List<ContentCatalog> findByMediaCatalogNamesAndType(@Param("name") String name, @Param("nameList") List<String> nameList, @Param("type") ContentCatalog.MediaType type);
 }

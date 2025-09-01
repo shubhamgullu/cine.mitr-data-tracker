@@ -1,12 +1,16 @@
 package com.cinemitr.controller;
 
 import com.cinemitr.model.ContentCatalog;
+import com.cinemitr.model.UploadCatalog;
 import com.cinemitr.repository.ContentCatalogRepository;
+import com.cinemitr.repository.UploadCatalogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -15,17 +19,34 @@ public class ContentCatalogController {
     
     @Autowired
     private ContentCatalogRepository contentCatalogRepository;
-    
+
+    @Autowired
+    private UploadCatalogRepository uploadCatalogRepository;
+
     @GetMapping
     public List<ContentCatalog> getAllContentCatalogs() {
         return contentCatalogRepository.findAll();
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ContentCatalog> getContentCatalogById(@PathVariable Long id) {
+    public ResponseEntity<ContentCatalog> getContentCatalogById(@PathVariable String id) {
         Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
         return contentCatalog.map(ResponseEntity::ok)
                             .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/{id}/location")
+    public ResponseEntity<Map<String, String>> getContentCatalogLocation(@PathVariable String id) {
+        Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
+        if (contentCatalog.isPresent()) {
+            Map<String, String> response = new HashMap<>();
+            ContentCatalog catalog = contentCatalog.get();
+            response.put("location", catalog.getLocation());
+            response.put("locationPath", catalog.getLocationPath());
+            response.put("mediaCatalogName", catalog.getMediaCatalogName());
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.notFound().build();
     }
     
     @PostMapping
@@ -38,7 +59,7 @@ public class ContentCatalogController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ContentCatalog> updateContentCatalog(@PathVariable Long id, @RequestBody ContentCatalog contentCatalogDetails) {
+    public ResponseEntity<ContentCatalog> updateContentCatalog(@PathVariable String id, @RequestBody ContentCatalog contentCatalogDetails) {
         Optional<ContentCatalog> optionalContentCatalog = contentCatalogRepository.findById(id);
         
         if (optionalContentCatalog.isPresent()) {
@@ -62,7 +83,7 @@ public class ContentCatalogController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteContentCatalog(@PathVariable Long id) {
+    public ResponseEntity<?> deleteContentCatalog(@PathVariable String id) {
         Optional<ContentCatalog> contentCatalog = contentCatalogRepository.findById(id);
         
         if (contentCatalog.isPresent()) {
@@ -175,11 +196,94 @@ public class ContentCatalogController {
     @GetMapping("/content-blocks")
     public List<ContentCatalog> getContentBlocks(@RequestParam(required = false) String search) {
         if (search != null && !search.trim().isEmpty()) {
-            return contentCatalogRepository.findByMediaCatalogNameContainingIgnoreCaseOrderByCreatedOnDesc(search.trim());
+            // Search by both media catalog name and link
+            return contentCatalogRepository.findByMediaCatalogNameOrLink(search.trim(), search.trim());
         }
         return contentCatalogRepository.findAll(
             org.springframework.data.domain.PageRequest.of(0, 50, 
                 org.springframework.data.domain.Sort.by("createdOn").descending())
         ).getContent();
+    }
+    
+    @GetMapping("/linked-content")
+    public ResponseEntity<List<ContentCatalog>> getLinkedContentForMedia(
+            @RequestParam String mediaCatalogName,
+            @RequestParam(required = false) String mediaType) {
+        try {
+            List<ContentCatalog> results;
+            
+            if (mediaType != null && !mediaType.trim().isEmpty()) {
+                // Search with both name and type filtering
+                ContentCatalog.MediaType type = ContentCatalog.MediaType.valueOf(mediaType.toUpperCase().replace("-", "_"));
+                results = contentCatalogRepository.findByMediaCatalogNameContainingAndMediaCatalogType(mediaCatalogName.trim(), type);
+            } else {
+                // Search by name only
+                results = contentCatalogRepository.findByMediaCatalogNameContaining(mediaCatalogName.trim());
+            }
+            
+            System.out.println("Linked content search - mediaCatalogName: " + mediaCatalogName + 
+                             ", mediaType: " + mediaType + ", results: " + results.size());
+            
+            return ResponseEntity.ok(results);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid media type: " + mediaType);
+            return ResponseEntity.badRequest().body(java.util.Collections.emptyList());
+        } catch (Exception e) {
+            System.err.println("Error searching linked content: " + e.getMessage());
+            return ResponseEntity.status(500).body(java.util.Collections.emptyList());
+        }
+    }
+    
+    @GetMapping("/all-linked-content")
+    public ResponseEntity<Map<String, Object>> getAllLinkedContentForMedia(
+            @RequestParam String mediaCatalogName,
+            @RequestParam(required = false) String mediaType) {
+        try {
+            Map<String, Object> result = new HashMap<>();
+            
+            // Get content catalog entries
+            List<ContentCatalog> contentResults;
+            if (mediaType != null && !mediaType.trim().isEmpty()) {
+                ContentCatalog.MediaType type = ContentCatalog.MediaType.valueOf(mediaType.toUpperCase().replace("-", "_"));
+                contentResults = contentCatalogRepository.findByMediaCatalogNameContainingAndMediaCatalogType(mediaCatalogName.trim(), type);
+            } else {
+                contentResults = contentCatalogRepository.findByMediaCatalogNameContaining(mediaCatalogName.trim());
+            }
+            
+            // Get upload catalog entries
+            List<UploadCatalog> uploadResults;
+            if (mediaType != null && !mediaType.trim().isEmpty()) {
+                UploadCatalog.MediaType uploadType = UploadCatalog.MediaType.valueOf(mediaType.toUpperCase().replace("-", "_"));
+                uploadResults = uploadCatalogRepository.findByMediaCatalogNameContainingAndMediaCatalogType(mediaCatalogName.trim(), uploadType);
+            } else {
+                uploadResults = uploadCatalogRepository.findByMediaCatalogNameContaining(mediaCatalogName.trim());
+            }
+            
+            System.out.println("All linked content search - mediaCatalogName: " + mediaCatalogName + 
+                             ", mediaType: " + mediaType + 
+                             ", content results: " + contentResults.size() +
+                             ", upload results: " + uploadResults.size());
+            
+            result.put("contentCatalog", contentResults);
+            result.put("uploadCatalog", uploadResults);
+            result.put("totalResults", contentResults.size() + uploadResults.size());
+            
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid media type: " + mediaType);
+            return ResponseEntity.badRequest().body(createErrorMap("Invalid media type: " + mediaType));
+        } catch (Exception e) {
+            System.err.println("Error searching all linked content: " + e.getMessage());
+            return ResponseEntity.status(500).body(createErrorMap("Error searching linked content: " + e.getMessage()));
+        }
+    }
+    
+    private Map<String, Object> createErrorMap(String error) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("error", error);
+        map.put("contentCatalog", java.util.Collections.emptyList());
+        map.put("uploadCatalog", java.util.Collections.emptyList());
+        map.put("totalResults", 0);
+        return map;
     }
 }

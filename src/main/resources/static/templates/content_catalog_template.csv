@@ -1,5 +1,5 @@
-link,mediaCatalogType,mediaCatalogName,status,priority,location,metadata,likeStates,commentStates,uploadContentStatus
-"https://example.com/movie1","movie","The Avengers","new","high","Server1/Movies/","Action superhero movie","liked","Great movie!","pending_upload"
-"https://example.com/album1","album","Greatest Hits","downloaded","medium","Server2/Music/","Pop music collection","neutral","Good collection","uploaded"
-"https://example.com/series1","web-series","Breaking Bad","in_progress","high","Server1/Series/","Crime drama series","liked","Excellent series","uploading"
-"https://example.com/doc1","documentary","Planet Earth","new","low","Server3/Docs/","Nature documentary","neutral","Educational content","pending_upload"
+link,mediaCatalogType,mediaCatalogName,status,priority,location,metadata,likeStates,commentStates,uploadContentStatus,localStatus,locationPath
+"https://example.com/movie1","movie","The Avengers","new","high","Server1/Movies/","{""quality"": ""1080p"", ""size"": ""2.5GB"", ""codec"": ""H.264""}","liked","Great movie!","pending_upload","available","/storage/movies/the-avengers/"
+"https://example.com/album1","album","Greatest Hits","downloaded","medium","Server2/Music/","{""quality"": ""FLAC"", ""size"": ""800MB"", ""tracks"": 15}","neutral","Good collection","uploaded","available","/storage/music/greatest-hits/"
+"https://example.com/series1","web-series","Breaking Bad","in_progress","high","Server1/Series/","{""quality"": ""1080p"", ""seasons"": 5, ""episodes"": 62}","liked","Excellent series","uploading","downloading","/storage/series/breaking-bad/"
+"https://example.com/doc1","documentary","Planet Earth","new","low","Server3/Docs/","{""quality"": ""4K"", ""size"": ""15GB"", ""duration"": ""550min""}","neutral","Educational content","pending_upload","not_available",""

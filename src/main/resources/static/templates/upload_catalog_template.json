@@ -10,8 +10,18 @@
     "uploadCatalogCaption": "Marvel superhero movie - high priority upload"
   },
   {
-    "contentCatalogLink": "https://example.com/album1",
+    "contentCatalogLink": "https://example.com/movie2",
     "contentBlock": "2",
+    "mediaCatalogType": "MOVIE",
+    "mediaCatalogName": "Thor",
+    "contentCatalogLocation": "Server1/Movies/",
+    "uploadCatalogLocation": "Upload/Movies/",
+    "uploadStatus": "READY_TO_UPLOAD",
+    "uploadCatalogCaption": "Marvel movie - ready for upload"
+  },
+  {
+    "contentCatalogLink": "https://example.com/album1",
+    "contentBlock": "3",
     "mediaCatalogType": "ALBUM",
     "mediaCatalogName": "Greatest Hits",
     "contentCatalogLocation": "Server2/Music/",

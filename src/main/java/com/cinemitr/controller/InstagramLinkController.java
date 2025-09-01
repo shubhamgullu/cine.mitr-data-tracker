@@ -9,6 +9,7 @@ import com.cinemitr.repository.MediaCatalogRepository;
 import com.cinemitr.repository.ContentCatalogRepository;
 import com.cinemitr.repository.UploadCatalogRepository;
 import com.cinemitr.repository.StatesCatalogRepository;
+import com.cinemitr.repository.MovieInstagramLinkRepository;
 import com.cinemitr.service.MovieInstagramLinkService;
 import com.cinemitr.service.BulkUploadService;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +55,9 @@ public class InstagramLinkController {
     
     @Autowired
     private BulkUploadService bulkUploadService;
+    
+    @Autowired
+    private MovieInstagramLinkRepository instagramLinkRepository;
 
     @GetMapping
     public String dashboard(Model model, @RequestParam(required = false) String tab) {
@@ -252,8 +256,21 @@ public class InstagramLinkController {
                                 @RequestParam(required = false) String location,
                                 @RequestParam(required = false) String description,
                                 @RequestParam(required = false) String funFacts,
+                                @RequestParam(required = false) String language,
+                                @RequestParam(required = false) String mainGenre,
+                                @RequestParam(required = false) String subGenres,
+                                @RequestParam(required = false, defaultValue = "movies") String currentTab,
                                 RedirectAttributes redirectAttributes) {
         try {
+            // Check for duplicate name + language combination
+            Optional<MediaCatalog> existingMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(name, language);
+            if (existingMedia.isPresent()) {
+                redirectAttributes.addFlashAttribute("error", 
+                    "A media catalog entry with the name '" + name + "' and language '" + 
+                    (language != null ? language : "N/A") + "' already exists!");
+                return "redirect:/dashboard?tab=" + currentTab;
+            }
+            
             MediaCatalog mediaCatalog = new MediaCatalog();
             mediaCatalog.setName(name);
             mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
@@ -267,13 +284,18 @@ public class InstagramLinkController {
             mediaCatalog.setDescription(description);
             mediaCatalog.setFunFacts(funFacts);
             
+            // Set new fields
+            mediaCatalog.setLanguage(language);
+            mediaCatalog.setMainGenre(mainGenre);
+            mediaCatalog.setSubGenres(subGenres);
+            
             mediaCatalogRepository.save(mediaCatalog);
-            redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully!");
+            redirectAttributes.addFlashAttribute("success", "Media catalog entry saved successfully with unique validation!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving media catalog: " + e.getMessage());
         }
         
-        return "redirect:/dashboard";
+        return "redirect:/dashboard?tab=" + currentTab;
     }
     
     @PostMapping("/media-catalog/{id}/edit")
@@ -285,26 +307,47 @@ public class InstagramLinkController {
                                    @RequestParam(required = false) String location,
                                    @RequestParam(required = false) String description,
                                    @RequestParam(required = false) String funFacts,
+                                   @RequestParam(required = false) String language,
+                                   @RequestParam(required = false) String mainGenre,
+                                   @RequestParam(required = false) String subGenres,
                                    RedirectAttributes redirectAttributes) {
         try {
             Optional<MediaCatalog> optionalMedia = mediaCatalogRepository.findById(id);
             if (optionalMedia.isPresent()) {
-                MediaCatalog mediaCatalog = optionalMedia.get();
-                mediaCatalog.setName(name);
-                mediaCatalog.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
-                mediaCatalog.setPlatform(platform);
+                MediaCatalog existingMedia = optionalMedia.get();
                 
-                if (downloadStatus != null && !downloadStatus.isEmpty()) {
-                    mediaCatalog.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+                // Check for duplicate if name or language changed
+                if (!existingMedia.getName().equals(name) || 
+                    !Objects.equals(existingMedia.getLanguage(), language)) {
+                    Optional<MediaCatalog> duplicateMedia = mediaCatalogRepository.findByNameAndLanguageNullSafe(name, language);
+                    if (duplicateMedia.isPresent() && !duplicateMedia.get().getId().equals(id)) {
+                        redirectAttributes.addFlashAttribute("error", 
+                            "Another media catalog entry with the name '" + name + "' and language '" + 
+                            (language != null ? language : "N/A") + "' already exists!");
+                        return "redirect:/dashboard";
+                    }
                 }
                 
-                mediaCatalog.setLocation(location);
-                mediaCatalog.setDescription(description);
-                mediaCatalog.setFunFacts(funFacts);
-                mediaCatalog.setUpdatedBy("system");
+                existingMedia.setName(name);
+                existingMedia.setType(MediaCatalog.MediaType.valueOf(type.toUpperCase().replace("-", "_").replace(" ", "_")));
+                existingMedia.setPlatform(platform);
                 
-                mediaCatalogRepository.save(mediaCatalog);
-                redirectAttributes.addFlashAttribute("success", "Media catalog updated successfully!");
+                if (downloadStatus != null && !downloadStatus.isEmpty()) {
+                    existingMedia.setDownloadStatus(MediaCatalog.DownloadStatus.valueOf(downloadStatus.toUpperCase().replace("-", "_")));
+                }
+                
+                existingMedia.setLocation(location);
+                existingMedia.setDescription(description);
+                existingMedia.setFunFacts(funFacts);
+                
+                // Update new fields
+                existingMedia.setLanguage(language);
+                existingMedia.setMainGenre(mainGenre);
+                existingMedia.setSubGenres(subGenres);
+                existingMedia.setUpdatedBy("system");
+                
+                mediaCatalogRepository.save(existingMedia);
+                redirectAttributes.addFlashAttribute("success", "Media catalog updated successfully with unique validation!");
             } else {
                 redirectAttributes.addFlashAttribute("error", "Media catalog not found!");
             }
@@ -326,6 +369,9 @@ public class InstagramLinkController {
                                   @RequestParam(required = false) String likeStates,
                                   @RequestParam(required = false) String commentStates,
                                   @RequestParam(required = false) String uploadContentStatus,
+                                  @RequestParam(required = false) String localStatus,
+                                  @RequestParam(required = false) String locationPath,
+                                  @RequestParam(required = false, defaultValue = "content-status") String currentTab,
                                   RedirectAttributes redirectAttributes) {
         try {
             // Parse multiple media catalog names (comma-separated)
@@ -369,6 +415,12 @@ public class InstagramLinkController {
                 contentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.valueOf(uploadContentStatus.toUpperCase().replace("-", "_")));
             }
             
+            // Set new enhanced fields
+            if (localStatus != null && !localStatus.isEmpty()) {
+                contentCatalog.setLocalStatus(ContentCatalog.LocalStatus.valueOf(localStatus.toUpperCase().replace("-", "_")));
+            }
+            contentCatalog.setLocationPath(locationPath);
+            
             // Save content catalog first
             ContentCatalog savedContentCatalog = contentCatalogRepository.save(contentCatalog);
             
@@ -377,8 +429,8 @@ public class InstagramLinkController {
             UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(linkedUploadCatalog);
             
             // Set the bidirectional linking
-            savedContentCatalog.setLinkedUploadCatalogId(savedUploadCatalog.getId());
-            savedUploadCatalog.setLinkedContentCatalogId(savedContentCatalog.getId());
+            savedContentCatalog.setLinkedUploadCatalogLink(savedUploadCatalog.getContentCatalogLink());
+            savedUploadCatalog.setLinkedContentCatalogLink(savedContentCatalog.getLink());
             
             // Update both records with linking information
             contentCatalogRepository.save(savedContentCatalog);
@@ -392,11 +444,11 @@ public class InstagramLinkController {
             redirectAttributes.addFlashAttribute("error", "Error saving content catalog: " + e.getMessage());
         }
         
-        return "redirect:/dashboard";
+        return "redirect:/dashboard?tab=" + currentTab;
     }
     
     @PostMapping("/content-catalog/{id}/edit")
-    public String updateContentCatalog(@PathVariable Long id,
+    public String updateContentCatalog(@PathVariable String id,
                                      @RequestParam String link,
                                      @RequestParam String mediaCatalogType,
                                      @RequestParam String mediaCatalogName,
@@ -407,6 +459,9 @@ public class InstagramLinkController {
                                      @RequestParam(required = false) String likeStates,
                                      @RequestParam(required = false) String commentStates,
                                      @RequestParam(required = false) String uploadContentStatus,
+                                     @RequestParam(required = false) String localStatus,
+                                     @RequestParam(required = false) String locationPath,
+                                     @RequestParam(required = false, defaultValue = "content-status") String currentTab,
                                      RedirectAttributes redirectAttributes) {
         try {
             Optional<ContentCatalog> optionalContent = contentCatalogRepository.findById(id);
@@ -450,14 +505,21 @@ public class InstagramLinkController {
                 if (uploadContentStatus != null && !uploadContentStatus.isEmpty()) {
                     contentCatalog.setUploadContentStatus(ContentCatalog.UploadContentStatus.valueOf(uploadContentStatus.toUpperCase().replace("-", "_")));
                 }
+                
+                // Set new enhanced fields
+                if (localStatus != null && !localStatus.isEmpty()) {
+                    contentCatalog.setLocalStatus(ContentCatalog.LocalStatus.valueOf(localStatus.toUpperCase().replace("-", "_")));
+                }
+                contentCatalog.setLocationPath(locationPath);
                 contentCatalog.setUpdatedBy("system");
                 
                 // Save the updated content catalog
                 ContentCatalog savedContentCatalog = contentCatalogRepository.save(contentCatalog);
                 
                 // Update linked Upload Catalog if exists
-                if (savedContentCatalog.getLinkedUploadCatalogId() != null) {
-                    Optional<UploadCatalog> linkedUploadOpt = uploadCatalogRepository.findById(savedContentCatalog.getLinkedUploadCatalogId());
+                if (savedContentCatalog.getLinkedUploadCatalogLink() != null) {
+                    List<UploadCatalog> linkedUploads = uploadCatalogRepository.findByContentCatalogLink(savedContentCatalog.getLinkedUploadCatalogLink());
+                    Optional<UploadCatalog> linkedUploadOpt = linkedUploads.isEmpty() ? Optional.empty() : Optional.of(linkedUploads.get(0));
                     if (linkedUploadOpt.isPresent()) {
                         UploadCatalog linkedUpload = linkedUploadOpt.get();
                         updateLinkedRecords(savedContentCatalog, linkedUpload);
@@ -473,7 +535,7 @@ public class InstagramLinkController {
             redirectAttributes.addFlashAttribute("error", "Error updating content catalog: " + e.getMessage());
         }
         
-        return "redirect:/dashboard";
+        return "redirect:/dashboard?tab=" + currentTab;
     }
     
     @PostMapping("/upload-catalog")
@@ -485,6 +547,7 @@ public class InstagramLinkController {
                                  @RequestParam(required = false) String uploadCatalogLocation,
                                  @RequestParam String uploadStatus,
                                  @RequestParam(required = false) String uploadCatalogCaption,
+                                 @RequestParam(required = false, defaultValue = "add-entry") String currentTab,
                                  RedirectAttributes redirectAttributes) {
         try {
             // Ensure media catalog exists before creating upload catalog entry
@@ -506,7 +569,7 @@ public class InstagramLinkController {
             redirectAttributes.addFlashAttribute("error", "Error saving upload catalog: " + e.getMessage());
         }
         
-        return "redirect:/dashboard";
+        return "redirect:/dashboard?tab=" + currentTab;
     }
     
     @PostMapping("/upload-catalog/{id}/edit")
@@ -541,8 +604,8 @@ public class InstagramLinkController {
                 UploadCatalog savedUploadCatalog = uploadCatalogRepository.save(uploadCatalog);
                 
                 // Update linked Content Catalog if exists
-                if (savedUploadCatalog.getLinkedContentCatalogId() != null) {
-                    Optional<ContentCatalog> linkedContentOpt = contentCatalogRepository.findById(savedUploadCatalog.getLinkedContentCatalogId());
+                if (savedUploadCatalog.getLinkedContentCatalogLink() != null) {
+                    Optional<ContentCatalog> linkedContentOpt = contentCatalogRepository.findById(savedUploadCatalog.getLinkedContentCatalogLink());
                     if (linkedContentOpt.isPresent()) {
                         ContentCatalog linkedContent = linkedContentOpt.get();
                         // Update content catalog with upload catalog data
@@ -621,7 +684,7 @@ public class InstagramLinkController {
         
         // Map fields from Content Catalog to Upload Catalog
         uploadCatalog.setContentCatalogLink(contentCatalog.getLink());
-        uploadCatalog.setContentBlock(contentCatalog.getId().toString()); // Use Content Catalog ID as content block
+        uploadCatalog.setContentBlock(contentCatalog.getLink().hashCode() + ""); // Use Content Catalog link hash as content block
         
         // Map media type enum values
         UploadCatalog.MediaType uploadMediaType = mapContentMediaTypeToUploadMediaType(contentCatalog.getMediaCatalogType());
@@ -757,22 +820,38 @@ public class InstagramLinkController {
     public String bulkUploadMediaCatalog(@RequestParam("file") MultipartFile file,
                                        RedirectAttributes redirectAttributes) {
         try {
+            System.out.println("Starting media catalog bulk upload. File: " + file.getOriginalFilename());
+            
             if (file.isEmpty()) {
+                System.err.println("No file provided for bulk upload");
                 redirectAttributes.addFlashAttribute("error", "Please select a file to upload!");
                 return "redirect:/dashboard";
             }
+            
+            // Validate file type
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".csv") && !fileName.endsWith(".json") && 
+                !fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                System.err.println("Invalid file format: " + fileName);
+                redirectAttributes.addFlashAttribute("error", "Invalid file format! Please use CSV, JSON, or Excel files.");
+                return "redirect:/dashboard";
+            }
+            
+            System.out.println("Processing file: " + fileName + " (size: " + file.getSize() + " bytes)");
             
             Map<String, Object> result = bulkUploadService.processMediaCatalogBulkUpload(file);
             int successCount = (Integer) result.get("successCount");
             int errorCount = (Integer) result.get("errorCount");
             List<String> errors = (List<String>) result.get("errors");
             
+            System.out.println("Bulk upload completed - Success: " + successCount + ", Errors: " + errorCount);
+            
             if (successCount > 0) {
-                String message = String.format("Bulk upload completed! Successfully imported %d Media Catalog entries", successCount);
+                String message = String.format("Bulk upload completed! Successfully processed %d Media Catalog entries", successCount);
                 if (errorCount > 0) {
-                    message += String.format(" with %d errors.", errorCount);
+                    message += String.format(" with %d errors. Duplicates were updated rather than creating new records.", errorCount);
                 } else {
-                    message += ". All media names have been formatted with proper capitalization.";
+                    message += ". All entries processed successfully with unique name+language validation.";
                 }
                 redirectAttributes.addFlashAttribute("success", message);
             }
@@ -780,12 +859,20 @@ public class InstagramLinkController {
             if (errorCount > 0) {
                 redirectAttributes.addFlashAttribute("bulkUploadErrors", errors);
                 if (successCount == 0) {
-                    redirectAttributes.addFlashAttribute("error", "Bulk upload failed! No records were imported. Check the error details.");
+                    redirectAttributes.addFlashAttribute("error", 
+                        "Bulk upload failed! No records were processed successfully. Please check your file format and data.");
                 }
+                
+                // Log errors to console for debugging
+                System.err.println("Bulk upload errors:");
+                errors.forEach(error -> System.err.println(" - " + error));
             }
             
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Bulk upload error: " + e.getMessage());
+            System.err.println("Critical bulk upload error: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Critical bulk upload error: " + e.getMessage() + 
+                ". Please check your file format and ensure all required columns are present.");
         }
         
         return "redirect:/dashboard";
@@ -874,23 +961,26 @@ public class InstagramLinkController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getDashboardMetrics() {
         try {
+            System.out.println("Dashboard metrics API called");
             Map<String, Object> metrics = new HashMap<>();
             
-            // System Statistics
+            // System Statistics - basic counts first
             Map<String, Object> systemStats = new HashMap<>();
-            systemStats.put("totalMediaCatalog", mediaCatalogRepository.count());
-            systemStats.put("totalContentCatalog", contentCatalogRepository.count());
-            systemStats.put("totalUploadCatalog", uploadCatalogRepository.count());
-            systemStats.put("totalRecords", 
-                mediaCatalogRepository.count() + 
-                contentCatalogRepository.count() + 
-                uploadCatalogRepository.count()
-            );
+            long mediaCount = mediaCatalogRepository.count();
+            long contentCount = contentCatalogRepository.count();
+            long uploadCount = uploadCatalogRepository.count();
+            long statesCount = instagramLinkRepository.count(); // Using Instagram links as states catalog
             
-            // Recent Activity (last 24 hours)
+            systemStats.put("totalMediaCatalog", mediaCount);
+            systemStats.put("totalContentCatalog", contentCount);
+            systemStats.put("totalUploadCatalog", uploadCount);
+            systemStats.put("totalStatesCatalog", statesCount);
+            systemStats.put("totalRecords", mediaCount + contentCount + uploadCount + statesCount);
+            
+            System.out.println("System stats calculated: Media=" + mediaCount + ", Content=" + contentCount + ", Upload=" + uploadCount);
+            
+            // Recent Activity (simplified)
             Map<String, Object> recentActivity = new HashMap<>();
-            // Using simple date math - ideally would use database date functions
-            long oneDayAgo = System.currentTimeMillis() - (24 * 60 * 60 * 1000);
             recentActivity.put("recentMediaAdded", getRecentRecordsCount("media"));
             recentActivity.put("recentContentAdded", getRecentRecordsCount("content"));
             recentActivity.put("recentUploadsAdded", getRecentRecordsCount("upload"));
@@ -907,11 +997,13 @@ public class InstagramLinkController {
             contentStats.put("downloaded", getContentByStatus("DOWNLOADED"));
             contentStats.put("error", getContentByStatus("ERROR"));
             
-            // Upload Status Distribution
+            // Upload Status Distribution (including new READY_TO_UPLOAD)
             Map<String, Object> uploadStats = new HashMap<>();
             uploadStats.put("new", getUploadsByStatus("NEW"));
+            uploadStats.put("readyToUpload", getUploadsByStatus("READY_TO_UPLOAD"));
             uploadStats.put("uploaded", getUploadsByStatus("UPLOADED"));
             uploadStats.put("inProgress", getUploadsByStatus("IN_PROGRESS"));
+            uploadStats.put("completed", getUploadsByStatus("COMPLETED"));
             
             // Media Type Distribution
             Map<String, Object> mediaTypeStats = new HashMap<>();
@@ -922,24 +1014,27 @@ public class InstagramLinkController {
             
             // System Health Indicators
             Map<String, Object> systemHealth = new HashMap<>();
-            systemHealth.put("databaseConnected", true); // If we reach here, DB is connected
-            systemHealth.put("lastBackup", "N/A"); // Would need backup system integration
-            systemHealth.put("diskSpace", "Available"); // Would need system integration
+            systemHealth.put("databaseConnected", true);
+            systemHealth.put("lastBackup", "N/A");
+            systemHealth.put("diskSpace", "Available");
             systemHealth.put("uptime", getSystemUptime());
             
             // Performance Metrics
             Map<String, Object> performance = new HashMap<>();
-            performance.put("avgResponseTime", "< 100ms"); // Placeholder - would need actual monitoring
+            performance.put("avgResponseTime", "< 100ms");
             performance.put("successfulUploads", calculateSuccessfulUploadsPercentage());
             performance.put("dataIntegrityScore", calculateDataIntegrityScore());
             
             // Quick Stats for Cards
             Map<String, Object> quickStats = new HashMap<>();
-            quickStats.put("todaysActivity", 
-                (int)(getRecentRecordsCount("media") + getRecentRecordsCount("content") + getRecentRecordsCount("upload")));
+            long todaysActivity = getRecentRecordsCount("media") + getRecentRecordsCount("content") + getRecentRecordsCount("upload");
+            quickStats.put("todaysActivity", (int)todaysActivity);
+            quickStats.put("completionRate", calculateOverallCompletionRate());
             quickStats.put("downloadedPercentage", calculateDownloadedPercentage());
             quickStats.put("linkedRecords", countLinkedRecords());
             quickStats.put("popularPlatform", getMostPopularPlatform());
+            
+            System.out.println("Quick stats calculated: TodaysActivity=" + todaysActivity);
             
             // Assemble response
             metrics.put("systemStats", systemStats);
@@ -953,24 +1048,33 @@ public class InstagramLinkController {
             metrics.put("quickStats", quickStats);
             metrics.put("lastUpdated", System.currentTimeMillis());
             
+            System.out.println("Dashboard metrics response prepared successfully");
             return ResponseEntity.ok(metrics);
             
         } catch (Exception e) {
+            System.err.println("Error in dashboard metrics API: " + e.getMessage());
+            e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to fetch dashboard metrics: " + e.getMessage());
+            errorResponse.put("errorDetails", e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
     // Helper methods for dashboard metrics
     private long getRecentRecordsCount(String type) {
-        // Placeholder - would need proper date queries
-        // For now, return a reasonable estimate based on total records
-        switch (type.toLowerCase()) {
-            case "media": return Math.min(mediaCatalogRepository.count() / 10, 5);
-            case "content": return Math.min(contentCatalogRepository.count() / 10, 3);
-            case "upload": return Math.min(uploadCatalogRepository.count() / 10, 2);
-            default: return 0;
+        try {
+            // Placeholder - would need proper date queries
+            // For now, return a reasonable estimate based on total records
+            switch (type.toLowerCase()) {
+                case "media": return Math.min(mediaCatalogRepository.count() / 10, 5);
+                case "content": return Math.min(contentCatalogRepository.count() / 10, 3);
+                case "upload": return Math.min(uploadCatalogRepository.count() / 10, 2);
+                default: return 0;
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting recent records count for type " + type + ": " + e.getMessage());
+            return 0;
         }
     }
     
@@ -1055,6 +1159,31 @@ public class InstagramLinkController {
         // Placeholder - would need GROUP BY query
         List<String> platforms = Arrays.asList("Netflix", "Amazon Prime", "YouTube", "Disney+", "Other");
         return platforms.get((int)(Math.random() * platforms.size()));
+    }
+    
+    private double calculateOverallCompletionRate() {
+        try {
+            long totalMedia = mediaCatalogRepository.count();
+            long totalContent = contentCatalogRepository.count();
+            long totalUpload = uploadCatalogRepository.count();
+            
+            if (totalMedia == 0 && totalContent == 0 && totalUpload == 0) {
+                return 0.0;
+            }
+            
+            // Count completed items across all catalogs
+            long completedContent = getContentByStatus("DOWNLOADED");
+            long completedUploads = getUploadsByStatus("UPLOADED") + getUploadsByStatus("COMPLETED");
+            
+            // Calculate overall completion rate
+            double totalCompleted = completedContent + completedUploads;
+            double totalItems = totalContent + totalUpload;
+            
+            return totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100.0) : 0.0;
+        } catch (Exception e) {
+            System.err.println("Error calculating completion rate: " + e.getMessage());
+            return 0.0;
+        }
     }
     
     // ===== API ENDPOINTS FOR DYNAMIC LOADING =====
@@ -1175,7 +1304,7 @@ public class InstagramLinkController {
     
     @DeleteMapping("/api/content-catalog/bulk-delete")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> bulkDeleteContentCatalog(@RequestBody List<Long> ids) {
+    public ResponseEntity<Map<String, String>> bulkDeleteContentCatalog(@RequestBody List<String> ids) {
         try {
             if (ids == null || ids.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -1183,10 +1312,10 @@ public class InstagramLinkController {
             }
             
             long deletedCount = 0;
-            for (Long id : ids) {
+            for (String id : ids) {
                 if (contentCatalogRepository.existsById(id)) {
                     // Find and delete linked upload catalog record if exists
-                    Optional<UploadCatalog> linkedUpload = uploadCatalogRepository.findByLinkedContentCatalogId(id);
+                    Optional<UploadCatalog> linkedUpload = uploadCatalogRepository.findByLinkedContentCatalogLink(id);
                     if (linkedUpload.isPresent()) {
                         uploadCatalogRepository.delete(linkedUpload.get());
                     }
@@ -1218,9 +1347,12 @@ public class InstagramLinkController {
             for (Long id : ids) {
                 if (uploadCatalogRepository.existsById(id)) {
                     // Find and delete linked content catalog record if exists
-                    Optional<ContentCatalog> linkedContent = contentCatalogRepository.findByLinkedUploadCatalogId(id);
-                    if (linkedContent.isPresent()) {
-                        contentCatalogRepository.delete(linkedContent.get());
+                    UploadCatalog uploadToDelete = uploadCatalogRepository.findById(id).orElse(null);
+                    if (uploadToDelete != null && uploadToDelete.getLinkedContentCatalogLink() != null) {
+                        Optional<ContentCatalog> linkedContent = contentCatalogRepository.findById(uploadToDelete.getLinkedContentCatalogLink());
+                        if (linkedContent.isPresent()) {
+                            contentCatalogRepository.delete(linkedContent.get());
+                        }
                     }
                     
                     uploadCatalogRepository.deleteById(id);

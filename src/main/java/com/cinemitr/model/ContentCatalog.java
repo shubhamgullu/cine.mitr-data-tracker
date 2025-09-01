@@ -1,13 +1,34 @@
 package com.cinemitr.model;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "content_catalog")
-public class ContentCatalog extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class ContentCatalog {
     
-    @Column(name = "link", nullable = false)
+    @Id
+    @Column(name = "link", nullable = false, length = 500)
     private String link;
+    
+    @Column(name = "created_by")
+    private String createdBy = "system";
+    
+    @Column(name = "updated_by")  
+    private String updatedBy = "system";
+    
+    @CreatedDate
+    @Column(name = "created_on", updatable = false)
+    private LocalDateTime createdOn;
+    
+    @LastModifiedDate
+    @Column(name = "updated_on")
+    private LocalDateTime updatedOn;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "media_catalog_type", nullable = false)
@@ -31,6 +52,13 @@ public class ContentCatalog extends BaseEntity {
     private String metadata;
     
     @Enumerated(EnumType.STRING)
+    @Column(name = "local_status")
+    private LocalStatus localStatus;
+    
+    @Column(name = "location_path", columnDefinition = "TEXT")
+    private String locationPath;
+    
+    @Enumerated(EnumType.STRING)
     @Column(name = "like_states")
     private LikeState likeStates;
     
@@ -41,8 +69,8 @@ public class ContentCatalog extends BaseEntity {
     @Column(name = "upload_content_status")
     private UploadContentStatus uploadContentStatus;
     
-    @Column(name = "linked_upload_catalog_id")
-    private Long linkedUploadCatalogId;
+    @Column(name = "linked_upload_catalog_link", length = 500)
+    private String linkedUploadCatalogLink;
     
     // Enums
     public enum MediaType {
@@ -65,8 +93,45 @@ public class ContentCatalog extends BaseEntity {
         PENDING_UPLOAD, UPLOADING, UPLOADED, UPLOAD_FAILED
     }
     
+    public enum LocalStatus {
+        AVAILABLE, NOT_AVAILABLE, PARTIALLY_AVAILABLE, DOWNLOADING, PROCESSING, CORRUPTED
+    }
+    
     // Constructors
     public ContentCatalog() {}
+    
+    // Audit field getters and setters
+    public String getCreatedBy() {
+        return createdBy;
+    }
+    
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy != null ? createdBy : "system";
+    }
+    
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+    
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy != null ? updatedBy : "system";
+    }
+    
+    public LocalDateTime getCreatedOn() {
+        return createdOn;
+    }
+    
+    public void setCreatedOn(LocalDateTime createdOn) {
+        this.createdOn = createdOn;
+    }
+    
+    public LocalDateTime getUpdatedOn() {
+        return updatedOn;
+    }
+    
+    public void setUpdatedOn(LocalDateTime updatedOn) {
+        this.updatedOn = updatedOn;
+    }
     
     public ContentCatalog(String link, MediaType mediaCatalogType, String mediaCatalogName, ContentStatus status) {
         this.link = link;
@@ -82,6 +147,16 @@ public class ContentCatalog extends BaseEntity {
     
     public void setLink(String link) {
         this.link = link;
+    }
+    
+    // For backward compatibility - getId() now returns link since link is the primary key
+    public String getId() {
+        return link;
+    }
+    
+    // For backward compatibility - setId() now sets link since link is the primary key  
+    public void setId(String id) {
+        this.link = id;
     }
     
     public MediaType getMediaCatalogType() {
@@ -156,12 +231,28 @@ public class ContentCatalog extends BaseEntity {
         this.uploadContentStatus = uploadContentStatus;
     }
     
-    public Long getLinkedUploadCatalogId() {
-        return linkedUploadCatalogId;
+    public String getLinkedUploadCatalogLink() {
+        return linkedUploadCatalogLink;
     }
     
-    public void setLinkedUploadCatalogId(Long linkedUploadCatalogId) {
-        this.linkedUploadCatalogId = linkedUploadCatalogId;
+    public void setLinkedUploadCatalogLink(String linkedUploadCatalogLink) {
+        this.linkedUploadCatalogLink = linkedUploadCatalogLink;
+    }
+    
+    public LocalStatus getLocalStatus() {
+        return localStatus;
+    }
+    
+    public void setLocalStatus(LocalStatus localStatus) {
+        this.localStatus = localStatus;
+    }
+    
+    public String getLocationPath() {
+        return locationPath;
+    }
+    
+    public void setLocationPath(String locationPath) {
+        this.locationPath = locationPath;
     }
     
     // Helper methods for multiple media catalog names

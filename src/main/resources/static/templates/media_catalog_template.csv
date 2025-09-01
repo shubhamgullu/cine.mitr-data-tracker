@@ -1,6 +1,7 @@
-name,type,downloadStatus,description,platform,location,funFacts
-"The Avengers","movie","downloaded","Marvel superhero movie","netflix","D:\Movies\Avengers","First movie to bring together multiple Marvel heroes"
-"Greatest Hits","album","not_downloaded","Popular music collection","spotify","","Features songs from the 1990s era"
-"Breaking Bad","web-series","partially_downloaded","Crime drama series","netflix","D:\Series\Breaking Bad","Won 16 Emmy Awards during its run"
-"Planet Earth","documentary","downloaded","Nature documentary series","bbc","D:\Documentaries\Planet Earth","Narrated by David Attenborough"
-"The Dark Knight","movie","not_downloaded","Batman superhero movie","hbo_max","","Heath Ledger's final completed performance"
+name,type,downloadStatus,description,platform,location,funFacts,language,mainGenre,subGenres
+"The Avengers","movie","downloaded","Marvel superhero movie","netflix","D:\Movies\Avengers","First movie to bring together multiple Marvel heroes","English","Action","Superhero,Adventure,Sci-Fi"
+"Greatest Hits","album","not_downloaded","Popular music collection","spotify","","Features songs from the 1990s era","English","Pop","Rock,Classic Hits,Compilation"
+"Breaking Bad","web-series","partially_downloaded","Crime drama series","netflix","D:\Series\Breaking Bad","Won 16 Emmy Awards during its run","English","Crime","Drama,Thriller,Dark Comedy"
+"Planet Earth","documentary","downloaded","Nature documentary series","bbc","D:\Documentaries\Planet Earth","Narrated by David Attenborough","English","Documentary","Nature,Wildlife,Environmental"
+"The Dark Knight","movie","not_downloaded","Batman superhero movie","hbo_max","","Heath Ledger's final completed performance","English","Action","Superhero,Crime,Dark"
+"Avengers: Endgame Hindi","movie","downloaded","Marvel superhero movie in Hindi","netflix","D:\Movies\Avengers Hindi","Same movie but different language","Hindi","Action","Superhero,Adventure,Sci-Fi"

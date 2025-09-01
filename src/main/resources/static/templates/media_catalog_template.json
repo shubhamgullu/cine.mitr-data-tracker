@@ -6,7 +6,10 @@
     "description": "Marvel superhero movie",
     "platform": "netflix",
     "location": "D:\\Movies\\Avengers",
-    "funFacts": "First movie to bring together multiple Marvel heroes"
+    "funFacts": "First movie to bring together multiple Marvel heroes",
+    "language": "English",
+    "mainGenre": "Action",
+    "subGenres": "Superhero,Adventure,Sci-Fi"
   },
   {
     "name": "Greatest Hits",
@@ -15,7 +18,10 @@
     "description": "Popular music collection",
     "platform": "spotify",
     "location": "",
-    "funFacts": "Features songs from the 1990s era"
+    "funFacts": "Features songs from the 1990s era",
+    "language": "English",
+    "mainGenre": "Pop",
+    "subGenres": "Rock,Classic Hits,Compilation"
   },
   {
     "name": "Breaking Bad",
@@ -24,7 +30,10 @@
     "description": "Crime drama series",
     "platform": "netflix",
     "location": "D:\\Series\\Breaking Bad",
-    "funFacts": "Won 16 Emmy Awards during its run"
+    "funFacts": "Won 16 Emmy Awards during its run",
+    "language": "English",
+    "mainGenre": "Crime",
+    "subGenres": "Drama,Thriller,Dark Comedy"
   },
   {
     "name": "Planet Earth",
@@ -33,6 +42,9 @@
     "description": "Nature documentary series",
     "platform": "bbc",
     "location": "D:\\Documentaries\\Planet Earth",
-    "funFacts": "Narrated by David Attenborough"
+    "funFacts": "Narrated by David Attenborough",
+    "language": "English",
+    "mainGenre": "Documentary",
+    "subGenres": "Nature,Wildlife,Environmental"
   }
 ]

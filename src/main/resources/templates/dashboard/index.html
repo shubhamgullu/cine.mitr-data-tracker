@@ -62,15 +62,9 @@
                     </button>
                 </div>
 
-                <!-- Flash Messages -->
-                <div th:if="${success}" class="alert alert-success mb-4">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <span th:text="${success}"></span>
-                </div>
-                <div th:if="${error}" class="alert alert-danger mb-4">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <span th:text="${error}"></span>
-                </div>
+                <!-- Enhanced Flash Messages with Bulk Upload Error Display -->
+                <div th:replace="fragments/bulk-upload-error-display :: errorDisplay"></div>
+                <div th:replace="fragments/bulk-upload-error-display :: helpTips"></div>
 
                 <!-- Media Catalog Tab -->
                 <div class="tab-content active" id="movies">
@@ -101,11 +95,11 @@
 
                         <!-- Search Bar (Initially Hidden) -->
                         <div id="mediaSearchBar" class="search-bar mb-4" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-4">
+                            <div class="row mb-2">
+                                <div class="col-md-3">
                                     <input type="text" class="form-control" id="mediaSearchName" placeholder="Search by name...">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select class="form-control" id="mediaSearchType">
                                         <option value="">All Types</option>
                                         <option value="movie">Movie</option>
@@ -114,7 +108,7 @@
                                         <option value="documentary">Documentary</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select class="form-control" id="mediaSearchStatus">
                                         <option value="">All Status</option>
                                         <option value="downloaded">Downloaded</option>
@@ -122,10 +116,56 @@
                                         <option value="partially-downloaded">Partially Downloaded</option>
                                     </select>
                                 </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="mediaSearchLanguage">
+                                        <option value="">All Languages</option>
+                                        <option value="English">English</option>
+                                        <option value="Hindi">Hindi</option>
+                                        <option value="Tamil">Tamil</option>
+                                        <option value="Telugu">Telugu</option>
+                                        <option value="Malayalam">Malayalam</option>
+                                        <option value="Kannada">Kannada</option>
+                                        <option value="Bengali">Bengali</option>
+                                        <option value="Marathi">Marathi</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-control" id="mediaSearchMainGenre">
+                                        <option value="">All Genres</option>
+                                        <option value="Action">Action</option>
+                                        <option value="Adventure">Adventure</option>
+                                        <option value="Comedy">Comedy</option>
+                                        <option value="Drama">Drama</option>
+                                        <option value="Horror">Horror</option>
+                                        <option value="Romance">Romance</option>
+                                        <option value="Sci-Fi">Sci-Fi</option>
+                                        <option value="Thriller">Thriller</option>
+                                        <option value="Fantasy">Fantasy</option>
+                                        <option value="Crime">Crime</option>
+                                        <option value="Documentary">Documentary</option>
+                                        <option value="Pop">Pop</option>
+                                        <option value="Rock">Rock</option>
+                                        <option value="Hip-Hop">Hip-Hop</option>
+                                        <option value="Electronic">Electronic</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
                                 <div class="col-md-1">
-                                    <button type="button" class="btn btn-primary w-100" onclick="searchMedia()">
+                                    <button type="button" class="btn btn-primary w-100" onclick="searchMedia()" title="Search">
                                         <i class="fas fa-search"></i>
                                     </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="mediaSearchSubGenres" placeholder="Search sub-genres (e.g., Superhero, Adventure)">
+                                </div>
+                                <div class="col-md-7">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Use the fields above to filter media by type, status, language, genre, and sub-genres. Leave blank to search all.
+                                    </small>
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-outline-secondary w-100" onclick="clearMediaFilters()" title="Clear All Filters">
@@ -138,6 +178,7 @@
                         <!-- Add/Edit Form (Initially Hidden) -->
                         <div id="mediaFormContainer" style="display: none;">
                             <form th:action="@{/dashboard/media-catalog}" method="post" class="entry-form" id="mediaForm">
+                                <input type="hidden" id="mediaCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="mediaName" class="form-label">Name</label>
                                 <input type="text" 
@@ -221,6 +262,80 @@
                                           rows="3"></textarea>
                             </div>
 
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="language" class="form-label">Language</label>
+                                    <select class="form-control" 
+                                            id="language" 
+                                            name="language">
+                                        <option value="">Select Language</option>
+                                        <option value="english">English</option>
+                                        <option value="hindi">Hindi</option>
+                                        <option value="tamil">Tamil</option>
+                                        <option value="telugu">Telugu</option>
+                                        <option value="malayalam">Malayalam</option>
+                                        <option value="kannada">Kannada</option>
+                                        <option value="bengali">Bengali</option>
+                                        <option value="marathi">Marathi</option>
+                                        <option value="gujarati">Gujarati</option>
+                                        <option value="punjabi">Punjabi</option>
+                                        <option value="spanish">Spanish</option>
+                                        <option value="french">French</option>
+                                        <option value="german">German</option>
+                                        <option value="italian">Italian</option>
+                                        <option value="portuguese">Portuguese</option>
+                                        <option value="russian">Russian</option>
+                                        <option value="japanese">Japanese</option>
+                                        <option value="korean">Korean</option>
+                                        <option value="chinese">Chinese</option>
+                                        <option value="arabic">Arabic</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="mainGenre" class="form-label">Main Genre</label>
+                                    <select class="form-control" 
+                                            id="mainGenre" 
+                                            name="mainGenre">
+                                        <option value="">Select Main Genre</option>
+                                        <option value="action">Action</option>
+                                        <option value="adventure">Adventure</option>
+                                        <option value="comedy">Comedy</option>
+                                        <option value="drama">Drama</option>
+                                        <option value="horror">Horror</option>
+                                        <option value="romance">Romance</option>
+                                        <option value="sci-fi">Sci-Fi</option>
+                                        <option value="thriller">Thriller</option>
+                                        <option value="fantasy">Fantasy</option>
+                                        <option value="crime">Crime</option>
+                                        <option value="documentary">Documentary</option>
+                                        <option value="biography">Biography</option>
+                                        <option value="animation">Animation</option>
+                                        <option value="musical">Musical</option>
+                                        <option value="western">Western</option>
+                                        <option value="pop">Pop</option>
+                                        <option value="rock">Rock</option>
+                                        <option value="hip-hop">Hip-Hop</option>
+                                        <option value="electronic">Electronic</option>
+                                        <option value="classical">Classical</option>
+                                        <option value="jazz">Jazz</option>
+                                        <option value="country">Country</option>
+                                        <option value="r&b">R&B</option>
+                                        <option value="folk">Folk</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subGenres" class="form-label">Sub Genres</label>
+                                <input type="text" class="form-control" 
+                                       id="subGenres" 
+                                       name="subGenres"
+                                       placeholder="Enter sub-genres separated by commas...">
+                            </div>
+
                             <div class="form-actions mt-3">
                                 <button type="submit" class="btn-save me-2">
                                     <i class="fas fa-save me-2"></i>Save Media Entry
@@ -250,6 +365,8 @@
                                             <th>Name</th>
                                             <th>Type</th>
                                             <th>Platform</th>
+                                            <th>Language</th>
+                                            <th>Main Genre</th>
                                             <th>Status</th>
                                             <th>Updated</th>
                                             <th>Actions</th>
@@ -263,6 +380,11 @@
                                             <td th:text="${media.name}">Sample Movie</td>
                                             <td><span class="badge bg-secondary" th:text="${media.type}">MOVIE</span></td>
                                             <td th:text="${media.platform}">Netflix</td>
+                                            <td th:text="${media.language ?: 'N/A'}">English</td>
+                                            <td>
+                                                <span class="badge bg-primary" th:text="${media.mainGenre ?: 'N/A'}" 
+                                                      th:title="${media.subGenres}">Action</span>
+                                            </td>
                                             <td>
                                                 <span class="badge" th:classappend="${media.downloadStatus == 'DOWNLOADED'} ? 'bg-success' : (${media.downloadStatus == 'NOT_DOWNLOADED'} ? 'bg-warning' : 'bg-info')"
                                                       th:text="${media.downloadStatus}">DOWNLOADED</span>
@@ -355,6 +477,7 @@
                             </div>
                         </div>
                         <form class="entry-form" action="/dashboard/content-catalog" method="post" id="contentCatalogForm" style="display: none;">
+                            <input type="hidden" id="contentCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="contentLink" class="form-label">Link</label>
                                 <input type="url" 
@@ -502,6 +625,53 @@
                                           placeholder="Default (null) - Enter comments if needed..."
                                           rows="3"></textarea>
                             </div>
+                            
+                            <!-- New Enhanced Fields -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="localStatus" class="form-label">Local Status <i class="fas fa-hdd ms-1 text-info" title="Local availability status"></i></label>
+                                    <select class="form-control" 
+                                            id="localStatus"
+                                            name="localStatus">
+                                        <option value="" selected>Select Local Status...</option>
+                                        <option value="available">Available</option>
+                                        <option value="not-available">Not Available</option>
+                                        <option value="partially-available">Partially Available</option>
+                                        <option value="downloading">Downloading</option>
+                                        <option value="processing">Processing</option>
+                                        <option value="corrupted">Corrupted</option>
+                                    </select>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Indicates whether the content is locally stored and accessible
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="locationPath" class="form-label">Location Path <i class="fas fa-folder-open ms-1 text-warning" title="Physical storage path"></i></label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="locationPath"
+                                           name="locationPath"
+                                           placeholder="e.g., /storage/media/movies/title-name/ or C:\Media\Movies\Title\"
+                                           autocomplete="off">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Full file system path where the content is stored locally
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="enhancedMetadata" class="form-label">Enhanced Metadata <i class="fas fa-tags ms-1 text-success" title="Detailed content information"></i></label>
+                                <textarea class="form-control" 
+                                          id="enhancedMetadata" 
+                                          name="metadata"
+                                          placeholder='{"quality": "1080p", "size": "2.5GB", "codec": "H.264", "audio": "AAC", "subtitles": ["en", "es"], "genre": "Action", "year": "2024", "duration": "120min", "rating": "8.5"}'
+                                          rows="4"></textarea>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Detailed content metadata in JSON format (quality, size, codecs, subtitles, etc.)
+                                </small>
+                            </div>
 
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary me-2" onclick="hideContentForm()">Cancel</button>
@@ -529,6 +699,9 @@
                                             <th>Type</th>
                                             <th>Status</th>
                                             <th>Priority</th>
+                                            <th>Local Status</th>
+                                            <th>Location Path</th>
+                                            <th>Metadata</th>
                                             <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
@@ -628,6 +801,7 @@
                                     <select class="form-control" id="uploadSearchStatus">
                                         <option value="">All Status</option>
                                         <option value="new">New</option>
+                                        <option value="ready-to-upload">Ready to Upload</option>
                                         <option value="completed">Completed</option>
                                         <option value="in-progress">In Progress</option>
                                         <option value="uploaded">Uploaded</option>
@@ -652,6 +826,7 @@
                         <!-- Add/Edit Form (Initially Hidden) -->
                         <div id="uploadFormContainer" style="display: none;">
                         <form th:action="@{/dashboard/upload-catalog}" method="post" class="entry-form" id="uploadForm">
+                            <input type="hidden" id="uploadCurrentTab" name="currentTab" value="">
                             <div class="form-group">
                                 <label for="contentCatalogLink" class="form-label">Content Catalog Link / Description</label>
                                 <textarea class="form-control" 
@@ -713,13 +888,60 @@
                                 <label class="form-label">
                                     <i class="fas fa-link me-2"></i>Linked Content for Selected Media
                                 </label>
+                                
+                                <!-- Add New Link Option -->
+                                <div class="linked-content-add-section mb-3" style="display: none;" id="addLinkedContentSection">
+                                    <div class="card card-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-plus me-2"></i>Add New Content Link
+                                            </h6>
+                                            <div class="form-group mb-3">
+                                                <label for="newLinkedContentLink" class="form-label">Content Link (URL)</label>
+                                                <input type="url" 
+                                                       class="form-control" 
+                                                       id="newLinkedContentLink"
+                                                       placeholder="Enter content URL (e.g., https://example.com/content)"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label for="newLinkedContentDescription" class="form-label">Description (Optional)</label>
+                                                <textarea class="form-control" 
+                                                          id="newLinkedContentDescription"
+                                                          rows="2"
+                                                          placeholder="Brief description of this content..."></textarea>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-success btn-sm" onclick="addNewLinkedContent()">
+                                                    <i class="fas fa-plus me-1"></i>Add Content
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideAddLinkedContentForm()">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Existing Linked Content -->
                                 <div id="linkedContentList" class="linked-content-container">
                                     <!-- Linked content will be populated here -->
                                 </div>
+                                
+                                <!-- Controls -->
+                                <div class="linked-content-controls mt-2" id="linkedContentControls" style="display: none;">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="showAddLinkedContentForm()">
+                                        <i class="fas fa-plus me-1"></i>Add New Link
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="refreshLinkedContent()">
+                                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                
                                 <div class="mt-2">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Content records linked to the selected media catalog will appear above
+                                        Content records matching the selected media catalog name and type. Click to select or add new links.
                                     </small>
                                 </div>
                             </div>
@@ -735,7 +957,7 @@
                                            class="form-control" 
                                            id="contentBlock" 
                                            name="contentBlock"
-                                           placeholder="Type to search from Content Catalog or leave empty..." 
+                                           placeholder="Search by name or link from Content Catalog, or leave empty..." 
                                            autocomplete="off">
                                     <div id="contentBlockDropdown" class="dropdown-menu"></div>
                                 </div>
@@ -745,7 +967,7 @@
                                 <div class="mt-1">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        You can leave this empty to upload without linking to specific content
+                                        Search by media name or content link. Creates new content entry if link not found. Leave empty to upload without linking.
                                     </small>
                                 </div>
                             </div>
@@ -778,6 +1000,7 @@
                                         required>
                                     <option value="">Select Status</option>
                                     <option value="new">New</option>
+                                    <option value="ready-to-upload">Ready to Upload</option>
                                     <option value="in-progress">In Progress</option>
                                     <option value="completed">Completed</option>
                                     <option value="uploaded">Uploaded</option>
@@ -1082,18 +1305,23 @@
                 <div class="tab-content" id="dashboard">
                     <div class="dashboard-section">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2 class="section-title mb-0">System Performance Dashboard</h2>
+                            <h2 class="section-title mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>Comprehensive Analytics Dashboard
+                            </h2>
                             <div class="dashboard-actions">
-                                <button type="button" class="btn btn-outline-info btn-sm" onclick="refreshDashboard()">
-                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="refreshDashboard()">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
                                 </button>
-                                <span class="text-muted ms-3" id="lastUpdated">Loading...</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="exportDashboardData()">
+                                    <i class="fas fa-download me-1"></i>Export
+                                </button>
+                                <span class="badge bg-secondary" id="lastUpdated">Loading...</span>
                             </div>
                         </div>
                         
-                        <!-- Quick Stats Cards -->
+                        <!-- Quick Stats Overview Cards -->
                         <div class="row mb-4" id="quickStatsCards">
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
                                     <div class="card-icon bg-primary">
                                         <i class="fas fa-database"></i>
@@ -1105,93 +1333,388 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="dashboard-card stat-card">
-                                    <div class="card-icon bg-success">
-                                        <i class="fas fa-download"></i>
-                                    </div>
-                                    <div class="card-content">
-                                        <h3 class="stat-number" id="downloadedPercentage">-%</h3>
-                                        <p class="stat-label">Downloaded</p>
-                                        <small class="stat-change text-success">Media completion rate</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
                                     <div class="card-icon bg-info">
-                                        <i class="fas fa-link"></i>
+                                        <i class="fas fa-film"></i>
                                     </div>
                                     <div class="card-content">
-                                        <h3 class="stat-number" id="linkedRecordsCount">-</h3>
-                                        <p class="stat-label">Linked Records</p>
-                                        <small class="stat-change text-info">Content-Upload pairs</small>
+                                        <h3 class="stat-number" id="mediaCatalogCount">-</h3>
+                                        <p class="stat-label">Media Catalog</p>
+                                        <small class="stat-change text-info">Movies, Albums, etc.</small>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                                 <div class="dashboard-card stat-card">
-                                    <div class="card-icon bg-warning">
-                                        <i class="fas fa-trophy"></i>
+                                    <div class="card-icon bg-success">
+                                        <i class="fas fa-folder-open"></i>
                                     </div>
                                     <div class="card-content">
-                                        <h3 class="stat-number" id="popularPlatform">-</h3>
-                                        <p class="stat-label">Popular Platform</p>
-                                        <small class="stat-change text-warning">Most used service</small>
+                                        <h3 class="stat-number" id="contentCatalogCount">-</h3>
+                                        <p class="stat-label">Content Catalog</p>
+                                        <small class="stat-change text-success">Download status</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-warning">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="uploadCatalogCount">-</h3>
+                                        <p class="stat-label">Upload Catalog</p>
+                                        <small class="stat-change text-warning">Upload status</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-secondary">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="statesCatalogCount">-</h3>
+                                        <p class="stat-label">States Catalog</p>
+                                        <small class="stat-change text-secondary">Analytics data</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                                <div class="dashboard-card stat-card">
+                                    <div class="card-icon bg-danger">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="stat-number" id="completionRate">-%</h3>
+                                        <p class="stat-label">Completion Rate</p>
+                                        <small class="stat-change text-danger">Overall progress</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="table-container">
-                            <table class="dashboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Instagram Link</th>
-                                        <th>Movie Name</th>
-                                        <th>Category</th>
-                                        <th>Created On</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="link, linkStat : ${activeLinks}" th:if="${linkStat.index < 10}">
-                                        <td th:text="${linkStat.index + 1}">1</td>
-                                        <td>
-                                            <a th:href="${link.instagramLink}" 
-                                               target="_blank" 
-                                               class="instagram-link"
-                                               th:onclick="'trackClick(' + ${link.id} + ')'">
-                                                <span th:text="${#strings.abbreviate(link.instagramLink, 30)}">https://instagram.com</span>
-                                            </a>
-                                        </td>
-                                        <td th:text="${link.movieName}">Inception</td>
-                                        <td>
-                                            <span class="category-badge" th:text="${link.category}">Action</span>
-                                        </td>
-                                        <td th:text="${#temporals.format(link.createdAt, 'dd-MM-yyyy')}">24-08-2025</td>
-                                        <td class="actions-cell">
-                                            <button class="btn-edit" onclick="editLink(this)" 
-                                                    th:data-id="${link.id}"
-                                                    th:data-movie="${link.movieName}"
-                                                    th:data-category="${link.category}"
-                                                    th:data-link="${link.instagramLink}"
-                                                    th:data-description="${link.description}">
-                                                Edit
+                        <!-- Status Distribution Charts Row -->
+                        <div class="row mb-4">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-film me-2"></i>Media Types</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Movies</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-primary" id="moviesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="moviesCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Albums</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="albumsProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="albumsCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Web Series</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="webSeriesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="webSeriesCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Documentaries</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="documentariesProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="documentariesCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-download me-2"></i>Download Status</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Downloaded</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="downloadedProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="downloadedCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">New</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="newContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="newContentCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">In Progress</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="inProgressContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="inProgressContentCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Error</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-danger" id="errorContentProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="errorContentCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Status</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mini-chart-container">
+                                            <div class="chart-item">
+                                                <span class="chart-label">Uploaded</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-success" id="uploadedProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="uploadedCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Ready to Upload</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-primary" id="readyToUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="readyToUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">In Progress</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-warning" id="inProgressUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="inProgressUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">New</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-info" id="newUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="newUploadCount">0</span>
+                                            </div>
+                                            <div class="chart-item">
+                                                <span class="chart-label">Completed</span>
+                                                <div class="progress-mini">
+                                                    <div class="progress-bar bg-secondary" id="completedUploadProgress"></div>
+                                                </div>
+                                                <span class="chart-value" id="completedUploadCount">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="dashboard-card chart-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>System Health</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="health-indicators">
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-success"></span>
+                                                <span class="health-label">Database</span>
+                                                <span class="health-status" id="dbStatus">Online</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-info"></span>
+                                                <span class="health-label">Storage</span>
+                                                <span class="health-status" id="storageStatus">Available</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-warning"></span>
+                                                <span class="health-label">API</span>
+                                                <span class="health-status" id="apiStatus">< 100ms</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-indicator bg-primary"></span>
+                                                <span class="health-label">Uptime</span>
+                                                <span class="health-status" id="uptimeStatus">99.9%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Data Overview Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Global Data Search & Filter</h5>
+                                        <div class="search-controls">
+                                            <select class="form-select form-select-sm me-2" id="globalSearchCategory" style="width: auto; display: inline-block;">
+                                                <option value="">All Categories</option>
+                                                <option value="media">Media Catalog</option>
+                                                <option value="content">Content Catalog</option>
+                                                <option value="upload">Upload Catalog</option>
+                                                <option value="states">States Catalog</option>
+                                            </select>
+                                            <select class="form-select form-select-sm me-2" id="globalSearchStatus" style="width: auto; display: inline-block;">
+                                                <option value="">All Status</option>
+                                                <option value="new">New</option>
+                                                <option value="downloaded">Downloaded</option>
+                                                <option value="uploaded">Uploaded</option>
+                                                <option value="ready-to-upload">Ready to Upload</option>
+                                                <option value="in-progress">In Progress</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="error">Error</option>
+                                            </select>
+                                            <input type="text" class="form-control form-control-sm me-2" id="globalSearchInput" placeholder="Search across all data..." style="width: 300px; display: inline-block;">
+                                            <button class="btn btn-primary btn-sm" onclick="performGlobalSearch()">
+                                                <i class="fas fa-search"></i>
                                             </button>
-                                            <form th:action="@{/dashboard/link/{id}/delete(id=${link.id})}" 
-                                                  method="post" 
-                                                  class="d-inline">
-                                                <button type="submit" 
-                                                        class="btn-delete"
-                                                        onclick="return confirm('Are you sure you want to delete this link?')">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="clearGlobalSearch()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="globalSearchResults">
+                                            <div class="text-center text-muted py-4">
+                                                <i class="fas fa-search fa-3x mb-3"></i>
+                                                <p>Use the search controls above to find data across all catalogs</p>
+                                                <p class="small">Search supports: Media names, content links, upload status, file paths, descriptions, and more</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Activity Summary -->
+                        <div class="row mb-4">
+                            <div class="col-lg-6 col-12 mb-3">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Activity (Last 24h)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="activity-list" id="recentActivityList">
+                                            <div class="activity-item">
+                                                <div class="activity-icon bg-primary">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                                <div class="activity-content">
+                                                    <span class="activity-title">Loading recent activity...</span>
+                                                    <span class="activity-time">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-3">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="loadRecentActivity()">
+                                                <i class="fas fa-refresh me-1"></i>Refresh Activity
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6 col-12 mb-3">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>System Alerts & Issues</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alerts-list" id="systemAlertsList">
+                                            <div class="alert-item">
+                                                <div class="alert-icon bg-success">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                                <div class="alert-content">
+                                                    <span class="alert-title">All systems operational</span>
+                                                    <span class="alert-desc">No critical issues detected</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions Dashboard -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="dashboard-card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions & Insights</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('movies')">
+                                                    <div class="qa-icon bg-info">
+                                                        <i class="fas fa-film"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Manage Media</h6>
+                                                        <p>Add/Edit media catalog entries</p>
+                                                        <span class="qa-count" id="qaMediaCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('content-status')">
+                                                    <div class="qa-icon bg-success">
+                                                        <i class="fas fa-download"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Content Status</h6>
+                                                        <p>Track download progress</p>
+                                                        <span class="qa-count" id="qaContentCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('add-entry')">
+                                                    <div class="qa-icon bg-warning">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Upload Queue</h6>
+                                                        <p>Manage upload catalog</p>
+                                                        <span class="qa-count" id="qaUploadCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="quick-action-card" onclick="switchTab('states-catalog')">
+                                                    <div class="qa-icon bg-secondary">
+                                                        <i class="fas fa-chart-line"></i>
+                                                    </div>
+                                                    <div class="qa-content">
+                                                        <h6>Analytics</h6>
+                                                        <p>View user engagement data</p>
+                                                        <span class="qa-count" id="qaStatesCount">- items</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                             </table>
 
                             <!-- Empty State -->
@@ -1366,6 +1889,7 @@
                                     required>
                                 <option value="">Select Status</option>
                                 <option value="new">New</option>
+                                <option value="ready-to-upload">Ready to Upload</option>
                                 <option value="in-progress">In Progress</option>
                                 <option value="completed">Completed</option>
                                 <option value="uploaded">Uploaded</option>
@@ -1562,11 +2086,53 @@
             new bootstrap.Modal(document.getElementById('editModal')).show();
         }
 
+        // Helper function to get current active tab
+        function getCurrentActiveTab() {
+            // First check URL parameters (most reliable)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) return tabParam;
+            
+            // Check active tab element
+            const activeTab = document.querySelector('.nav-pills .nav-link.active');
+            if (activeTab) {
+                // Extract tab name from the href or data attribute
+                const href = activeTab.getAttribute('href') || activeTab.getAttribute('data-bs-target');
+                if (href) {
+                    if (href.includes('movies')) return 'movies';
+                    if (href.includes('content-status')) return 'content-status';
+                    if (href.includes('add-entry')) return 'add-entry';
+                    if (href.includes('states')) return 'states-catalog';
+                }
+                
+                // Check aria-controls attribute (Bootstrap 5 specific)
+                const ariaControls = activeTab.getAttribute('aria-controls');
+                if (ariaControls) {
+                    return ariaControls;
+                }
+            }
+            
+            // Check which tab pane is currently active/visible
+            const activePane = document.querySelector('.tab-content .tab-pane.active') || 
+                               document.querySelector('.tab-content .active') ||
+                               document.querySelector('.tab-content [style*="display: block"]');
+            if (activePane) {
+                return activePane.id;
+            }
+            
+            // Default fallback
+            return 'movies';
+        }
+
         // Media Catalog Functions
         function showAddMediaForm() {
             // Hide records container and show form
             document.getElementById('mediaRecordsContainer').style.display = 'none';
             document.getElementById('mediaFormContainer').style.display = 'block';
+            
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            document.getElementById('mediaCurrentTab').value = currentTab;
             
             // Clear form for new entry
             document.getElementById('mediaForm').reset();
@@ -1605,14 +2171,20 @@
             const name = document.getElementById('mediaSearchName').value;
             const type = document.getElementById('mediaSearchType').value;
             const status = document.getElementById('mediaSearchStatus').value;
+            const language = document.getElementById('mediaSearchLanguage')?.value || '';
+            const mainGenre = document.getElementById('mediaSearchMainGenre')?.value || '';
+            const subGenres = document.getElementById('mediaSearchSubGenres')?.value || '';
             
-            console.log('Media search params:', { name, type, status });
+            console.log('Media search params:', { name, type, status, language, mainGenre, subGenres });
             
             // Call API or refresh page with search parameters
             const params = new URLSearchParams();
             if (name) params.append('name', name);
             if (type) params.append('type', type);
             if (status) params.append('status', status);
+            if (language) params.append('language', language);
+            if (mainGenre) params.append('mainGenre', mainGenre);
+            if (subGenres) params.append('subGenres', subGenres);
             
             const url = `/api/media-catalog/search?${params.toString()}`;
             console.log('Media search URL:', url);
@@ -1641,6 +2213,9 @@
             document.getElementById('mediaSearchName').value = '';
             document.getElementById('mediaSearchType').value = '';
             document.getElementById('mediaSearchStatus').value = '';
+            if (document.getElementById('mediaSearchLanguage')) document.getElementById('mediaSearchLanguage').value = '';
+            if (document.getElementById('mediaSearchMainGenre')) document.getElementById('mediaSearchMainGenre').value = '';
+            if (document.getElementById('mediaSearchSubGenres')) document.getElementById('mediaSearchSubGenres').value = '';
             
             // Refresh to show all results
             refreshRecentMedia();
@@ -1692,6 +2267,9 @@
                     document.getElementById('location').value = data.location || '';
                     document.getElementById('mediaDescription').value = data.description || '';
                     document.getElementById('funFacts').value = data.funFacts || '';
+                    document.getElementById('language').value = data.language || '';
+                    document.getElementById('mainGenre').value = data.mainGenre || '';
+                    document.getElementById('subGenres').value = data.subGenres || '';
                     
                     // Update form action for update
                     document.getElementById('mediaForm').action = `/dashboard/media-catalog/${id}/edit`;
@@ -1731,6 +2309,10 @@
                 console.error('Content catalog form not found');
                 return;
             }
+            
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            document.getElementById('contentCurrentTab').value = currentTab;
             
             form.style.display = 'block';
             form.reset();
@@ -1881,6 +2463,11 @@
                     document.getElementById('commentStates').value = content.commentStates || '';
                     document.getElementById('uploadContentStatus').value = content.uploadContentStatus?.toLowerCase().replace('_', '-') || '';
                     
+                    // New enhanced fields
+                    document.getElementById('localStatus').value = content.localStatus?.toLowerCase().replace('_', '-') || '';
+                    document.getElementById('locationPath').value = content.locationPath || '';
+                    document.getElementById('enhancedMetadata').value = content.metadata || '';
+                    
                     // Update form to edit mode
                     const form = document.getElementById('contentCatalogForm');
                     form.action = `/dashboard/content-catalog/${id}/edit`;
@@ -1921,10 +2508,17 @@
             document.getElementById('uploadRecordsContainer').style.display = 'none';
             document.getElementById('uploadFormContainer').style.display = 'block';
             
+            // Set current tab
+            const currentTab = getCurrentActiveTab();
+            console.log('Upload form - detected current tab:', currentTab);
+            document.getElementById('uploadCurrentTab').value = currentTab;
+            
             // Reset form
             const form = document.getElementById('uploadForm');
             if (form) {
+                const tabValue = document.getElementById('uploadCurrentTab').value; // Save tab value
                 form.reset();
+                document.getElementById('uploadCurrentTab').value = tabValue; // Restore tab value
                 form.action = '/dashboard/upload-catalog'; // Reset to create mode
                 
                 // Update button text
@@ -2238,6 +2832,7 @@
         function getUploadStatusBadgeClass(status) {
             switch(status) {
                 case 'NEW': return 'bg-info';
+                case 'READY_TO_UPLOAD': return 'bg-primary';
                 case 'UPLOADED': return 'bg-success';
                 case 'COMPLETED': return 'bg-success';
                 case 'IN_PROGRESS': return 'bg-warning';
@@ -2259,6 +2854,10 @@
                     <td>${media.name}</td>
                     <td><span class="badge bg-secondary">${media.type}</span></td>
                     <td>${media.platform || 'N/A'}</td>
+                    <td>${media.language || 'N/A'}</td>
+                    <td>
+                        <span class="badge bg-primary" title="${media.subGenres || ''}">${media.mainGenre || 'N/A'}</span>
+                    </td>
                     <td><span class="badge ${getStatusBadgeClass(media.downloadStatus)}">${media.downloadStatus}</span></td>
                     <td>${formatDate(media.updatedOn)}</td>
                     <td>
@@ -2299,6 +2898,9 @@
                     <td><span class="badge bg-secondary">${content.mediaCatalogType}</span></td>
                     <td><span class="badge ${getContentStatusBadgeClass(content.status)}">${content.status}</span></td>
                     <td><span class="badge ${getPriorityBadgeClass(content.priority)}">${content.priority}</span></td>
+                    <td><span class="badge ${getLocalStatusBadgeClass(content.localStatus)}" title="${content.localStatus || 'Not Set'}">${content.localStatus || '-'}</span></td>
+                    <td><div class="location-path-cell" title="${content.locationPath || 'No path specified'}">${content.locationPath ? (content.locationPath.length > 30 ? content.locationPath.substring(0, 30) + '...' : content.locationPath) : '-'}</div></td>
+                    <td><div class="metadata-cell" title="${content.metadata ? (content.metadata.length > 100 ? content.metadata.substring(0, 100) + '...' : content.metadata) : 'No metadata'}">${content.metadata ? (content.metadata.length > 50 ? content.metadata.substring(0, 50) + '...' : content.metadata) : '-'}</div></td>
                     <td>${formatDate(content.createdOn)}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="editContentRecord(this)" data-id="${content.id}">
@@ -2337,6 +2939,18 @@
                 case 'HIGH': return 'bg-danger';
                 case 'MEDIUM': return 'bg-warning';
                 case 'LOW': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getLocalStatusBadgeClass(localStatus) {
+            switch(localStatus?.toUpperCase()) {
+                case 'AVAILABLE': return 'bg-success';
+                case 'NOT_AVAILABLE': return 'bg-danger';
+                case 'PARTIALLY_AVAILABLE': return 'bg-warning';
+                case 'DOWNLOADING': return 'bg-info';
+                case 'PROCESSING': return 'bg-primary';
+                case 'CORRUPTED': return 'bg-danger';
                 default: return 'bg-secondary';
             }
         }
@@ -2832,11 +3446,21 @@
             // Show loading state
             showLinkedContentLoading();
 
-            // Fetch linked content from Content Catalog
-            fetch(`/api/content-catalog/search?mediaCatalogName=${encodeURIComponent(mediaName)}`)
+            // Get selected media type for filtering
+            const mediaTypeSelect = document.getElementById('uploadMediaCatalogType');
+            const selectedMediaType = mediaTypeSelect ? mediaTypeSelect.value : null;
+            
+            // Build API URL with type filtering for comprehensive search
+            let apiUrl = `/api/content-catalog/all-linked-content?mediaCatalogName=${encodeURIComponent(mediaName)}`;
+            if (selectedMediaType && selectedMediaType !== '') {
+                apiUrl += `&mediaType=${encodeURIComponent(selectedMediaType)}`;
+            }
+            
+            // Fetch linked content from both Content and Upload Catalogs with type filtering
+            fetch(apiUrl)
                 .then(response => response.json())
-                .then(contentList => {
-                    displayLinkedContent(contentList, mediaName);
+                .then(allLinkedData => {
+                    displayAllLinkedContent(allLinkedData, mediaName, selectedMediaType);
                 })
                 .catch(error => {
                     console.error('Error fetching linked content:', error);
@@ -2859,9 +3483,10 @@
             }
         }
 
-        function displayLinkedContent(contentList, mediaName) {
+        function displayLinkedContent(contentList, mediaName, mediaType) {
             const section = document.getElementById('linkedContentSection');
             const container = document.getElementById('linkedContentList');
+            const controls = document.getElementById('linkedContentControls');
             
             if (!section || !container) return;
 
@@ -2905,18 +3530,21 @@
             container.innerHTML = contentHtml;
         }
 
-        function selectLinkedContent(contentId, contentLink) {
+        function selectLinkedContent(id, link, type) {
+            type = type || 'content'; // Default to content for backward compatibility
+            
             // Update the Content ID field
             const contentBlockInput = document.getElementById('contentBlock');
             if (contentBlockInput) {
-                contentBlockInput.value = contentId;
-                updateContentBlockStatusMessage(`Selected: Content ID ${contentId}`, 'success');
+                contentBlockInput.value = id;
+                const typeName = type === 'upload' ? 'Upload' : 'Content';
+                updateContentBlockStatusMessage(`Selected: ${typeName} ID ${id}`, 'success');
             }
 
             // Auto-fill the content catalog link if it's empty
             const linkTextarea = document.getElementById('contentCatalogLink');
-            if (linkTextarea && contentLink && !linkTextarea.value.trim()) {
-                linkTextarea.value = contentLink;
+            if (linkTextarea && link && !linkTextarea.value.trim()) {
+                linkTextarea.value = link;
             }
 
             // Update visual selection
@@ -2926,7 +3554,8 @@
             event.target.closest('.linked-content-item').classList.add('selected');
 
             // Show feedback
-            showNotification(`Content ID ${contentId} selected and auto-filled`, 'success');
+            const typeName = type === 'upload' ? 'Upload' : 'Content';
+            showNotification(`${typeName} ID ${id} selected and auto-filled`, 'success');
         }
 
         function hideLinkedContent() {
@@ -2945,6 +3574,278 @@
                         Error loading linked content. Please try again.
                     </div>
                 `;
+            }
+        }
+        
+        // New functions for adding linked content
+        function showAddLinkedContentForm() {
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) {
+                addSection.style.display = 'block';
+                // Clear previous input
+                document.getElementById('newLinkedContentLink').value = '';
+                document.getElementById('newLinkedContentDescription').value = '';
+                document.getElementById('newLinkedContentLink').focus();
+            }
+        }
+        
+        function hideAddLinkedContentForm() {
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) {
+                addSection.style.display = 'none';
+            }
+        }
+        
+        function addNewLinkedContent() {
+            const linkInput = document.getElementById('newLinkedContentLink');
+            const descriptionInput = document.getElementById('newLinkedContentDescription');
+            
+            const link = linkInput.value.trim();
+            const description = descriptionInput.value.trim();
+            
+            if (!link) {
+                alert('Please enter a content link.');
+                linkInput.focus();
+                return;
+            }
+            
+            if (!window.currentLinkedMediaName) {
+                alert('No media catalog selected. Please select a media catalog first.');
+                return;
+            }
+            
+            // Create new content catalog entry
+            const newContentData = {
+                link: link,
+                mediaCatalogName: window.currentLinkedMediaName,
+                mediaCatalogType: window.currentLinkedMediaType || 'MOVIE',
+                status: 'NEW',
+                priority: 'MEDIUM',
+                metadata: description || null
+            };
+            
+            // Show loading state
+            const addButton = document.querySelector('button[onclick="addNewLinkedContent()"]');
+            const originalText = addButton.innerHTML;
+            addButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+            addButton.disabled = true;
+            
+            // Send to backend
+            fetch('/api/content-catalog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newContentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                addButton.innerHTML = originalText;
+                addButton.disabled = false;
+                
+                // Hide form
+                hideAddLinkedContentForm();
+                
+                // Show success message
+                showNotification(`New content link added successfully (ID: ${data.id})`, 'success');
+                
+                // Refresh linked content list
+                refreshLinkedContent();
+            })
+            .catch(error => {
+                console.error('Error adding new content:', error);
+                // Reset button
+                addButton.innerHTML = originalText;
+                addButton.disabled = false;
+                
+                alert('Error adding new content link. Please try again.');
+            });
+        }
+        
+        function refreshLinkedContent() {
+            if (window.currentLinkedMediaName) {
+                loadLinkedContentForMedia(window.currentLinkedMediaName);
+            }
+        }
+        
+        // Enhanced function to show controls when content is displayed
+        function enhanceDisplayLinkedContent(originalContentList) {
+            const controls = document.getElementById('linkedContentControls');
+            if (controls && originalContentList && originalContentList.length > 0) {
+                controls.style.display = 'block';
+            }
+        }
+        
+        // New function to display both content catalog and upload catalog results
+        function displayAllLinkedContent(allLinkedData, mediaName, mediaType) {
+            const section = document.getElementById('linkedContentSection');
+            const container = document.getElementById('linkedContentList');
+            const controls = document.getElementById('linkedContentControls');
+            
+            if (!section || !container) return;
+            section.style.display = 'block';
+            
+            // Store current media info for adding new content
+            window.currentLinkedMediaName = mediaName;
+            window.currentLinkedMediaType = mediaType;
+            
+            const contentCatalog = allLinkedData.contentCatalog || [];
+            const uploadCatalog = allLinkedData.uploadCatalog || [];
+            const totalResults = contentCatalog.length + uploadCatalog.length;
+            
+            if (totalResults === 0) {
+                const typeText = mediaType ? ` and type "${mediaType}"` : '';
+                container.innerHTML = `
+                    <div class="linked-content-empty">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No content or upload records found for "${mediaName}"${typeText}
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="showAddLinkedContentForm()">
+                                <i class="fas fa-plus me-1"></i>Add First Content Link
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (controls) controls.style.display = 'none';
+                return;
+            }
+            
+            let contentHtml = '';
+            
+            // Display Content Catalog results
+            if (contentCatalog.length > 0) {
+                contentHtml += `
+                    <div class="linked-content-section mb-3">
+                        <h6 class="linked-content-section-title">
+                            <i class="fas fa-video me-2 text-primary"></i>Content Catalog (${contentCatalog.length})
+                        </h6>
+                `;
+                
+                contentCatalog.forEach(content => {
+                    const statusClass = getContentStatusClass(content.status);
+                    const truncatedLink = content.link ? 
+                        (content.link.length > 50 ? content.link.substring(0, 50) + '...' : content.link) : 
+                        'No link provided';
+                    const locationPath = content.locationPath ? 
+                        (content.locationPath.length > 40 ? content.locationPath.substring(0, 40) + '...' : content.locationPath) : 
+                        null;
+                    contentHtml += `
+                        <div class="linked-content-item" onclick="selectLinkedContent(${content.id}, '${content.link || ''}', 'content')">
+                            <div class="linked-content-info">
+                                <div class="linked-content-id">
+                                    <i class="fas fa-video me-1"></i>Content ID: ${content.id}
+                                </div>
+                                <div class="linked-content-link" title="${content.link || 'No link provided'}">
+                                    ${content.link ? 
+                                        `<i class="fas fa-link me-1"></i>${truncatedLink}` : 
+                                        `<i class="fas fa-file-text me-1"></i>Text content`
+                                    }
+                                </div>
+                                ${locationPath ? 
+                                    `<div class="linked-content-path" title="${content.locationPath}">
+                                        <i class="fas fa-folder me-1 text-muted"></i><small class="text-muted">${locationPath}</small>
+                                    </div>` : 
+                                    ''
+                                }
+                            </div>
+                            <div class="linked-content-status">
+                                <span class="badge ${statusClass}">${content.status || 'Unknown'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentHtml += '</div>';
+            }
+            
+            // Display Upload Catalog results
+            if (uploadCatalog.length > 0) {
+                contentHtml += `
+                    <div class="linked-content-section mb-3">
+                        <h6 class="linked-content-section-title">
+                            <i class="fas fa-upload me-2 text-success"></i>Upload Catalog (${uploadCatalog.length})
+                        </h6>
+                `;
+                
+                uploadCatalog.forEach(upload => {
+                    const statusClass = getUploadStatusClass(upload.uploadStatus);
+                    const truncatedLink = upload.contentCatalogLink ? 
+                        (upload.contentCatalogLink.length > 50 ? upload.contentCatalogLink.substring(0, 50) + '...' : upload.contentCatalogLink) : 
+                        'No link provided';
+                    contentHtml += `
+                        <div class="linked-content-item" onclick="selectLinkedContent(${upload.id}, '${upload.contentCatalogLink || ''}', 'upload')">
+                            <div class="linked-content-info">
+                                <div class="linked-content-id">
+                                    <i class="fas fa-upload me-1"></i>Upload ID: ${upload.id}
+                                </div>
+                                <div class="linked-content-link" title="${upload.contentCatalogLink || 'No link provided'}">
+                                    ${upload.contentCatalogLink ? 
+                                        `<i class="fas fa-link me-1"></i>${truncatedLink}` : 
+                                        `<i class="fas fa-file-text me-1"></i>Text content`
+                                    }
+                                </div>
+                                ${upload.uploadCatalogCaption ? 
+                                    `<div class="linked-content-caption"><small class="text-muted">${upload.uploadCatalogCaption}</small></div>` : 
+                                    ''
+                                }
+                            </div>
+                            <div class="linked-content-status">
+                                <span class="badge ${statusClass}">${upload.uploadStatus || 'Unknown'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentHtml += '</div>';
+            }
+            
+            container.innerHTML = contentHtml;
+            
+            // Show controls when we have content
+            if (controls) {
+                controls.style.display = 'block';
+            }
+            
+            // Hide add form if it was open
+            const addSection = document.getElementById('addLinkedContentSection');
+            if (addSection) addSection.style.display = 'none';
+        }
+        
+        // Override original displayLinkedContent to add controls support
+        const originalDisplayLinkedContent = window.displayLinkedContent;
+        window.displayLinkedContent = function(contentList, mediaName, mediaType) {
+            // Call original function
+            if (originalDisplayLinkedContent) {
+                originalDisplayLinkedContent.call(this, contentList, mediaName);
+            }
+            
+            // Store current media info and show controls
+            window.currentLinkedMediaName = mediaName;
+            window.currentLinkedMediaType = mediaType;
+            
+            const controls = document.getElementById('linkedContentControls');
+            const addSection = document.getElementById('addLinkedContentSection');
+            
+            if (contentList && contentList.length > 0) {
+                if (controls) controls.style.display = 'block';
+            } else {
+                if (controls) controls.style.display = 'none';
+            }
+            
+            // Hide add form if it was open
+            if (addSection) addSection.style.display = 'none';
+        };
+
+        function getUploadStatusClass(status) {
+            switch(status?.toUpperCase()) {
+                case 'UPLOADED': return 'bg-success';
+                case 'IN_PROGRESS': return 'bg-warning';
+                case 'NEW': return 'bg-info';
+                case 'ERROR': return 'bg-danger';
+                case 'FAILED': return 'bg-danger';
+                case 'COMPLETED': return 'bg-success';
+                default: return 'bg-secondary';
             }
         }
 
@@ -3036,14 +3937,25 @@
                 item.type = 'button';
                 
                 // Create display text with ID and name
-                const displayText = `${content.id} - ${content.mediaCatalogName}`;
                 const statusBadge = getContentStatusBadge(content.status);
+                const isLinkMatch = content.link && content.link.toLowerCase().includes(searchValue.toLowerCase());
+                const isNameMatch = content.mediaCatalogName && content.mediaCatalogName.toLowerCase().includes(searchValue.toLowerCase());
+                
+                let matchIndicator = '';
+                if (isLinkMatch && isNameMatch) {
+                    matchIndicator = '<i class="fas fa-link text-primary me-1" title="Link match"></i><i class="fas fa-tag text-success me-1" title="Name match"></i>';
+                } else if (isLinkMatch) {
+                    matchIndicator = '<i class="fas fa-link text-primary me-1" title="Link match"></i>';
+                } else if (isNameMatch) {
+                    matchIndicator = '<i class="fas fa-tag text-success me-1" title="Name match"></i>';
+                }
                 
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>ID: ${content.id}</strong><br>
+                            <strong>ID: ${content.id}</strong> ${matchIndicator}<br>
                             <small class="text-muted">${content.mediaCatalogName}</small>
+                            ${isLinkMatch ? `<br><small class="text-info"><i class="fas fa-link me-1"></i>${content.link.substring(0, 50)}${content.link.length > 50 ? '...' : ''}</small>` : ''}
                         </div>
                         <span class="badge ${statusBadge}">${content.status}</span>
                     </div>
@@ -3054,7 +3966,12 @@
                     const input = document.getElementById('contentBlock');
                     input.value = `${content.id}`;
                     dropdown.classList.remove('show');
-                    updateContentBlockStatusMessage(`Selected: "${content.mediaCatalogName}" (ID: ${content.id})`, 'success');
+                    
+                    let statusMessage = `Selected: "${content.mediaCatalogName}" (ID: ${content.id})`;
+                    if (isLinkMatch) {
+                        statusMessage += ` - Link matched`;
+                    }
+                    updateContentBlockStatusMessage(statusMessage, 'success');
                     
                     // Auto-fill content catalog link/description if available
                     if (content.link) {
@@ -3168,7 +4085,9 @@
         // Auto-activate tab based on server-side activeTab parameter
         document.addEventListener('DOMContentLoaded', function() {
             const activeTab = /*[[${activeTab}]]*/ 'dashboard';
+            console.log('Page loaded with activeTab:', activeTab);
             if (activeTab && activeTab !== 'dashboard') {
+                console.log('Activating tab:', activeTab);
                 showTab(activeTab);
             }
             
@@ -3381,6 +4300,11 @@
                         input.value = item.link || item.id; // Show link, fallback to ID
                         input.setAttribute('data-content-id', item.id); // Store ID for backend
                         dropdown.style.display = 'none';
+                        
+                        // Auto-populate content catalog location if this is the edit form
+                        if (input.id === 'editContentBlock') {
+                            fetchAndPopulateContentCatalogLocation(item.id);
+                        }
                     });
                     
                     dropdown.appendChild(option);
@@ -3394,6 +4318,52 @@
                 dropdown.appendChild(noResults);
                 dropdown.style.display = 'block';
             }
+        }
+        
+        function fetchAndPopulateContentCatalogLocation(contentId) {
+            if (!contentId) {
+                return;
+            }
+            
+            // Show loading state in the location field
+            const locationInput = document.getElementById('editContentCatalogLocation');
+            if (locationInput) {
+                locationInput.value = 'Loading location...';
+                locationInput.disabled = true;
+            }
+            
+            // Fetch location data from the new API endpoint
+            fetch(`/api/content-catalog/${contentId}/location`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                })
+                .then(data => {
+                    if (locationInput) {
+                        // Populate with location path if available, otherwise use location
+                        const locationValue = data.locationPath || data.location || '';
+                        locationInput.value = locationValue;
+                        locationInput.disabled = false;
+                        
+                        if (locationValue) {
+                            console.log('Auto-populated content catalog location:', locationValue);
+                            showNotification(`Location auto-populated from Content ID ${contentId}`, 'success');
+                        } else {
+                            showNotification(`No location data found for Content ID ${contentId}`, 'warning');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching content catalog location:', error);
+                    if (locationInput) {
+                        locationInput.value = '';
+                        locationInput.disabled = false;
+                        locationInput.placeholder = 'Location not found for this content ID';
+                    }
+                    showNotification(`Could not fetch location for Content ID ${contentId}`, 'warning');
+                });
         }
         
         function initializeUploadFormContentBlock() {
@@ -3418,10 +4388,15 @@
                     
                     const fileInput = document.getElementById('bulkUploadFile');
                     const progressDiv = document.getElementById('uploadProgress');
-                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const submitBtn = document.querySelector('button[form="bulkUploadForm"][type="submit"]');
                     
                     if (!fileInput.files.length) {
                         alert('Please select a file to upload');
+                        return;
+                    }
+                    
+                    if (!this.action) {
+                        alert('Form action not set. Please close and reopen the upload dialog.');
                         return;
                     }
                     
@@ -4010,43 +4985,64 @@
             
             // Update quick stats cards
             updateElement('totalRecordsCount', data.systemStats?.totalRecords || 0);
-            updateElement('downloadedPercentage', (data.quickStats?.downloadedPercentage || 0) + '%');
-            updateElement('linkedRecordsCount', data.quickStats?.linkedRecords || 0);
-            updateElement('popularPlatform', data.quickStats?.popularPlatform || 'N/A');
+            updateElement('completionRate', (data.quickStats?.completionRate || 0) + '%');
             updateElement('todaysActivity', '+' + (data.quickStats?.todaysActivity || 0) + ' today');
             
             // Update system statistics
             updateElement('mediaCatalogCount', data.systemStats?.totalMediaCatalog || 0);
             updateElement('contentCatalogCount', data.systemStats?.totalContentCatalog || 0);
             updateElement('uploadCatalogCount', data.systemStats?.totalUploadCatalog || 0);
-            
-            // Update progress bars
-            const totalRecords = data.systemStats?.totalRecords || 1;
-            updateProgressBar('mediaProgress', (data.systemStats?.totalMediaCatalog || 0) / totalRecords * 100);
-            updateProgressBar('contentProgress', (data.systemStats?.totalContentCatalog || 0) / totalRecords * 100);
-            updateProgressBar('uploadProgress', (data.systemStats?.totalUploadCatalog || 0) / totalRecords * 100);
-            
-            // Update health indicators
-            updateElement('databaseStatus', data.systemHealth?.databaseConnected ? 'Online' : 'Offline');
-            updateElement('dataIntegrity', (data.performance?.dataIntegrityScore || 0) + '%');
-            updateElement('uploadSuccess', (data.performance?.successfulUploads || 0) + '%');
-            updateElement('responseTime', data.performance?.avgResponseTime || '< 100ms');
+            updateElement('statesCatalogCount', data.systemStats?.totalStatesCatalog || 0);
             
             // Update media type distribution
-            updateDistribution('movies', data.mediaTypeStats?.movies || 0);
-            updateDistribution('webSeries', data.mediaTypeStats?.webSeries || 0);
-            updateDistribution('albums', data.mediaTypeStats?.albums || 0);
-            updateDistribution('documentaries', data.mediaTypeStats?.documentaries || 0);
+            updateChartData('movies', data.mediaTypeStats?.movies || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('albums', data.mediaTypeStats?.albums || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('webSeries', data.mediaTypeStats?.webSeries || 0, data.systemStats?.totalMediaCatalog || 1);
+            updateChartData('documentaries', data.mediaTypeStats?.documentaries || 0, data.systemStats?.totalMediaCatalog || 1);
             
-            // Update download status distribution
-            updateDistribution('downloaded', data.downloadStats?.downloaded || 0);
-            updateDistribution('notDownloaded', data.downloadStats?.notDownloaded || 0);
-            updateDistribution('partiallyDownloaded', data.downloadStats?.partiallyDownloaded || 0);
+            // Update download status distribution  
+            updateChartData('downloaded', data.contentStats?.downloaded || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('newContent', data.contentStats?.new || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('inProgressContent', data.contentStats?.inProgress || 0, data.systemStats?.totalContentCatalog || 1);
+            updateChartData('errorContent', data.contentStats?.error || 0, data.systemStats?.totalContentCatalog || 1);
+            
+            // Update upload status distribution (including new READY_TO_UPLOAD)
+            updateChartData('uploaded', data.uploadStats?.uploaded || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('readyToUpload', data.uploadStats?.readyToUpload || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('inProgressUpload', data.uploadStats?.inProgress || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('newUpload', data.uploadStats?.new || 0, data.systemStats?.totalUploadCatalog || 1);
+            updateChartData('completedUpload', data.uploadStats?.completed || 0, data.systemStats?.totalUploadCatalog || 1);
+            
+            // Update health indicators
+            updateElement('dbStatus', data.systemHealth?.databaseConnected ? 'Online' : 'Offline');
+            updateElement('storageStatus', data.systemHealth?.diskSpace || 'Available');
+            updateElement('apiStatus', data.performance?.avgResponseTime || '< 100ms');
+            updateElement('uptimeStatus', data.systemHealth?.uptime || '99.9%');
+            
+            // Update quick action counts
+            updateElement('qaMediaCount', (data.systemStats?.totalMediaCatalog || 0) + ' items');
+            updateElement('qaContentCount', (data.systemStats?.totalContentCatalog || 0) + ' items');
+            updateElement('qaUploadCount', (data.systemStats?.totalUploadCatalog || 0) + ' items');
+            updateElement('qaStatesCount', (data.systemStats?.totalStatesCatalog || 0) + ' items');
             
             // Update recent activity
-            updateElement('recentMediaAdded', data.recentActivity?.recentMediaAdded || 0);
-            updateElement('recentContentAdded', data.recentActivity?.recentContentAdded || 0);
-            updateElement('recentUploadsAdded', data.recentActivity?.recentUploadsAdded || 0);
+            loadRecentActivity();
+            loadSystemAlerts();
+        }
+        
+        function updateChartData(id, value, total) {
+            // Update count
+            const countElement = document.getElementById(id + 'Count');
+            if (countElement) {
+                countElement.textContent = value;
+            }
+            
+            // Update progress bar
+            const progressElement = document.getElementById(id + 'Progress');
+            if (progressElement && total > 0) {
+                const percentage = Math.min((value / total) * 100, 100);
+                progressElement.style.width = percentage + '%';
+            }
         }
         
         function updateElement(id, value) {
@@ -4132,6 +5128,279 @@
         
         // Export dashboard functions globally
         window.refreshDashboard = refreshDashboard;
+        
+        // ===== ENHANCED DASHBOARD FUNCTIONS =====
+        
+        function performGlobalSearch() {
+            const category = document.getElementById('globalSearchCategory').value;
+            const status = document.getElementById('globalSearchStatus').value;
+            const searchTerm = document.getElementById('globalSearchInput').value.trim();
+            
+            if (!searchTerm && !category && !status) {
+                showGlobalSearchMessage('Please enter a search term or select filters');
+                return;
+            }
+            
+            const resultsContainer = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Searching...</p></div>';
+            
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('q', searchTerm);
+            if (category) params.append('category', category);
+            if (status) params.append('status', status);
+            
+            fetch(`/api/dashboard/search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => displayGlobalSearchResults(data))
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showGlobalSearchMessage('Search failed. Please try again.');
+                });
+        }
+        
+        function displayGlobalSearchResults(data) {
+            const resultsContainer = document.getElementById('globalSearchResults');
+            
+            if (!data || data.length === 0) {
+                showGlobalSearchMessage('No results found matching your search criteria');
+                return;
+            }
+            
+            let html = '';
+            data.forEach(item => {
+                const iconClass = getSearchResultIcon(item.type);
+                const statusBadge = getStatusBadge(item.status);
+                
+                html += `
+                    <div class="search-result-item" onclick="openSearchResult('${item.type}', '${item.id}')">
+                        <div class="search-result-icon ${iconClass}">
+                            <i class="fas ${getTypeIcon(item.type)}"></i>
+                        </div>
+                        <div class="search-result-content">
+                            <div class="search-result-title">${item.title}</div>
+                            <div class="search-result-desc">${item.description}</div>
+                            <div class="search-result-meta">
+                                ${statusBadge} | ${item.type} | ${formatDate(item.createdAt)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = html;
+        }
+        
+        function clearGlobalSearch() {
+            document.getElementById('globalSearchCategory').value = '';
+            document.getElementById('globalSearchStatus').value = '';
+            document.getElementById('globalSearchInput').value = '';
+            showGlobalSearchMessage('Use the search controls above to find data across all catalogs', 'Search supports: Media names, content links, upload status, file paths, descriptions, and more');
+        }
+        
+        function showGlobalSearchMessage(message, subMessage = '') {
+            const resultsContainer = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <p>${message}</p>
+                    ${subMessage ? `<p class="small">${subMessage}</p>` : ''}
+                </div>
+            `;
+        }
+        
+        function openSearchResult(type, id) {
+            // Switch to appropriate tab and highlight the result
+            const tabMap = {
+                'media': 'movies',
+                'content': 'content-status', 
+                'upload': 'add-entry',
+                'states': 'states-catalog'
+            };
+            
+            const targetTab = tabMap[type];
+            if (targetTab) {
+                switchTab(targetTab);
+                // Highlight the specific item after tab switch
+                setTimeout(() => {
+                    const targetElement = document.querySelector(`[data-id="${id}"]`);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetElement.style.backgroundColor = 'rgba(79, 128, 255, 0.2)';
+                        setTimeout(() => {
+                            targetElement.style.backgroundColor = '';
+                        }, 3000);
+                    }
+                }, 500);
+            }
+        }
+        
+        function getSearchResultIcon(type) {
+            switch(type) {
+                case 'media': return 'bg-info';
+                case 'content': return 'bg-success';
+                case 'upload': return 'bg-warning'; 
+                case 'states': return 'bg-secondary';
+                default: return 'bg-primary';
+            }
+        }
+        
+        function getTypeIcon(type) {
+            switch(type) {
+                case 'media': return 'fa-film';
+                case 'content': return 'fa-folder-open';
+                case 'upload': return 'fa-cloud-upload-alt';
+                case 'states': return 'fa-chart-line';
+                default: return 'fa-file';
+            }
+        }
+        
+        function getStatusBadge(status) {
+            const statusClass = getUploadStatusBadgeClass(status) || 'bg-secondary';
+            return `<span class="badge ${statusClass}">${formatUploadStatus(status)}</span>`;
+        }
+        
+        function loadRecentActivity() {
+            const activityContainer = document.getElementById('recentActivityList');
+            if (!activityContainer) return;
+            
+            fetch('/api/dashboard/recent-activity')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    if (data && data.length > 0) {
+                        data.forEach(activity => {
+                            const iconClass = getActivityIcon(activity.type);
+                            html += `
+                                <div class="activity-item">
+                                    <div class="activity-icon ${iconClass}">
+                                        <i class="fas ${getTypeIcon(activity.type)}"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <span class="activity-title">${activity.title}</span>
+                                        <span class="activity-time">${formatRelativeTime(activity.timestamp)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = '<div class="text-center text-muted py-3">No recent activity</div>';
+                    }
+                    activityContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading recent activity:', error);
+                    activityContainer.innerHTML = '<div class="text-center text-muted py-3">Error loading activity</div>';
+                });
+        }
+        
+        function loadSystemAlerts() {
+            const alertsContainer = document.getElementById('systemAlertsList');
+            if (!alertsContainer) return;
+            
+            fetch('/api/dashboard/system-alerts')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    if (data && data.length > 0) {
+                        data.forEach(alert => {
+                            const iconClass = getAlertIcon(alert.level);
+                            html += `
+                                <div class="alert-item">
+                                    <div class="alert-icon ${iconClass}">
+                                        <i class="fas ${getAlertTypeIcon(alert.level)}"></i>
+                                    </div>
+                                    <div class="alert-content">
+                                        <span class="alert-title">${alert.title}</span>
+                                        <span class="alert-desc">${alert.description}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = `
+                            <div class="alert-item">
+                                <div class="alert-icon bg-success">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <span class="alert-title">All systems operational</span>
+                                    <span class="alert-desc">No critical issues detected</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    alertsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading system alerts:', error);
+                });
+        }
+        
+        function getActivityIcon(type) {
+            switch(type) {
+                case 'media': return 'bg-info';
+                case 'content': return 'bg-success';
+                case 'upload': return 'bg-warning';
+                case 'states': return 'bg-secondary';
+                default: return 'bg-primary';
+            }
+        }
+        
+        function getAlertIcon(level) {
+            switch(level) {
+                case 'error': return 'bg-danger';
+                case 'warning': return 'bg-warning';
+                case 'info': return 'bg-info';
+                default: return 'bg-success';
+            }
+        }
+        
+        function getAlertTypeIcon(level) {
+            switch(level) {
+                case 'error': return 'fa-exclamation-circle';
+                case 'warning': return 'fa-exclamation-triangle';
+                case 'info': return 'fa-info-circle';
+                default: return 'fa-check';
+            }
+        }
+        
+        function formatRelativeTime(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffMs = now - time;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+        
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+        
+        function exportDashboardData() {
+            // Export dashboard data to CSV/Excel
+            fetch('/api/dashboard/export')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `dashboard-export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    alert('Export failed. Please try again.');
+                });
+        }
 
         // ===== STATES CATALOG FUNCTIONS =====
         
