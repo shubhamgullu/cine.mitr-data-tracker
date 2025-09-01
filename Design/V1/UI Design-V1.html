@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tab Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold text-gray-900">Management Dashboard</h1>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="flex space-x-8">
+                <button onclick="switchTab('media')"
+                    class="tab-btn py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium"
+                    data-tab="media">Media</button>
+                <button onclick="switchTab('content')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="content">Content</button>
+                <button onclick="switchTab('upload')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="upload">Upload</button>
+                <button onclick="switchTab('states')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="states">States</button>
+                <button onclick="switchTab('dashboard')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="dashboard">Dashboard</button>
+            </nav>
+        </div>
+
+        <!-- Media Tab -->
+        <div id="media" class="tab-content active">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Media Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="triggerBulkUpload('media')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('media')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Media</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Main Genre</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downloaded</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="media-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900">The Dark Knight</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">Movie</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">English</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">Action</td>
+                            <td class="px-6 py-4 text-sm text-green-600">Yes</td>
+                            <td class="px-6 py-4 text-sm space-x-2">
+                                <button onclick="editItem('media', 0)"
+                                    class="text-blue-600 hover:text-blue-800">Edit</button>
+                                <button onclick="deleteItem('media', 0)"
+                                    class="text-red-600 hover:text-red-800">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Content Tab -->
+        <div id="content" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Content Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="triggerBulkUpload('content')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('content')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Content</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Local Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="content-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900">https://example.com/video1</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">Movie</td>
+                            <td class="px-6 py-4 text-sm text-green-600">downloaded</td>
+                            <td class="px-6 py-4 text-sm text-orange-600">high</td>
+                            <td class="px-6 py-4 text-sm text-green-600">downloaded</td>
+                            <td class="px-6 py-4 text-sm space-x-2">
+                                <button onclick="editItem('content', 0)"
+                                    class="text-blue-600 hover:text-blue-800">Edit</button>
+                                <button onclick="deleteItem('content', 0)"
+                                    class="text-red-600 hover:text-red-800">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Upload Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="triggerBulkUpload('upload')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('upload')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Upload</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Link</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="upload-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900">https://source.com/content1</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">Movie metadata with location</td>
+                            <td class="px-6 py-4 text-sm text-green-600">completed</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">HD Video, 2.5GB</td>
+                            <td class="px-6 py-4 text-sm space-x-2">
+                                <button onclick="editItem('upload', 0)"
+                                    class="text-blue-600 hover:text-blue-800">Edit</button>
+                                <button onclick="deleteItem('upload', 0)"
+                                    class="text-red-600 hover:text-red-800">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- States Tab -->
+        <div id="states" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">States Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="triggerBulkUpload('states')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('states')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        State</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Views</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subscribers</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interaction</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Page</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="states-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 text-sm text-gray-900">2024-01-15</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">15,420</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">1,250</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">850</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">cine.mitr</td>
+                            <td class="px-6 py-4 text-sm space-x-2">
+                                <button onclick="editItem('states', 0)"
+                                    class="text-blue-600 hover:text-blue-800">Edit</button>
+                                <button onclick="deleteItem('states', 0)"
+                                    class="text-red-600 hover:text-red-800">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Dashboard Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Media</h3>
+                    <p class="text-3xl font-bold text-blue-600" id="media-count">1</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Content</h3>
+                    <p class="text-3xl font-bold text-green-600" id="content-count">1</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Uploads</h3>
+                    <p class="text-3xl font-bold text-purple-600" id="upload-count">1</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total States</h3>
+                    <p class="text-3xl font-bold text-orange-600" id="states-count">1</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Forms -->
+    <!-- Media Modal -->
+    <div id="media-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="media-modal-title">Add Media</h3>
+            <form id="media-form" onsubmit="submitForm(event, 'media')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name</label>
+                    <input type="text" name="media_name" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <select name="media_type" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                    <select name="language" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Language</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Chinese">Chinese</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Main Genres</label>
+                    <select name="main_genres" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Main Genre</option>
+                        <option value="Action">Action</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Horror">Horror</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Thriller">Thriller</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Crime">Crime</option>
+                        <option value="Adventure">Adventure</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sub Genres</label>
+                    <input type="text" name="sub_genres" placeholder="e.g., Superhero, Psychological"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Is Downloaded</label>
+                    <select name="is_downloaded" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Status</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Download Path</label>
+                    <input type="text" name="download_path" placeholder="e.g., /media/movies/dark_knight.mp4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Available On</label>
+                    <input type="text" name="available_on" placeholder="e.g., Netflix, Amazon Prime"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('media')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Content Modal -->
+    <div id="content-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="content-modal-title">Add Content</h3>
+            <form id="content-form" onsubmit="submitForm(event, 'content')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Link</label>
+                    <input type="url" name="link" required placeholder="https://example.com/video"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <input type="text" name="media_type" required placeholder="Movie, Web-Series, Documentary"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name</label>
+                    <input type="text" name="media_name" required placeholder="Name of the media content"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Status</option>
+                        <option value="new">New</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                    <select name="priority" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Priority</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Local Status</label>
+                    <select name="local_status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Local Status</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="error">Error</option>
+                        <option value="NA">N/A</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Local File Path</label>
+                    <input type="text" name="local_file_path" placeholder="/path/to/local/file"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('content')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="upload-modal-title">Add Upload</h3>
+            <form id="upload-form" onsubmit="submitForm(event, 'upload')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Link</label>
+                    <input type="url" name="source_link" required placeholder="https://source.com/content"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Data</label>
+                    <textarea name="source_data" required
+                        placeholder="Source metadata for the content and all details with location" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="ready-to-upload">Ready to Upload</option>
+                        <option value="uploaded">Uploaded</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Data</label>
+                    <textarea name="media_data" required placeholder="Media information (format, size, quality, etc.)"
+                        rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('upload')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- States Modal -->
+    <div id="states-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="states-modal-title">Add State</h3>
+            <form id="states-form" onsubmit="submitForm(event, 'states')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input type="date" name="date" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Total Views</label>
+                    <input type="number" name="total_views" required placeholder="15420"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subscribers</label>
+                    <input type="number" name="subscribers" required placeholder="1250"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interaction</label>
+                    <input type="number" name="interaction" required placeholder="850"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                    <input type="text" name="content" required placeholder="Content identifier or description"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Page</label>
+                    <select name="page" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Page</option>
+                        <option value="cine.mitr">cine.mitr</option>
+                        <option value="cine.mitr.music">cine.mitr.music</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('states')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div id="bulk-upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="bulk-upload-title">Bulk Upload</h3>
+            <div class="mb-6">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none"
+                        viewBox="0 0 48 48">
+                        <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="mb-4">
+                        <label for="bulk-file-input" class="cursor-pointer">
+                            <span class="text-blue-600 hover:text-blue-500 font-medium">Click to upload</span>
+                            <span class="text-gray-500"> or drag and drop</span>
+                        </label>
+                        <input id="bulk-file-input" type="file" accept=".csv,.xlsx,.xls" class="hidden"
+                            onchange="handleFileSelect(event)">
+                    </div>
+                    <p class="text-sm text-gray-500">CSV, Excel files up to 10MB</p>
+                </div>
+            </div>
+
+            <div id="file-info" class="hidden mb-4 p-3 bg-blue-50 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span id="file-name" class="text-sm text-blue-700 font-medium"></span>
+                    <span id="file-size" class="text-sm text-blue-600 ml-2"></span>
+                </div>
+            </div>
+
+            <div id="upload-progress" class="hidden mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Processing...</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-medium text-gray-700">Expected CSV Format:</h4>
+                    <button onclick="downloadTemplate()"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Download Template
+                    </button>
+                </div>
+                <div class="bg-gray-50 p-3 rounded text-xs text-gray-600" id="csv-format">
+                    <!-- Format will be populated based on selected tab -->
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeBulkUpload()"
+                    class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                <button id="process-btn" onclick="processBulkUpload()" disabled
+                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">Process
+                    Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for bulk upload -->
+    <input type="file" id="hidden-file-input" accept=".csv,.xlsx,.xls" style="display: none;"
+        onchange="handleFileSelect(event)">
+
+    <script>
+        // Data storage
+        let data = {
+            media: [
+                { media_name: 'The Dark Knight', media_type: 'Movie', language: 'English', main_genres: 'Action', sub_genres: 'Superhero, Crime', is_downloaded: 'Yes', download_path: '/media/movies/dark_knight.mp4', available_on: 'Netflix, HBO Max' }
+            ],
+            content: [
+                { link: 'https://example.com/video1', media_type: 'Movie', media_name: 'Sample Movie', status: 'downloaded', priority: 'high', local_status: 'downloaded', local_file_path: '/local/path/movie.mp4' }
+            ],
+            upload: [
+                { source_link: 'https://source.com/content1', source_data: 'Movie metadata with location', status: 'completed', media_data: 'HD Video, 2.5GB' }
+            ],
+            states: [
+                { date: '2024-01-15', total_views: '15420', subscribers: '1250', interaction: '850', content: 'Daily analytics', page: 'cine.mitr' }
+            ]
+        };
+
+        let editingIndex = -1;
+        let currentTab = 'media';
+        let currentBulkType = '';
+        let selectedFile = null;
+
+        // CSV format templates for each tab
+        const csvFormats = {
+            media: 'media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on\n"Movie Title","Movie","English","Action","Superhero","Yes","/path/to/file","Netflix"',
+            content: 'link,media_type,media_name,status,priority,local_status,local_file_path\n"https://example.com","Movie","Title","new","high","downloaded","/path/file"',
+            upload: 'source_link,source_data,status,media_data\n"https://source.com","Metadata info","completed","HD Video, 2GB"',
+            states: 'date,total_views,subscribers,interaction,content,page\n"2024-01-15","15420","1250","850","Content desc","cine.mitr"'
+        };
+
+        // Template data with sample rows for each tab
+        const templateData = {
+            media: [
+                ['media_name', 'media_type', 'language', 'main_genres', 'sub_genres', 'is_downloaded', 'download_path', 'available_on'],
+                ['The Avengers', 'Movie', 'English', 'Action', 'Superhero, Adventure', 'Yes', '/media/movies/avengers.mp4', 'Disney+, Netflix'],
+                ['Breaking Bad', 'Web-Series', 'English', 'Drama', 'Crime, Thriller', 'No', '', 'Netflix, Amazon Prime'],
+                ['Planet Earth', 'Documentary', 'English', 'Documentary', 'Nature, Wildlife', 'Yes', '/media/docs/planet_earth.mp4', 'BBC iPlayer']
+            ],
+            content: [
+                ['link', 'media_type', 'media_name', 'status', 'priority', 'local_status', 'local_file_path'],
+                ['https://example.com/movie1', 'Movie', 'Sample Movie 1', 'new', 'high', 'NA', ''],
+                ['https://example.com/series1', 'Web-Series', 'Sample Series 1', 'downloaded', 'medium', 'downloaded', '/local/series1.mp4'],
+                ['https://example.com/doc1', 'Documentary', 'Sample Doc 1', 'error', 'low', 'error', '']
+            ],
+            upload: [
+                ['source_link', 'source_data', 'status', 'media_data'],
+                ['https://source1.com/content', 'Movie metadata with HD quality and location details', 'completed', 'HD Video, 2.5GB, MP4 format'],
+                ['https://source2.com/series', 'Web series metadata with episode information', 'in-progress', '4K Video, 8.2GB, MKV format'],
+                ['https://source3.com/doc', 'Documentary metadata with subtitles', 'ready-to-upload', 'FHD Video, 1.8GB, MP4 format']
+            ],
+            states: [
+                ['date', 'total_views', 'subscribers', 'interaction', 'content', 'page'],
+                ['2024-01-15', '15420', '1250', '850', 'Daily analytics report', 'cine.mitr'],
+                ['2024-01-16', '16800', '1275', '920', 'Weekly content summary', 'cine.mitr.music'],
+                ['2024-01-17', '14200', '1290', '780', 'Monthly performance data', 'cine.mitr']
+            ]
+        };
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to selected tab button
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+
+            currentTab = tabName;
+            updateDashboard();
+        }
+
+        // Modal functions
+        function openModal(type, index = -1) {
+            editingIndex = index;
+            const modal = document.getElementById(`${type}-modal`);
+            const form = document.getElementById(`${type}-form`);
+            const title = document.getElementById(`${type}-modal-title`);
+
+            if (index >= 0) {
+                // Edit mode
+                title.textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                const item = data[type][index];
+
+                // Populate form fields
+                Object.keys(item).forEach(key => {
+                    const field = form.querySelector(`[name="${key}"]`);
+                    if (field) field.value = item[key];
+                });
+            } else {
+                // Add mode
+                title.textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                form.reset();
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModal(type) {
+            document.getElementById(`${type}-modal`).classList.remove('active');
+            editingIndex = -1;
+        }
+
+        // Form submission
+        function submitForm(event, type) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const item = {};
+
+            for (let [key, value] of formData.entries()) {
+                item[key] = value;
+            }
+
+            if (editingIndex >= 0) {
+                // Update existing item
+                data[type][editingIndex] = item;
+            } else {
+                // Add new item
+                data[type].push(item);
+            }
+
+            renderTable(type);
+            closeModal(type);
+            updateDashboard();
+        }
+
+        // Edit item
+        function editItem(type, index) {
+            openModal(type, index);
+        }
+
+        // Delete item
+        function deleteItem(type, index) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                data[type].splice(index, 1);
+                renderTable(type);
+                updateDashboard();
+            }
+        }
+
+        // Render table
+        function renderTable(type) {
+            const tbody = document.getElementById(`${type}-table`);
+            tbody.innerHTML = '';
+
+            data[type].forEach((item, index) => {
+                const row = document.createElement('tr');
+
+                let cells = '';
+                Object.values(item).forEach(value => {
+                    let cellClass = 'px-6 py-4 text-sm text-gray-500';
+                    if (value === 'Published' || value === 'Completed') {
+                        cellClass = 'px-6 py-4 text-sm text-green-600';
+                    }
+                    cells += `<td class="${cellClass}">${value}</td>`;
+                });
+
+                row.innerHTML = `
+                    ${cells}
+                    <td class="px-6 py-4 text-sm space-x-2">
+                        <button onclick="editItem('${type}', ${index})" class="text-blue-600 hover:text-blue-800">Edit</button>
+                        <button onclick="deleteItem('${type}', ${index})" class="text-red-600 hover:text-red-800">Delete</button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update dashboard counts
+        function updateDashboard() {
+            document.getElementById('media-count').textContent = data.media.length;
+            document.getElementById('content-count').textContent = data.content.length;
+            document.getElementById('upload-count').textContent = data.upload.length;
+            document.getElementById('states-count').textContent = data.states.length;
+        }
+
+        // Bulk upload functions
+        function triggerBulkUpload(type) {
+            currentBulkType = type;
+            document.getElementById('bulk-upload-title').textContent = `Bulk Upload - ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            document.getElementById('csv-format').textContent = csvFormats[type];
+            document.getElementById('bulk-upload-modal').classList.add('active');
+            resetBulkUpload();
+        }
+
+        function closeBulkUpload() {
+            document.getElementById('bulk-upload-modal').classList.remove('active');
+            resetBulkUpload();
+        }
+
+        function resetBulkUpload() {
+            selectedFile = null;
+            document.getElementById('file-info').classList.add('hidden');
+            document.getElementById('upload-progress').classList.add('hidden');
+            document.getElementById('process-btn').disabled = true;
+            document.getElementById('bulk-file-input').value = '';
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-text').textContent = '0%';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+
+            // Show file info
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-size').textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            document.getElementById('file-info').classList.remove('hidden');
+            document.getElementById('process-btn').disabled = false;
+        }
+
+        function processBulkUpload() {
+            if (!selectedFile) return;
+
+            document.getElementById('upload-progress').classList.remove('hidden');
+            document.getElementById('process-btn').disabled = true;
+
+            // Simulate file processing
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+
+                    // Process the file
+                    processCSVFile(selectedFile);
+                }
+
+                document.getElementById('progress-bar').style.width = progress + '%';
+                document.getElementById('progress-text').textContent = Math.round(progress) + '%';
+            }, 200);
+        }
+
+        function processCSVFile(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const rows = parseCSV(text);
+
+                if (rows.length > 0) {
+                    const headers = rows[0];
+                    const dataRows = rows.slice(1);
+
+                    // Convert rows to objects
+                    const newItems = dataRows.map(row => {
+                        const item = {};
+                        headers.forEach((header, index) => {
+                            item[header.trim()] = row[index] ? row[index].trim() : '';
+                        });
+                        return item;
+                    });
+
+                    // Add to data
+                    data[currentBulkType].push(...newItems);
+                    renderTable(currentBulkType);
+                    updateDashboard();
+
+                    setTimeout(() => {
+                        closeBulkUpload();
+                        alert(`Successfully imported ${newItems.length} records!`);
+                    }, 500);
+                } else {
+                    alert('No data found in the file.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const rows = [];
+            const lines = text.split('\n');
+
+            for (let line of lines) {
+                if (line.trim()) {
+                    const row = [];
+                    let current = '';
+                    let inQuotes = false;
+
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            row.push(current);
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    row.push(current);
+                    rows.push(row);
+                }
+            }
+
+            return rows;
+        }
+
+        // Download template function
+        function downloadTemplate() {
+            const data = templateData[currentBulkType];
+            const csvContent = data.map(row =>
+                row.map(cell => `"${cell}"`).join(',')
+            ).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `${currentBulkType}_template.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Initialize
+        updateDashboard();
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'9788347150aea804',t:'MTc1Njc2NTc1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
