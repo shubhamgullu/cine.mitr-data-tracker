@@ -225,7 +225,7 @@ async function loadItemForEdit(type, itemId) {
         });
     } catch (error) {
         console.error(`Error loading ${type} item:`, error);
-        alert(`Failed to load ${type} data for editing`);
+        showErrorMessage(`Failed to load ${type} data for editing`);
     }
 }
 
@@ -288,7 +288,7 @@ async function submitForm(event, type) {
         showSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} ${action} successfully!`);
     } catch (error) {
         console.error(`Error saving ${type}:`, error);
-        alert(`Failed to save ${type}: ${error.message}`);
+        showErrorMessage(`Failed to save ${type}: ${error.message}`);
     }
 }
 
@@ -317,7 +317,7 @@ async function deleteItem(type, itemId) {
         showSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully!`);
     } catch (error) {
         console.error(`Error deleting ${type}:`, error);
-        alert(`Failed to delete ${type}: ${error.message}`);
+        showErrorMessage(`Failed to delete ${type}: ${error.message}`);
     }
 }
 
@@ -354,8 +354,37 @@ function showSuccessMessage(message) {
     document.body.appendChild(toast);
     
     setTimeout(() => {
-        document.body.removeChild(toast);
+        if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+        }
     }, 3000);
+}
+
+function showErrorMessage(message) {
+    // Create a simple error toast notification
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 max-w-md';
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="flex-1">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-red-200 hover:text-white">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 5 seconds (longer than success message)
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+        }
+    }, 5000);
 }
 
 // CSV format templates for each tab
@@ -511,12 +540,12 @@ async function processCSVFile(file) {
                 }
             }, 500);
         } else {
-            alert('No data found in the file.');
+            showErrorMessage('No data found in the file.');
             document.getElementById('process-btn').disabled = false;
         }
     } catch (error) {
         console.error('Error processing file:', error);
-        alert('Error processing file: ' + error.message);
+        showErrorMessage('Error processing file: ' + error.message);
         document.getElementById('process-btn').disabled = false;
     }
 }

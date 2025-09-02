@@ -1,7 +1,7 @@
 -- Insert sample metadata status
 INSERT INTO metadata_status (path_category, path, is_available, meta_data) VALUES
-('media_files', '/media/movies/dark_knight.mp4', true, '{"size": "2.5GB", "format": "MP4", "quality": "HD"}'),
-('media_files', '/local/path/movie.mp4', true, '{"size": "1.8GB", "format": "MP4", "quality": "FHD"}');
+('MEDIA_FILE', '/media/movies/dark_knight.mp4', true, '{"size": "2.5GB", "format": "MP4", "quality": "HD"}'),
+('MEDIA_FILE', '/local/path/movie.mp4', true, '{"size": "1.8GB", "format": "MP4", "quality": "FHD"}');
 
 -- Insert sample media catalog
 INSERT INTO media_catalog (media_type, media_name, language, is_downloaded, download_path, main_genres, sub_genres, available_on) VALUES

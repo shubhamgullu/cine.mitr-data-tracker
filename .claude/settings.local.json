@@ -11,7 +11,8 @@
       "Bash(curl:*)",
       "Bash(node:*)",
       "Bash(./mvnw:*)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

@@ -87,6 +87,7 @@ src/main/resources/static/node_modules/
 *.db
 *.trace.db
 *.lock.db
+data/
 
 # Application logs
 logs/

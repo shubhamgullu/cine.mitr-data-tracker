@@ -114,6 +114,7 @@ public class MediaCatalogService {
         media.setAvailableOn(dto.getAvailableOn().trim());
         
         // Handle download path by creating or updating MetadataStatus
+        if(dto.getIsDownloaded().equals("Yes") && dto.getDownloadPath()!=null){
         try{
             MetadataStatus mediaDownloadPath = null;
             if (dto.getId()==null){
@@ -148,7 +149,7 @@ public class MediaCatalogService {
             // Log error and set download path to null if metadata handling fails
             System.err.println("Error handling metadata status: " + e.getMessage());
             media.setDownloadPath(null);
-        }
+        }}
 
     }
 }
