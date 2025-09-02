@@ -5,7 +5,13 @@
       "Bash(chmod:*)",
       "Bash(java:*)",
       "Bash(./mvnw clean:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(python test_media_api.py)",
+      "Bash(del test_media_api.py)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(./mvnw:*)",
+      "Bash(mvn:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,7 +4,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "media_catalog")
+@Table(name = "media_catalog", 
+       uniqueConstraints = {
+           @UniqueConstraint(name = "uq_media_name_type", columnNames = {"media_name", "media_type"})
+       })
 public class MediaCatalog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,10 +16,10 @@ public class MediaCatalog {
     @Column(name = "media_type", nullable = false)
     private String mediaType;
 
-    @Column(name = "media_name", nullable = false, unique = true)
+    @Column(name = "media_name", nullable = false)
     private String mediaName;
 
-    @Column(name = "language", nullable = false)
+    @Column(name = "language")
     private String language;
 
     @Column(name = "is_downloaded", nullable = false)
@@ -26,13 +29,13 @@ public class MediaCatalog {
     @JoinColumn(name = "download_path")
     private MetadataStatus downloadPath;
 
-    @Column(name = "main_genres", nullable = false)
+    @Column(name = "main_genres")
     private String mainGenres;
 
     @Column(name = "sub_genres")
     private String subGenres;
 
-    @Column(name = "available_on", nullable = false)
+    @Column(name = "available_on")
     private String availableOn;
 
     @Column(name = "created_at")

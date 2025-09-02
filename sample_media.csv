@@ -1,0 +1,4 @@
+media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on
+"The Matrix","Movie","English","Action","Sci-Fi, Cyberpunk","Yes","/media/movies/matrix.mp4","Netflix, Prime Video"
+"Stranger Things","Web-Series","English","Drama","Thriller, Supernatural","No","","Netflix"
+"Free Solo","Documentary","English","Documentary","Adventure, Sports","Yes","/media/docs/free_solo.mp4","Disney+, Hulu"

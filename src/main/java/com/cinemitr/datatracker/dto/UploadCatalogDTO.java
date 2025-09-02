@@ -13,17 +13,17 @@ public class UploadCatalogDTO {
     
     private String status;
     
-    @JsonProperty("media_data")
-    private String mediaData;
+    @JsonProperty("media_id")
+    private String mediaId;
 
     // Constructors
     public UploadCatalogDTO() {}
 
-    public UploadCatalogDTO(String sourceLink, String sourceData, String status, String mediaData) {
+    public UploadCatalogDTO(String sourceLink, String sourceData, String status, String mediaId) {
         this.sourceLink = sourceLink;
         this.sourceData = sourceData;
         this.status = status;
-        this.mediaData = mediaData;
+        this.mediaId = mediaId;
     }
 
     // Getters and Setters
@@ -59,11 +59,11 @@ public class UploadCatalogDTO {
         this.status = status;
     }
 
-    public String getMediaData() {
-        return mediaData;
+    public String getMediaId() {
+        return mediaId;
     }
 
-    public void setMediaData(String mediaData) {
-        this.mediaData = mediaData;
+    public void setMediaId(String mediaId) {
+        this.mediaId = mediaId;
     }
 }

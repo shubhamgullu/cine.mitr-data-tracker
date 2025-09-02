@@ -13,4 +13,5 @@ public interface MediaCatalogRepository extends JpaRepository<MediaCatalog, Long
     List<MediaCatalog> findByMainGenres(String mainGenres);
     List<MediaCatalog> findByIsDownloaded(Boolean isDownloaded);
     MediaCatalog findByMediaName(String mediaName);
+    MediaCatalog findByMediaNameAndMediaType(String mediaName, String mediaType);
 }

@@ -14,15 +14,15 @@ CREATE TABLE media_catalog (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     media_type VARCHAR(255) NOT NULL,
     media_name VARCHAR(255) NOT NULL,
-    language VARCHAR(255) NOT NULL,
+    language VARCHAR(255),
     is_downloaded BOOLEAN NOT NULL,
     download_path BIGINT,
-    main_genres VARCHAR(255) NOT NULL,
+    main_genres VARCHAR(255),
     sub_genres VARCHAR(255),
-    available_on VARCHAR(500) NOT NULL,
+    available_on VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_media_name UNIQUE (media_name),
+    CONSTRAINT uq_media_name_type UNIQUE (media_name, media_type),
     CONSTRAINT fk_media_download_path FOREIGN KEY (download_path) REFERENCES metadata_status(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 

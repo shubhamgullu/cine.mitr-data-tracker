@@ -1,9 +1,11 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8081/api';
 
 // Global variables
 let currentTab = 'media';
 let editingIndex = -1;
+let currentBulkType = '';
+let selectedFile = null;
 
 // API endpoints
 const endpoints = {
@@ -185,7 +187,7 @@ function getPriorityColor(priority) {
 
 // Modal functions
 function openModal(type, itemId = null) {
-    editingIndex = itemId;
+    editingIndex = itemId !== null ? itemId : -1;
     const modal = document.getElementById(`${type}-modal`);
     const form = document.getElementById(`${type}-form`);
     const title = document.getElementById(`${type}-modal-title`);
@@ -245,7 +247,7 @@ async function submitForm(event, type) {
 
     try {
         let response;
-        if (editingIndex !== -1) {
+        if (editingIndex !== -1 && editingIndex !== null) {
             // Update existing item
             response = await fetch(`${endpoints[type]}/${editingIndex}`, {
                 method: 'PUT',
@@ -266,6 +268,15 @@ async function submitForm(event, type) {
         }
 
         if (!response.ok) {
+            // Try to get error message from response
+            try {
+                const errorData = await response.json();
+                if (errorData.error) {
+                    throw new Error(errorData.error);
+                }
+            } catch (jsonError) {
+                // If response isn't JSON, fall back to status error
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -273,7 +284,7 @@ async function submitForm(event, type) {
         loadData(type);
         updateDashboard();
         
-        const action = editingIndex !== -1 ? 'updated' : 'created';
+        const action = (editingIndex !== -1 && editingIndex !== null) ? 'updated' : 'created';
         showSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} ${action} successfully!`);
     } catch (error) {
         console.error(`Error saving ${type}:`, error);
@@ -345,4 +356,232 @@ function showSuccessMessage(message) {
     setTimeout(() => {
         document.body.removeChild(toast);
     }, 3000);
+}
+
+// CSV format templates for each tab
+const csvFormats = {
+    media: 'media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on\n"Movie Title","Movie","English","Action","Superhero","Yes","/path/to/file","Netflix"',
+    content: 'link,media_type,media_name,status,priority,local_status,local_file_path\n"https://example.com","Movie","Title","new","high","downloaded","/path/file"',
+    upload: 'source_link,source_data,status,media_data\n"https://source.com","Metadata info","completed","HD Video, 2GB"',
+    states: 'date,total_views,subscribers,interaction,content,page\n"2024-01-15","15420","1250","850","Content desc","cine.mitr"'
+};
+
+// Template data with sample rows for each tab
+const templateData = {
+    media: [
+        ['media_name', 'media_type', 'language', 'main_genres', 'sub_genres', 'is_downloaded', 'download_path', 'available_on'],
+        ['The Avengers', 'Movie', 'English', 'Action', 'Superhero, Adventure', 'Yes', '/media/movies/avengers.mp4', 'Disney+, Netflix'],
+        ['Breaking Bad', 'Web-Series', 'English', 'Drama', 'Crime, Thriller', 'No', '', 'Netflix, Amazon Prime'],
+        ['Planet Earth', 'Documentary', 'English', 'Documentary', 'Nature, Wildlife', 'Yes', '/media/docs/planet_earth.mp4', 'BBC iPlayer']
+    ],
+    content: [
+        ['link', 'media_type', 'media_name', 'status', 'priority', 'local_status', 'local_file_path'],
+        ['https://example.com/movie1', 'Movie', 'Sample Movie 1', 'new', 'high', 'na', ''],
+        ['https://example.com/series1', 'Web-Series', 'Sample Series 1', 'downloaded', 'medium', 'downloaded', '/local/series1.mp4'],
+        ['https://example.com/doc1', 'Documentary', 'Sample Doc 1', 'error', 'low', 'error', '']
+    ],
+    upload: [
+        ['source_link', 'source_data', 'status', 'media_data'],
+        ['https://source1.com/content', 'Movie metadata with HD quality and location details', 'completed', 'HD Video, 2.5GB, MP4 format'],
+        ['https://source2.com/series', 'Web series metadata with episode information', 'in-progress', '4K Video, 8.2GB, MKV format'],
+        ['https://source3.com/doc', 'Documentary metadata with subtitles', 'ready-to-upload', 'FHD Video, 1.8GB, MP4 format']
+    ],
+    states: [
+        ['date', 'total_views', 'subscribers', 'interaction', 'content', 'page'],
+        ['2024-01-15', '15420', '1250', '850', 'Daily analytics report', 'cine.mitr'],
+        ['2024-01-16', '16800', '1275', '920', 'Weekly content summary', 'cine.mitr.music'],
+        ['2024-01-17', '14200', '1290', '780', 'Monthly performance data', 'cine.mitr']
+    ]
+};
+
+// Bulk upload functions
+function triggerBulkUpload(type) {
+    currentBulkType = type;
+    document.getElementById('bulk-upload-title').textContent = `Bulk Upload - ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    document.getElementById('csv-format').textContent = csvFormats[type];
+    document.getElementById('bulk-upload-modal').classList.add('active');
+    resetBulkUpload();
+}
+
+function closeBulkUpload() {
+    document.getElementById('bulk-upload-modal').classList.remove('active');
+    resetBulkUpload();
+}
+
+function resetBulkUpload() {
+    selectedFile = null;
+    document.getElementById('file-info').classList.add('hidden');
+    document.getElementById('upload-progress').classList.add('hidden');
+    document.getElementById('process-btn').disabled = true;
+    document.getElementById('bulk-file-input').value = '';
+    document.getElementById('progress-bar').style.width = '0%';
+    document.getElementById('progress-text').textContent = '0%';
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    selectedFile = file;
+
+    // Show file info
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+    document.getElementById('file-info').classList.remove('hidden');
+    document.getElementById('process-btn').disabled = false;
+}
+
+function processBulkUpload() {
+    if (!selectedFile) return;
+
+    document.getElementById('upload-progress').classList.remove('hidden');
+    document.getElementById('process-btn').disabled = true;
+
+    // Simulate file processing
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+
+            // Process the file
+            processCSVFile(selectedFile);
+        }
+
+        document.getElementById('progress-bar').style.width = progress + '%';
+        document.getElementById('progress-text').textContent = Math.round(progress) + '%';
+    }, 200);
+}
+
+async function processCSVFile(file) {
+    try {
+        const text = await readFileAsText(file);
+        const rows = parseCSV(text);
+
+        if (rows.length > 0) {
+            const headers = rows[0];
+            const dataRows = rows.slice(1);
+
+            // Convert rows to objects
+            const newItems = dataRows.map(row => {
+                const item = {};
+                headers.forEach((header, index) => {
+                    item[header.trim()] = row[index] ? row[index].trim() : '';
+                });
+                return item;
+            });
+
+            // Send each item to the backend API
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const item of newItems) {
+                try {
+                    const response = await fetch(endpoints[currentBulkType], {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(item)
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                        console.error(`Failed to create ${currentBulkType}:`, await response.text());
+                    }
+                } catch (error) {
+                    errorCount++;
+                    console.error(`Error creating ${currentBulkType}:`, error);
+                }
+            }
+
+            // Refresh the current data and update dashboard
+            loadData(currentBulkType);
+            updateDashboard();
+
+            setTimeout(() => {
+                closeBulkUpload();
+                if (errorCount === 0) {
+                    showSuccessMessage(`Successfully imported ${successCount} records!`);
+                } else {
+                    showSuccessMessage(`Imported ${successCount} records. ${errorCount} failed.`);
+                }
+            }, 500);
+        } else {
+            alert('No data found in the file.');
+            document.getElementById('process-btn').disabled = false;
+        }
+    } catch (error) {
+        console.error('Error processing file:', error);
+        alert('Error processing file: ' + error.message);
+        document.getElementById('process-btn').disabled = false;
+    }
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            resolve(e.target.result);
+        };
+        reader.onerror = function (e) {
+            reject(e.target.error);
+        };
+        reader.readAsText(file);
+    });
+}
+
+function parseCSV(text) {
+    const rows = [];
+    const lines = text.split('\n');
+
+    for (let line of lines) {
+        if (line.trim()) {
+            const row = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            row.push(current);
+            rows.push(row);
+        }
+    }
+
+    return rows;
+}
+
+// Download template function
+function downloadTemplate() {
+    const data = templateData[currentBulkType];
+    const csvContent = data.map(row =>
+        row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${currentBulkType}_template.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 }

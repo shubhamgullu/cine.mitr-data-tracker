@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/media")
@@ -30,9 +32,20 @@ public class MediaCatalogController {
     }
 
     @PostMapping
-    public ResponseEntity<MediaCatalogDTO> createMedia(@RequestBody MediaCatalogDTO mediaDTO) {
-        MediaCatalogDTO savedMedia = mediaService.saveMedia(mediaDTO);
-        return ResponseEntity.ok(savedMedia);
+    public ResponseEntity<?> createMedia(@RequestBody MediaCatalogDTO mediaDTO) {
+        try {
+            MediaCatalogDTO savedMedia = mediaService.saveMedia(mediaDTO);
+            return ResponseEntity.ok(savedMedia);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            e.printStackTrace(); // Add logging for debugging
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to create media: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @PutMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.cinemitr.datatracker.entity;
 
+import com.cinemitr.datatracker.enums.PathCategory;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -10,8 +11,9 @@ public class MetadataStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "path_category", nullable = false)
-    private String pathCategory;
+    private PathCategory pathCategory;
 
     @Column(name = "path", length = 1024, nullable = false)
     private String path;
@@ -45,7 +47,7 @@ public class MetadataStatus {
     // Constructors
     public MetadataStatus() {}
 
-    public MetadataStatus(String pathCategory, String path, Boolean isAvailable, String metaData) {
+    public MetadataStatus(PathCategory pathCategory, String path, Boolean isAvailable, String metaData) {
         this.pathCategory = pathCategory;
         this.path = path;
         this.isAvailable = isAvailable;
@@ -61,11 +63,11 @@ public class MetadataStatus {
         this.id = id;
     }
 
-    public String getPathCategory() {
+    public PathCategory getPathCategory() {
         return pathCategory;
     }
 
-    public void setPathCategory(String pathCategory) {
+    public void setPathCategory(PathCategory pathCategory) {
         this.pathCategory = pathCategory;
     }
 

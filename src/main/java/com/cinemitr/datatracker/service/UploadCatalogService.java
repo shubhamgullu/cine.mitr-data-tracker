@@ -52,7 +52,7 @@ public class UploadCatalogService {
         dto.setSourceLink(upload.getSourceLink() != null ? upload.getSourceLink().getLink() : "");
         dto.setSourceData(upload.getSourceData() != null ? upload.getSourceData().getMetaData() : "");
         dto.setStatus(upload.getStatus());
-        dto.setMediaData(upload.getMedia() != null ? upload.getMedia().getMediaName() + " - " + upload.getMedia().getMediaType() : "");
+        dto.setMediaId(upload.getMedia() != null ? upload.getMedia().getMediaName() + " - " + upload.getMedia().getMediaType() : "");
         return dto;
     }
 
