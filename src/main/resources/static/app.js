@@ -122,6 +122,7 @@ function generateTableRow(type, item, index) {
             cells = `
                 <td class="px-6 py-4 text-sm text-blue-600 truncate max-w-xs"><a href="${item.link}" target="_blank" title="${item.link}">${item.link || ''}</a></td>
                 <td class="px-6 py-4 text-sm text-gray-500">${item.media_type || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${item.media_name || ''}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.status)}">${item.status || ''}</td>
                 <td class="px-6 py-4 text-sm ${getPriorityColor(item.priority)}">${item.priority || ''}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.local_status)}">${item.local_status || ''}</td>
@@ -130,6 +131,7 @@ function generateTableRow(type, item, index) {
         case 'upload':
             cells = `
                 <td class="px-6 py-4 text-sm text-blue-600 truncate max-w-xs"><a href="${item.source_link}" target="_blank" title="${item.source_link}">${item.source_link || ''}</a></td>
+                <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs"title="${item.media_id}">${item.media_id || ''}</td>
                 <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title="${item.source_data}">${item.source_data || ''}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.status)}">${item.status || ''}</td>
                 <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title="${item.media_data}">${item.media_data || ''}</td>
