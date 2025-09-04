@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard v4.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --dark-gradient: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.25);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.85);
+            --text-muted: rgba(255, 255, 255, 0.65);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            color: var(--text-primary);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-light);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            padding: 1.5rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-gradient);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-light);
+        }
+
+        .logo-text h1 {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .logo-text .version {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--secondary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Navigation Styles */
+        .nav-container {
+            margin: 2rem 0;
+        }
+
+        .custom-nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .nav-item-custom {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link-custom:hover::before,
+        .nav-link-custom.active::before {
+            left: 0;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card.media::before {
+            background: var(--primary-gradient);
+        }
+
+        .stat-card.content::before {
+            background: var(--success-gradient);
+        }
+
+        .stat-card.upload::before {
+            background: var(--warning-gradient);
+        }
+
+        .stat-card.states::before {
+            background: var(--secondary-gradient);
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card.media .stat-icon {
+            background: var(--primary-gradient);
+        }
+
+        .stat-card.content .stat-icon {
+            background: var(--success-gradient);
+        }
+
+        .stat-card.upload .stat-icon {
+            background: var(--warning-gradient);
+        }
+
+        .stat-card.states .stat-icon {
+            background: var(--secondary-gradient);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .content-header {
+            background: var(--primary-gradient);
+            padding: 1.5rem 2rem;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .content-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .btn-modern:hover::before {
+            left: 0;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn-primary-modern {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-success-modern {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning-modern {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger-modern {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-container {
+            padding: 2rem;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: transparent;
+        }
+
+        .modern-table thead th {
+            background: var(--dark-gradient);
+            color: var(--text-primary);
+            padding: 1rem;
+            font-weight: 600;
+            text-align: left;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modern-table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .modern-table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .modern-table tbody tr {
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .modern-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.01);
+        }
+
+        .modern-table tbody td {
+            padding: 1rem;
+            border: none;
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+
+        .modern-table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+
+        .modern-table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+        /* Badge Styles */
+        .badge-modern {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border: none;
+        }
+
+        .badge-success-modern {
+            background: var(--success-gradient);
+            color: var(--text-primary);
+        }
+
+        .badge-warning-modern {
+            background: var(--warning-gradient);
+            color: var(--text-primary);
+        }
+
+        .badge-danger-modern {
+            background: var(--danger-gradient);
+            color: var(--text-primary);
+        }
+
+        .badge-secondary-modern {
+            background: var(--dark-gradient);
+            color: var(--text-primary);
+        }
+
+        /* Modal Styles */
+        .modal-content-modern {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .modal-header-modern {
+            background: var(--primary-gradient);
+            color: var(--text-primary);
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem 2rem;
+            border-bottom: none;
+        }
+
+        .modal-body-modern {
+            padding: 2rem;
+        }
+
+        .form-control-modern {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-control-modern:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+            color: var(--text-primary);
+        }
+
+        .form-control-modern::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-label-modern {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .custom-nav {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .nav-item-custom {
+                min-width: auto;
+            }
+
+            .content-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .content-actions {
+                justify-content: center;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container-fluid">
+            <div class="header-content">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="logo-section">
+                        <div class="logo-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>Management Dashboard</h1>
+                            <div class="version">Version 4.0 - Advanced Analytics</div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="user-info">
+                            <span>Welcome, Admin</span>
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <a href="/h2-console" target="_blank" class="btn-modern btn-primary-modern">
+                            <i class="fas fa-database"></i>
+                            H2 Console
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-4">
+        <!-- Navigation -->
+        <div class="nav-container fade-in">
+            <nav class="custom-nav">
+                <div class="nav-item-custom">
+                    <a href="#dashboard" class="nav-link-custom active" data-tab="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item-custom">
+                    <a href="#media" class="nav-link-custom" data-tab="media">
+                        <i class="fas fa-film"></i>
+                        <span>Media</span>
+                    </a>
+                </div>
+                <div class="nav-item-custom">
+                    <a href="#content" class="nav-link-custom" data-tab="content">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Content</span>
+                    </a>
+                </div>
+                <div class="nav-item-custom">
+                    <a href="#upload" class="nav-link-custom" data-tab="upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Upload</span>
+                    </a>
+                </div>
+                <div class="nav-item-custom">
+                    <a href="#states" class="nav-link-custom" data-tab="states">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane active fade-in" id="dashboard">
+                <div class="stats-container">
+                    <div class="row g-4">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card media slide-in">
+                                <div class="stat-icon">
+                                    <i class="fas fa-film"></i>
+                                </div>
+                                <div class="stat-number" th:text="${mediaCount ?: '0'}">156</div>
+                                <div class="stat-label">Total Media</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card content slide-in" style="animation-delay: 0.1s;">
+                                <div class="stat-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="stat-number" th:text="${contentCount ?: '0'}">89</div>
+                                <div class="stat-label">Content Items</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card upload slide-in" style="animation-delay: 0.2s;">
+                                <div class="stat-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="stat-number" th:text="${uploadCount ?: '0'}">234</div>
+                                <div class="stat-label">Uploads</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card states slide-in" style="animation-delay: 0.3s;">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-number" th:text="${statesCount ?: '0'}">67</div>
+                                <div class="stat-label">Analytics Records</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="content-card fade-in" style="animation-delay: 0.4s;">
+                    <div class="content-header">
+                        <h3 class="content-title">
+                            <i class="fas fa-clock"></i>
+                            Recent Activity
+                        </h3>
+                    </div>
+                    <div class="table-container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 style="color: rgba(255,255,255,0.9); margin-bottom: 1rem;">
+                                    <i class="fas fa-film me-2"></i>Latest Media
+                                </h5>
+                                <div class="list-group">
+                                    <div th:each="media, iterStat : ${mediaList}" th:if="${iterStat.index < 3}"
+                                        class="list-group-item"
+                                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 0.5rem; border-radius: 10px;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1" style="color: white;" th:text="${media.mediaName}">
+                                                    Movie Title</h6>
+                                                <small style="color: rgba(255,255,255,0.7);"
+                                                    th:text="${media.mediaType}">Movie</small>
+                                            </div>
+                                            <span th:if="${media.isDownloaded}"
+                                                class="badge-modern badge-success-modern">Downloaded</span>
+                                            <span th:unless="${media.isDownloaded}"
+                                                class="badge-modern badge-warning-modern">Pending</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 style="color: rgba(255,255,255,0.9); margin-bottom: 1rem;">
+                                    <i class="fas fa-chart-bar me-2"></i>Analytics Summary
+                                </h5>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="text-center p-3"
+                                            style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                            <div style="color: #4facfe; font-size: 1.5rem; font-weight: 600;">98.5%
+                                            </div>
+                                            <small style="color: rgba(255,255,255,0.7);">Uptime</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center p-3"
+                                            style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                            <div style="color: #43e97b; font-size: 1.5rem; font-weight: 600;">1.2M</div>
+                                            <small style="color: rgba(255,255,255,0.7);">Total Views</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Tab -->
+            <div class="tab-pane" id="media">
+                <div class="content-card fade-in">
+                    <div class="content-header">
+                        <h3 class="content-title">
+                            <i class="fas fa-film"></i>
+                            Media Management
+                        </h3>
+                        <div class="content-actions">
+                            <button class="btn-modern btn-success-modern" data-bs-toggle="modal"
+                                data-bs-target="#bulkUploadModal" onclick="setBulkUploadType('media')">
+                                <i class="fas fa-upload"></i>
+                                Bulk Upload
+                            </button>
+                            <button class="btn-modern btn-primary-modern" data-bs-toggle="modal"
+                                data-bs-target="#mediaModal">
+                                <i class="fas fa-plus"></i>
+                                Add Media
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-film me-2"></i>Media Name</th>
+                                        <th><i class="fas fa-tag me-2"></i>Type</th>
+                                        <th><i class="fas fa-language me-2"></i>Language</th>
+                                        <th><i class="fas fa-theater-masks me-2"></i>Genre</th>
+                                        <th><i class="fas fa-download me-2"></i>Status</th>
+                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="media : ${mediaList}">
+                                        <td th:text="${media.mediaName}">The Dark Knight</td>
+                                        <td th:text="${media.mediaType}">Movie</td>
+                                        <td th:text="${media.language}">English</td>
+                                        <td th:text="${media.mainGenres}">Action</td>
+                                        <td>
+                                            <span th:if="${media.isDownloaded}"
+                                                class="badge-modern badge-success-modern">
+                                                <i class="fas fa-check me-1"></i>Downloaded
+                                            </span>
+                                            <span th:unless="${media.isDownloaded}"
+                                                class="badge-modern badge-warning-modern">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn-modern btn-primary-modern btn-sm me-1"
+                                                th:onclick="'editMedia(' + ${media.id} + ')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-modern btn-danger-modern btn-sm"
+                                                th:onclick="'deleteMedia(' + ${media.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div class="tab-pane" id="content">
+                <div class="content-card fade-in">
+                    <div class="content-header">
+                        <h3 class="content-title">
+                            <i class="fas fa-folder-open"></i>
+                            Content Management
+                        </h3>
+                        <div class="content-actions">
+                            <button class="btn-modern btn-success-modern" data-bs-toggle="modal"
+                                data-bs-target="#bulkUploadModal" onclick="setBulkUploadType('content')">
+                                <i class="fas fa-upload"></i>
+                                Bulk Upload
+                            </button>
+                            <button class="btn-modern btn-primary-modern" data-bs-toggle="modal"
+                                data-bs-target="#contentModal">
+                                <i class="fas fa-plus"></i>
+                                Add Content
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-link me-2"></i>Link</th>
+                                        <th><i class="fas fa-tag me-2"></i>Type</th>
+                                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                        <th><i class="fas fa-exclamation-triangle me-2"></i>Priority</th>
+                                        <th><i class="fas fa-hdd me-2"></i>Local Status</th>
+                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="content : ${contentList}">
+                                        <td th:text="${#strings.abbreviate(content.link, 40)}">https://example.com/...
+                                        </td>
+                                        <td th:text="${content.mediaType}">Movie</td>
+                                        <td>
+                                            <span
+                                                th:class="'badge-modern ' + (${content.status} == 'downloaded' ? 'badge-success-modern' : 
+                                                           ${content.status} == 'error' ? 'badge-danger-modern' : 'badge-warning-modern')"
+                                                th:text="${content.status}">Downloaded</span>
+                                        </td>
+                                        <td>
+                                            <span
+                                                th:class="'badge-modern ' + (${content.priority} == 'high' ? 'badge-danger-modern' : 
+                                                           ${content.priority} == 'medium' ? 'badge-warning-modern' : 'badge-secondary-modern')"
+                                                th:text="${content.priority}">High</span>
+                                        </td>
+                                        <td>
+                                            <span
+                                                th:class="'badge-modern ' + (${content.localStatus} == 'downloaded' ? 'badge-success-modern' : 
+                                                           ${content.localStatus} == 'error' ? 'badge-danger-modern' : 'badge-secondary-modern')"
+                                                th:text="${content.localStatus}">Downloaded</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn-modern btn-primary-modern btn-sm me-1"
+                                                th:onclick="'editContent(' + ${content.id} + ')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-modern btn-danger-modern btn-sm"
+                                                th:onclick="'deleteContent(' + ${content.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-pane" id="upload">
+                <div class="content-card fade-in">
+                    <div class="content-header">
+                        <h3 class="content-title">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Upload Management
+                        </h3>
+                        <div class="content-actions">
+                            <button class="btn-modern btn-success-modern" data-bs-toggle="modal"
+                                data-bs-target="#bulkUploadModal" onclick="setBulkUploadType('upload')">
+                                <i class="fas fa-upload"></i>
+                                Bulk Upload
+                            </button>
+                            <button class="btn-modern btn-primary-modern" data-bs-toggle="modal"
+                                data-bs-target="#uploadModal">
+                                <i class="fas fa-plus"></i>
+                                Add Upload
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-link me-2"></i>Source Link</th>
+                                        <th><i class="fas fa-database me-2"></i>Source Data</th>
+                                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                        <th><i class="fas fa-file-video me-2"></i>Media Data</th>
+                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="upload : ${uploadList}">
+                                        <td th:text="${#strings.abbreviate(upload.sourceLink, 40)}">
+                                            https://source.com/...</td>
+                                        <td th:text="${#strings.abbreviate(upload.sourceData, 50)}">Movie metadata...
+                                        </td>
+                                        <td>
+                                            <span
+                                                th:class="'badge-modern ' + (${upload.status} == 'completed' ? 'badge-success-modern' : 
+                                                           ${upload.status} == 'uploaded' ? 'badge-primary-modern' : 
+                                                           ${upload.status} == 'blocked' ? 'badge-danger-modern' : 'badge-warning-modern')"
+                                                th:text="${upload.status}">Completed</span>
+                                        </td>
+                                        <td th:text="${#strings.abbreviate(upload.mediaData, 40)}">HD Video, 2.5GB</td>
+                                        <td>
+                                            <button class="btn-modern btn-primary-modern btn-sm me-1"
+                                                th:onclick="'editUpload(' + ${upload.id} + ')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-modern btn-danger-modern btn-sm"
+                                                th:onclick="'deleteUpload(' + ${upload.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- States Tab -->
+            <div class="tab-pane" id="states">
+                <div class="content-card fade-in">
+                    <div class="content-header">
+                        <h3 class="content-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Analytics & States
+                        </h3>
+                        <div class="content-actions">
+                            <button class="btn-modern btn-success-modern" data-bs-toggle="modal"
+                                data-bs-target="#bulkUploadModal" onclick="setBulkUploadType('states')">
+                                <i class="fas fa-upload"></i>
+                                Bulk Upload
+                            </button>
+                            <button class="btn-modern btn-primary-modern" data-bs-toggle="modal"
+                                data-bs-target="#statesModal">
+                                <i class="fas fa-plus"></i>
+                                Add Record
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar me-2"></i>Date</th>
+                                        <th><i class="fas fa-eye me-2"></i>Total Views</th>
+                                        <th><i class="fas fa-users me-2"></i>Subscribers</th>
+                                        <th><i class="fas fa-heart me-2"></i>Interactions</th>
+                                        <th><i class="fas fa-globe me-2"></i>Page</th>
+                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="state : ${statesList}">
+                                        <td th:text="${#temporals.format(state.date, 'yyyy-MM-dd')}">2024-01-15</td>
+                                        <td th:text="${#numbers.formatInteger(state.totalViews, 0, 'COMMA')}">15,420
+                                        </td>
+                                        <td th:text="${#numbers.formatInteger(state.subscribers, 0, 'COMMA')}">1,250
+                                        </td>
+                                        <td th:text="${#numbers.formatInteger(state.interaction, 0, 'COMMA')}">850</td>
+                                        <td th:text="${state.page}">cine.mitr</td>
+                                        <td>
+                                            <button class="btn-modern btn-primary-modern btn-sm me-1"
+                                                th:onclick="'editStates(' + ${state.id} + ')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-modern btn-danger-modern btn-sm"
+                                                th:onclick="'deleteStates(' + ${state.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Media Modal -->
+    <div class="modal fade" id="mediaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-modern">
+                <div class="modal-header modal-header-modern">
+                    <h5 class="modal-title">
+                        <i class="fas fa-film me-2"></i><span id="mediaModalTitle">Add New Media</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <form id="mediaForm">
+                        <input type="hidden" id="mediaId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Media Name</label>
+                            <input type="text" class="form-control form-control-modern" id="mediaName" name="mediaName"
+                                placeholder="Enter media name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Media Type</label>
+                            <select class="form-control form-control-modern" id="mediaType" name="mediaType" required>
+                                <option value="">Select Type</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Web-Series">Web-Series</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Language</label>
+                            <select class="form-control form-control-modern" id="language" name="language" required>
+                                <option value="">Select Language</option>
+                                <option value="English">English</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="French">French</option>
+                                <option value="Hindi">Hindi</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Main Genres</label>
+                            <select class="form-control form-control-modern" id="mainGenres" name="mainGenres" required>
+                                <option value="">Select Genre</option>
+                                <option value="Action">Action</option>
+                                <option value="Comedy">Comedy</option>
+                                <option value="Drama">Drama</option>
+                                <option value="Horror">Horror</option>
+                                <option value="Romance">Romance</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Sub Genres</label>
+                            <input type="text" class="form-control form-control-modern" id="subGenres" name="subGenres"
+                                placeholder="Enter sub genres">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Download Path</label>
+                            <input type="text" class="form-control form-control-modern" id="downloadPath"
+                                name="downloadPath" placeholder="Enter download path">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Available On</label>
+                            <input type="text" class="form-control form-control-modern" id="availableOn"
+                                name="availableOn" placeholder="Netflix, Amazon Prime, etc.">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="isDownloaded" value="true"
+                                    id="isDownloaded">
+                                <label class="form-check-label form-label-modern" for="isDownloaded">
+                                    Is Downloaded
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-modern btn-primary-modern" onclick="submitMediaForm()">
+                        <i class="fas fa-save me-1"></i>Save Media
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Modal -->
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-modern">
+                <div class="modal-header modal-header-modern">
+                    <h5 class="modal-title">
+                        <i class="fas fa-folder-open me-2"></i><span id="contentModalTitle">Add New Content</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <form id="contentForm">
+                        <input type="hidden" id="contentId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Link</label>
+                            <input type="url" class="form-control form-control-modern" id="contentLink" name="link"
+                                placeholder="Enter content link" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Media Type</label>
+                            <select class="form-control form-control-modern" id="contentMediaType" name="mediaType"
+                                required>
+                                <option value="">Select Type</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Web-Series">Web-Series</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Media Name</label>
+                            <input type="text" class="form-control form-control-modern" id="contentMediaName"
+                                name="mediaName" placeholder="Enter media name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Status</label>
+                            <select class="form-control form-control-modern" id="contentStatus" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="downloading">Downloading</option>
+                                <option value="downloaded">Downloaded</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Priority</label>
+                            <select class="form-control form-control-modern" id="contentPriority" name="priority"
+                                required>
+                                <option value="">Select Priority</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Local Status</label>
+                            <select class="form-control form-control-modern" id="contentLocalStatus" name="localStatus">
+                                <option value="">Select Local Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="downloaded">Downloaded</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Local File Path</label>
+                            <input type="text" class="form-control form-control-modern" id="contentLocalFilePath"
+                                name="localFilePath" placeholder="Enter local file path">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-modern btn-primary-modern" onclick="submitContentForm()">
+                        <i class="fas fa-save me-1"></i>Save Content
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-modern">
+                <div class="modal-header modal-header-modern">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cloud-upload-alt me-2"></i><span id="uploadModalTitle">Add New Upload</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <form id="uploadForm">
+                        <input type="hidden" id="uploadId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Source Link</label>
+                            <input type="url" class="form-control form-control-modern" id="uploadSourceLink"
+                                name="sourceLink" placeholder="Enter source link" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Source Data</label>
+                            <textarea class="form-control form-control-modern" id="uploadSourceData" name="sourceData"
+                                rows="3" placeholder="Enter source data"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Status</label>
+                            <select class="form-control form-control-modern" id="uploadStatus" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="uploading">Uploading</option>
+                                <option value="uploaded">Uploaded</option>
+                                <option value="completed">Completed</option>
+                                <option value="blocked">Blocked</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Media Data</label>
+                            <textarea class="form-control form-control-modern" id="uploadMediaData" name="mediaData"
+                                rows="3" placeholder="Enter media data"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-modern btn-primary-modern" onclick="submitUploadForm()">
+                        <i class="fas fa-save me-1"></i>Save Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- States Modal -->
+    <div class="modal fade" id="statesModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-modern">
+                <div class="modal-header modal-header-modern">
+                    <h5 class="modal-title">
+                        <i class="fas fa-chart-bar me-2"></i><span id="statesModalTitle">Add New Analytics Record</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <form id="statesForm">
+                        <input type="hidden" id="statesId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Date</label>
+                            <input type="date" class="form-control form-control-modern" id="statesDate" name="date"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Total Views</label>
+                            <input type="number" class="form-control form-control-modern" id="statesTotalViews"
+                                name="totalViews" placeholder="Enter total views" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Subscribers</label>
+                            <input type="number" class="form-control form-control-modern" id="statesSubscribers"
+                                name="subscribers" placeholder="Enter subscribers count" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Interactions</label>
+                            <input type="number" class="form-control form-control-modern" id="statesInteraction"
+                                name="interaction" placeholder="Enter interactions count" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Content</label>
+                            <input type="text" class="form-control form-control-modern" id="statesContent"
+                                name="content" placeholder="Enter content description">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label form-label-modern">Page</label>
+                            <input type="text" class="form-control form-control-modern" id="statesPage" name="page"
+                                placeholder="Enter page name" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-modern btn-primary-modern" onclick="submitStatesForm()">
+                        <i class="fas fa-save me-1"></i>Save Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div class="modal fade" id="bulkUploadModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-content-modern">
+                <div class="modal-header modal-header-modern">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>Bulk Upload Data
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <div class="mb-4">
+                        <div class="border-2 border-dashed rounded p-4 text-center"
+                            style="border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05);">
+                            <div class="mb-3">
+                                <i class="fas fa-cloud-upload-alt"
+                                    style="font-size: 3rem; color: rgba(255,255,255,0.6);"></i>
+                            </div>
+                            <div class="mb-3">
+                                <label for="bulkFile" class="btn-modern btn-primary-modern">
+                                    <i class="fas fa-file-upload me-1"></i>Choose File
+                                </label>
+                                <input type="file" id="bulkFile" class="d-none" accept=".csv,.xlsx,.xls">
+                            </div>
+                            <p class="text-muted mb-0" style="color: rgba(255,255,255,0.7);">CSV, Excel files up to 10MB
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="fileInfo" class="alert d-none"
+                        style="background: rgba(67, 233, 123, 0.2); border: 1px solid rgba(67, 233, 123, 0.3); color: white; border-radius: 12px;">
+                        <strong><i class="fas fa-file me-1"></i>Selected File:</strong> <span id="fileName"></span>
+                    </div>
+
+                    <div id="uploadProgress" class="mb-3 d-none">
+                        <div class="progress"
+                            style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: 0%; background: var(--success-gradient);"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 style="color: rgba(255,255,255,0.9);">
+                                <i class="fas fa-info-circle me-1"></i>Expected CSV Format:
+                            </h6>
+                            <button type="button" class="btn-modern btn-warning-modern btn-sm"
+                                onclick="downloadTemplate()">
+                                <i class="fas fa-download me-1"></i>Download Template
+                            </button>
+                        </div>
+                        <div class="p-3 rounded"
+                            style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                            <small class="text-muted" id="csvFormat"
+                                style="color: rgba(255,255,255,0.7); font-family: 'Courier New', monospace;">
+                                Format will be shown based on selected tab
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 2rem;">
+                    <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-modern btn-success-modern" id="processBulkBtn"
+                        onclick="processBulkUpload()" disabled>
+                        <i class="fas fa-cog me-1"></i>Process Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Enhanced Dashboard JavaScript for Version 4.0
+        class DashboardV4 {
+            constructor() {
+                this.currentBulkType = '';
+                this.currentTab = 'dashboard';
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateCsvFormat();
+                this.initTabSwitching();
+                this.animateCounters();
+            }
+
+            bindEvents() {
+                // File input change
+                document.getElementById('bulkFile').addEventListener('change', (e) => {
+                    this.handleFileSelect(e);
+                });
+
+                // Navigation clicks
+                document.querySelectorAll('.nav-link-custom').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const tab = e.currentTarget.dataset.tab;
+                        this.switchTab(tab);
+                    });
+                });
+            }
+
+            initTabSwitching() {
+                // Set initial active tab
+                this.switchTab('dashboard');
+            }
+
+            switchTab(tabName) {
+                // Update navigation
+                document.querySelectorAll('.nav-link-custom').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                document.getElementById(tabName).classList.add('active');
+
+                this.currentTab = tabName;
+                this.updateCsvFormat();
+            }
+
+            animateCounters() {
+                const counters = document.querySelectorAll('.stat-number');
+                counters.forEach(counter => {
+                    const target = parseInt(counter.textContent);
+                    let current = 0;
+                    const increment = target / 50;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            counter.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            counter.textContent = Math.floor(current);
+                        }
+                    }, 30);
+                });
+            }
+
+            handleFileSelect(event) {
+                const file = event.target.files[0];
+                const fileInfo = document.getElementById('fileInfo');
+                const fileName = document.getElementById('fileName');
+                const processBtn = document.getElementById('processBulkBtn');
+
+                if (file) {
+                    fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileInfo.classList.remove('d-none');
+                    processBtn.disabled = false;
+                } else {
+                    fileInfo.classList.add('d-none');
+                    processBtn.disabled = true;
+                }
+            }
+
+            updateCsvFormat() {
+                const csvFormat = document.getElementById('csvFormat');
+                const formats = {
+                    media: 'media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on',
+                    content: 'link,media_type,media_name,status,priority,local_status,local_file_path',
+                    upload: 'source_link,source_data,status,media_data',
+                    states: 'date,total_views,subscribers,interaction,content,page'
+                };
+
+                if (this.currentBulkType && formats[this.currentBulkType]) {
+                    csvFormat.textContent = formats[this.currentBulkType];
+                }
+            }
+
+            async submitMediaForm() {
+                const form = document.getElementById('mediaForm');
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                const mediaData = {
+                    mediaName: formData.get('mediaName'),
+                    mediaType: formData.get('mediaType'),
+                    language: formData.get('language'),
+                    mainGenres: formData.get('mainGenres'),
+                    subGenres: formData.get('subGenres'),
+                    isDownloaded: formData.get('isDownloaded') === 'true',
+                    downloadPath: formData.get('downloadPath'),
+                    availableOn: formData.get('availableOn')
+                };
+
+                try {
+                    const url = id ? `/api/media/${id}` : '/api/media';
+                    const method = id ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(mediaData)
+                    });
+
+                    if (response.ok) {
+                        this.showAlert(`Media ${id ? 'updated' : 'saved'} successfully!`, 'success');
+                        this.closeModal('mediaModal');
+                        this.resetForm('mediaForm');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error saving media', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            async submitContentForm() {
+                const form = document.getElementById('contentForm');
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                const contentData = {
+                    link: formData.get('link'),
+                    mediaType: formData.get('mediaType'),
+                    mediaName: formData.get('mediaName'),
+                    status: formData.get('status'),
+                    priority: formData.get('priority'),
+                    localStatus: formData.get('localStatus'),
+                    localFilePath: formData.get('localFilePath')
+                };
+
+                try {
+                    const url = id ? `/api/content/${id}` : '/api/content';
+                    const method = id ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(contentData)
+                    });
+
+                    if (response.ok) {
+                        this.showAlert(`Content ${id ? 'updated' : 'saved'} successfully!`, 'success');
+                        this.closeModal('contentModal');
+                        this.resetForm('contentForm');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error saving content', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            async submitUploadForm() {
+                const form = document.getElementById('uploadForm');
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                const uploadData = {
+                    sourceLink: formData.get('sourceLink'),
+                    sourceData: formData.get('sourceData'),
+                    status: formData.get('status'),
+                    mediaData: formData.get('mediaData')
+                };
+
+                try {
+                    const url = id ? `/api/upload/${id}` : '/api/upload';
+                    const method = id ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(uploadData)
+                    });
+
+                    if (response.ok) {
+                        this.showAlert(`Upload ${id ? 'updated' : 'saved'} successfully!`, 'success');
+                        this.closeModal('uploadModal');
+                        this.resetForm('uploadForm');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error saving upload', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            async submitStatesForm() {
+                const form = document.getElementById('statesForm');
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                const statesData = {
+                    date: formData.get('date'),
+                    totalViews: parseInt(formData.get('totalViews')),
+                    subscribers: parseInt(formData.get('subscribers')),
+                    interaction: parseInt(formData.get('interaction')),
+                    content: formData.get('content'),
+                    page: formData.get('page')
+                };
+
+                try {
+                    const url = id ? `/api/states/${id}` : '/api/states';
+                    const method = id ? 'PUT' : 'POST';
+
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(statesData)
+                    });
+
+                    if (response.ok) {
+                        this.showAlert(`Analytics record ${id ? 'updated' : 'saved'} successfully!`, 'success');
+                        this.closeModal('statesModal');
+                        this.resetForm('statesForm');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error saving analytics record', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            // Edit functions
+            editMedia(id) {
+                // In a real app, you'd fetch the data from the server
+                // For demo purposes, we'll just open the modal
+                document.getElementById('mediaModalTitle').textContent = 'Edit Media';
+                document.getElementById('mediaId').value = id;
+
+                // You would populate the form with existing data here
+                // Example: this.populateMediaForm(mediaData);
+
+                const modal = new bootstrap.Modal(document.getElementById('mediaModal'));
+                modal.show();
+            }
+
+            editContent(id) {
+                document.getElementById('contentModalTitle').textContent = 'Edit Content';
+                document.getElementById('contentId').value = id;
+
+                const modal = new bootstrap.Modal(document.getElementById('contentModal'));
+                modal.show();
+            }
+
+            editUpload(id) {
+                document.getElementById('uploadModalTitle').textContent = 'Edit Upload';
+                document.getElementById('uploadId').value = id;
+
+                const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                modal.show();
+            }
+
+            editStates(id) {
+                document.getElementById('statesModalTitle').textContent = 'Edit Analytics Record';
+                document.getElementById('statesId').value = id;
+
+                const modal = new bootstrap.Modal(document.getElementById('statesModal'));
+                modal.show();
+            }
+
+            // Delete functions
+            async deleteContent(id) {
+                if (!confirm('Are you sure you want to delete this content?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/content/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        this.showAlert('Content deleted successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error deleting content', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            async deleteUpload(id) {
+                if (!confirm('Are you sure you want to delete this upload?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/upload/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        this.showAlert('Upload deleted successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error deleting upload', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            async deleteStates(id) {
+                if (!confirm('Are you sure you want to delete this analytics record?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/states/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        this.showAlert('Analytics record deleted successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error deleting analytics record', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            resetForm(formId) {
+                const form = document.getElementById(formId);
+                form.reset();
+
+                // Reset modal titles
+                if (formId === 'mediaForm') {
+                    document.getElementById('mediaModalTitle').textContent = 'Add New Media';
+                    document.getElementById('mediaId').value = '';
+                } else if (formId === 'contentForm') {
+                    document.getElementById('contentModalTitle').textContent = 'Add New Content';
+                    document.getElementById('contentId').value = '';
+                } else if (formId === 'uploadForm') {
+                    document.getElementById('uploadModalTitle').textContent = 'Add New Upload';
+                    document.getElementById('uploadId').value = '';
+                } else if (formId === 'statesForm') {
+                    document.getElementById('statesModalTitle').textContent = 'Add New Analytics Record';
+                    document.getElementById('statesId').value = '';
+                }
+            }
+
+            async processBulkUpload() {
+                const fileInput = document.getElementById('bulkFile');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    this.showAlert('Please select a file', 'warning');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const progressDiv = document.getElementById('uploadProgress');
+                const progressBar = progressDiv.querySelector('.progress-bar');
+                const processBtn = document.getElementById('processBulkBtn');
+
+                try {
+                    progressDiv.classList.remove('d-none');
+                    processBtn.disabled = true;
+                    processBtn.innerHTML = '<div class="loading-spinner me-2"></div>Processing...';
+
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 20;
+                        if (progress > 90) progress = 90;
+                        progressBar.style.width = progress + '%';
+                    }, 200);
+
+                    const response = await fetch(`/api/${this.currentBulkType}/bulk-upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.showAlert(result.message, 'success');
+                        this.closeModal('bulkUploadModal');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert(result.message, 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Upload failed: ' + error.message, 'danger');
+                } finally {
+                    progressDiv.classList.add('d-none');
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<i class="fas fa-cog me-1"></i>Process Upload';
+                    progressBar.style.width = '0%';
+                }
+            }
+
+            async downloadTemplate() {
+                try {
+                    const response = await fetch(`/api/${this.currentBulkType}/template`);
+                    const blob = await response.blob();
+
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.currentBulkType}_template.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    this.showAlert('Error downloading template', 'danger');
+                }
+            }
+
+            async deleteMedia(id) {
+                if (!confirm('Are you sure you want to delete this media?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/media/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        this.showAlert('Media deleted successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.showAlert('Error deleting media', 'danger');
+                    }
+                } catch (error) {
+                    this.showAlert('Network error', 'danger');
+                }
+            }
+
+            showAlert(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+                alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; border-radius: 12px; backdrop-filter: blur(20px);';
+
+                const bgColors = {
+                    success: 'rgba(67, 233, 123, 0.9)',
+                    danger: 'rgba(250, 112, 154, 0.9)',
+                    warning: 'rgba(255, 193, 7, 0.9)',
+                    info: 'rgba(79, 172, 254, 0.9)'
+                };
+
+                alertDiv.style.background = bgColors[type] || bgColors.info;
+                alertDiv.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                `;
+
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+
+            closeModal(modalId) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dashboardV4 = new DashboardV4();
+        });
+
+        // Global functions for Thymeleaf onclick handlers
+        function setBulkUploadType(type) {
+            window.dashboardV4.currentBulkType = type;
+            window.dashboardV4.updateCsvFormat();
+        }
+
+        function submitMediaForm() {
+            window.dashboardV4.submitMediaForm();
+        }
+
+        function submitContentForm() {
+            window.dashboardV4.submitContentForm();
+        }
+
+        function submitUploadForm() {
+            window.dashboardV4.submitUploadForm();
+        }
+
+        function submitStatesForm() {
+            window.dashboardV4.submitStatesForm();
+        }
+
+        function processBulkUpload() {
+            window.dashboardV4.processBulkUpload();
+        }
+
+        function downloadTemplate() {
+            window.dashboardV4.downloadTemplate();
+        }
+
+        function deleteMedia(id) {
+            window.dashboardV4.deleteMedia(id);
+        }
+
+        function editMedia(id) {
+            window.dashboardV4.editMedia(id);
+        }
+
+        function deleteContent(id) {
+            window.dashboardV4.deleteContent(id);
+        }
+
+        function editContent(id) {
+            window.dashboardV4.editContent(id);
+        }
+
+        function deleteUpload(id) {
+            window.dashboardV4.deleteUpload(id);
+        }
+
+        function editUpload(id) {
+            window.dashboardV4.editUpload(id);
+        }
+
+        function deleteStates(id) {
+            window.dashboardV4.deleteStates(id);
+        }
+
+        function editStates(id) {
+            window.dashboardV4.editStates(id);
+        }
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'978871d79737a804',t:'MTc1Njc2ODI2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>

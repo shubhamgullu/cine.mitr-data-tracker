@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMitr Data Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold text-gray-900">CineMitr Data Tracker</h1>
+            <div class="text-sm text-gray-600">Spring Boot + H2 Database Backend</div>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="flex space-x-8">
+                <button onclick="switchTab('media')"
+                    class="tab-btn py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium"
+                    data-tab="media">Media</button>
+                <button onclick="switchTab('content')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="content">Content</button>
+                <button onclick="switchTab('upload')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="upload">Upload</button>
+                <button onclick="switchTab('states')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="states">States</button>
+                <button onclick="switchTab('dashboard')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="dashboard">Dashboard</button>
+            </nav>
+        </div>
+
+        <!-- Media Tab -->
+        <div id="media" class="tab-content active">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Media Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="refreshData('media')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
+                    <button onclick="triggerBulkUpload('media')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('media')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Media</button>
+                </div>
+            </div>
+            
+            <!-- Search Container for Media -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div class="md:col-span-3">
+                            <input type="text" 
+                                   id="mediaSearch" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   placeholder="Search media by name, genre, or any field..." 
+                                   onkeyup="filterMediaTable()">
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="mediaTypeFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterMediaTable()">
+                                <option value="">All Types</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Web-Series">Web-Series</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="mediaLanguageFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterMediaTable()">
+                                <option value="">All Languages</option>
+                                <option value="English">English</option>
+                                <option value="Hindi">Hindi</option>
+                                <option value="Spanish">Spanish</option>
+                                <option value="French">French</option>
+                                <option value="German">German</option>
+                                <option value="Japanese">Japanese</option>
+                                <option value="Korean">Korean</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <button onclick="clearMediaFilters()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span id="mediaSearchResults" class="text-sm text-gray-600"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Main Genre</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downloaded</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="media-table" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be loaded via API -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Content Tab -->
+        <div id="content" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Content Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="refreshData('content')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
+                    <button onclick="triggerBulkUpload('content')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('content')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Content</button>
+                </div>
+            </div>
+            
+            <!-- Search Container for Content -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                        <div class="md:col-span-2">
+                            <input type="text" 
+                                   id="contentSearch" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   placeholder="Search content by link, media name, or any field..." 
+                                   onkeyup="filterContentTable()">
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="contentTypeFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterContentTable()">
+                                <option value="">All Types</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Web-Series">Web-Series</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="contentStatusFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterContentTable()">
+                                <option value="">All Status</option>
+                                <option value="new">New</option>
+                                <option value="downloaded">Downloaded</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="contentPriorityFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterContentTable()">
+                                <option value="">All Priority</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="contentLocalStatusFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterContentTable()">
+                                <option value="">All Local Status</option>
+                                <option value="available">Available</option>
+                                <option value="not-available">Not Available</option>
+                                <option value="local">Local</option>
+                                <option value="processing">Processing</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <button onclick="clearContentFilters()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span id="contentSearchResults" class="text-sm text-gray-600"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Local Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="content-table" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be loaded via API -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Upload Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="refreshData('upload')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
+                    <button onclick="triggerBulkUpload('upload')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('upload')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        Upload</button>
+                </div>
+            </div>
+            
+            <!-- Search Container for Upload -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div class="md:col-span-2">
+                            <input type="text" 
+                                   id="uploadSearch" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   placeholder="Search uploads by source link, media name, or any field..." 
+                                   onkeyup="filterUploadTable()">
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="uploadStatusFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterUploadTable()">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="new-content">New Content</option>
+                                <option value="completed">Completed</option>
+                                <option value="downloaded">Downloaded</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="blocked">Blocked</option>
+                                <option value="ready-to-upload">Ready to Upload</option>
+                                <option value="uploaded">Uploaded</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="uploadMediaTypeFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterUploadTable()">
+                                <option value="">All Media Types</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Web-Series">Web-Series</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="uploadMediaFormatFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterUploadTable()">
+                                <option value="">All Formats</option>
+                                <option value="HD Video">HD Video</option>
+                                <option value="4K Video">4K Video</option>
+                                <option value="Full HD">Full HD</option>
+                                <option value="Web-DL">Web-DL</option>
+                                <option value="BluRay">BluRay</option>
+                                <option value="TV-Rip">TV-Rip</option>
+                                <option value="Web-Rip">Web-Rip</option>
+                                <option value="Documentary">Documentary</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <button onclick="clearUploadFilters()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span id="uploadSearchResults" class="text-sm text-gray-600"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Link</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="upload-table" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be loaded via API -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- States Tab -->
+        <div id="states" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">States Management</h2>
+                <div class="flex space-x-3">
+                    <button onclick="refreshData('states')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
+                    <button onclick="triggerBulkUpload('states')"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">Bulk
+                        Upload</button>
+                    <button onclick="openModal('states')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">Add
+                        State</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Views</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subscribers</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interaction</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Page</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="states-table" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be loaded via API -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Dashboard Overview</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Media</h3>
+                    <p class="text-3xl font-bold text-blue-600" id="media-count">Loading...</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Content</h3>
+                    <p class="text-3xl font-bold text-green-600" id="content-count">Loading...</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total Uploads</h3>
+                    <p class="text-3xl font-bold text-purple-600" id="upload-count">Loading...</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Total States</h3>
+                    <p class="text-3xl font-bold text-orange-600" id="states-count">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div id="media-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="media-modal-title">Add Media</h3>
+            <form id="media-form" onsubmit="submitForm(event, 'media')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name</label>
+                    <input type="text" name="media_name" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <select name="media_type" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                    <select name="language" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Language</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Chinese">Chinese</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Main Genres</label>
+                    <select name="main_genres" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Main Genre</option>
+                        <option value="Action">Action</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Horror">Horror</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Thriller">Thriller</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Crime">Crime</option>
+                        <option value="Adventure">Adventure</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sub Genres</label>
+                    <input type="text" name="sub_genres" placeholder="e.g., Superhero, Psychological"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Is Downloaded</label>
+                    <select name="is_downloaded" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Status</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Download Path</label>
+                    <input type="text" name="download_path" placeholder="e.g., /media/movies/dark_knight.mp4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Available On</label>
+                    <input type="text" name="available_on" placeholder="e.g., Netflix, Amazon Prime"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('media')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Content Modal -->
+    <div id="content-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="content-modal-title">Add Content</h3>
+            <form id="content-form" onsubmit="submitForm(event, 'content')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Link</label>
+                    <input type="url" name="link" required placeholder="https://example.com/video"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <select name="media_type" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name(s)</label>
+                    <input type="text" name="media_name" required placeholder="Enter media names (comma-separated: Movie A, Movie B, Movie C)"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Tip: You can enter multiple media names separated by commas</div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Status</option>
+                        <option value="new">New</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                    <select name="priority" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Priority</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Local Status</label>
+                    <select name="local_status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Local Status</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="error">Error</option>
+                        <option value="na">N/A</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Local File Path</label>
+                    <input type="text" name="local_file_path" placeholder="/path/to/local/file"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('content')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="upload-modal-title">Add Upload</h3>
+            <form id="upload-form" onsubmit="submitForm(event, 'upload')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Link</label>
+                    <input type="url" name="source_link" placeholder="https://source.com/content"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Optional: If provided, will check for existing content mapping. Leave empty for new upload without content link.</div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Data</label>
+                    <textarea name="source_data" 
+                        placeholder="Source metadata for the content and all details with location" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <div class="text-xs text-gray-500 mt-1">Optional: Leave empty if no specific metadata available</div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <select name="media_type"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type (Optional)</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name(s)</label>
+                    <input type="text" name="media_name" placeholder="Enter media names (comma-separated: Movie A, Movie B, Movie C)"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Optional: You can enter multiple media names separated by commas</div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="pending" selected>Pending (Default)</option>
+                        <option value="new-content">New Content</option>
+                        <option value="completed">Completed</option>
+                        <option value="downloaded">Downloaded</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="ready-to-upload">Ready to Upload</option>
+                        <option value="uploaded">Uploaded</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Format</label>
+                    <select name="media_data"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="" selected>No Format Selected (Optional)</option>
+                        <option value="HD Video, 1080p, MP4">HD Video, 1080p, MP4</option>
+                        <option value="4K Video, 2160p, MP4">4K Video, 2160p, MP4</option>
+                        <option value="HD Video, 720p, MP4">HD Video, 720p, MP4</option>
+                        <option value="Full HD Video, 1080p, MKV">Full HD Video, 1080p, MKV</option>
+                        <option value="4K Video, 2160p, MKV">4K Video, 2160p, MKV</option>
+                        <option value="SD Video, 480p, MP4">SD Video, 480p, MP4</option>
+                        <option value="Web-DL, 1080p, MP4">Web-DL, 1080p, MP4</option>
+                        <option value="BluRay, 1080p, MKV">BluRay, 1080p, MKV</option>
+                        <option value="BluRay, 4K, 2160p, MKV">BluRay, 4K, 2160p, MKV</option>
+                        <option value="TV-Rip, 720p, MP4">TV-Rip, 720p, MP4</option>
+                        <option value="Web-Rip, 1080p, MP4">Web-Rip, 1080p, MP4</option>
+                        <option value="Documentary, HD, 1080p, MP4">Documentary, HD, 1080p, MP4</option>
+                    </select>
+                    <div class="text-xs text-gray-500 mt-1">Optional: Leave as "No Format Selected" if media format is unknown or not applicable.</div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Metadata
+                        <span class="text-xs text-gray-500">(Max 9000 characters)</span>
+                    </label>
+                    <textarea name="metadata" maxlength="9000" 
+                        placeholder="Enter detailed metadata information (cast, crew, synopsis, technical details, etc.)" 
+                        rows="6"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"></textarea>
+                    <div class="flex justify-between items-center mt-1">
+                        <div class="text-xs text-gray-500">Optional: Detailed information about the media content</div>
+                        <div class="text-xs text-gray-400" id="metadata-counter">0/9000</div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('upload')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- States Modal -->
+    <div id="states-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="states-modal-title">Add State</h3>
+            <form id="states-form" onsubmit="submitForm(event, 'states')">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input type="date" name="date" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Total Views</label>
+                    <input type="number" name="total_views" required placeholder="15420"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subscribers</label>
+                    <input type="number" name="subscribers" required placeholder="1250"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Interaction</label>
+                    <input type="number" name="interaction" required placeholder="850"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                    <input type="text" name="content" required placeholder="Content identifier or description"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Page</label>
+                    <select name="page" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Page</option>
+                        <option value="cine.mitr">cine.mitr</option>
+                        <option value="cine.mitr.music">cine.mitr.music</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('states')"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal -->
+    <div id="bulk-upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+            <h3 class="text-lg font-semibold mb-4" id="bulk-upload-title">Bulk Upload</h3>
+            <div class="mb-6">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none"
+                        viewBox="0 0 48 48">
+                        <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="mb-4">
+                        <label for="bulk-file-input" class="cursor-pointer">
+                            <span class="text-blue-600 hover:text-blue-500 font-medium">Click to upload</span>
+                            <span class="text-gray-500"> or drag and drop</span>
+                        </label>
+                        <input id="bulk-file-input" type="file" accept=".csv,.xlsx,.xls" class="hidden"
+                            onchange="handleFileSelect(event)">
+                    </div>
+                    <p class="text-sm text-gray-500">CSV, Excel files up to 10MB</p>
+                </div>
+            </div>
+
+            <div id="file-info" class="hidden mb-4 p-3 bg-blue-50 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span id="file-name" class="text-sm text-blue-700 font-medium"></span>
+                    <span id="file-size" class="text-sm text-blue-600 ml-2"></span>
+                </div>
+            </div>
+
+            <div id="upload-progress" class="hidden mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Processing...</span>
+                    <span id="progress-text">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-sm font-medium text-gray-700">Expected CSV Format:</h4>
+                    <button onclick="downloadTemplate()"
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        Download Template
+                    </button>
+                </div>
+                <div class="bg-gray-50 p-3 rounded text-xs text-gray-600 font-mono" id="csv-format">
+                    <!-- Format will be populated based on selected tab -->
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeBulkUpload()"
+                    class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                <button id="process-btn" onclick="processBulkUpload()" disabled
+                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed">Process
+                    Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
