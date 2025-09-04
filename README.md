@@ -1,16 +1,19 @@
 # CineMitr Data Tracker
 
-A Spring Boot application with persistent H2 database backend and modern web UI for managing media content, tracking uploads, and monitoring statistics.
+A comprehensive Spring Boot application with persistent H2 database backend and modern web UI for managing media content, tracking uploads, and monitoring statistics. Features advanced search functionality, multiple media support, automatic content-upload synchronization, and modern responsive design.
 
-## Features
+## ✨ Key Features
 
-- **Media Management**: Track movies, web series, and documentaries with metadata
-- **Content Catalog**: Manage download links, priorities, and status tracking
-- **Upload Management**: Monitor upload processes and status
-- **Statistics Dashboard**: View analytics for views, subscribers, and interactions
-- **Real-time Dashboard**: Live counts and overview of all data
-- **Persistent Data Storage**: File-based H2 database that retains data across server restarts
-- **Unique Media Constraints**: Prevents duplicate media entries based on name and type combination
+- **Advanced Media Management**: Track movies, web series, and documentaries with comprehensive metadata
+- **Smart Content Catalog**: Manage download links, priorities, and status tracking with auto-sync
+- **Intelligent Upload Management**: Monitor upload processes with automatic content mapping
+- **Real-time Statistics Dashboard**: View analytics for views, subscribers, and interactions
+- **🔍 Advanced Search & Filtering**: Powerful search across all management tables with multi-filter support
+- **🔗 Multi-Media Support**: Handle multiple comma-separated media names in single entries
+- **🔄 Bi-directional Sync**: Automatic content-to-upload synchronization with "New Content" status
+- **📱 Modern Responsive UI**: Mobile-first design with Tailwind CSS and intuitive user experience
+- **💾 Persistent Data Storage**: File-based H2 database that retains data across server restarts
+- **🛡️ Data Integrity**: Unique media constraints and comprehensive validation system
 
 ## Technology Stack
 
@@ -107,23 +110,79 @@ The application uses 5 main tables with enhanced relationships:
 - Analytics and statistics data
 - Daily metrics with page-wise tracking
 
-## Recent Updates & Features
+## 🚀 Latest Features & Updates
 
-### 🔄 **Data Persistence**
+### 🔍 **Advanced Search & Filtering System**
+- **Multi-Table Search**: Comprehensive search functionality across Media, Content, and Upload management tables
+- **Real-time Filtering**: Live search with 300ms debounce for optimal performance
+- **Smart Column Mapping**: Intelligent search across all relevant table columns
+- **Combined Filters**: Multiple dropdown filters work together with text search
+- **Results Counter**: Dynamic display showing "X of Y results" with filter status
+- **No Results State**: Beautiful empty state with clear filter options
+
+#### **Media Management Search**:
+- **Text Search**: Media name, type, language, genre, availability
+- **Type Filter**: Movie, Web-Series, Documentary
+- **Language Filter**: English, Hindi, Spanish, French, German, Japanese, Korean
+- **Advanced Features**: Searches across all visible columns simultaneously
+
+#### **Content Management Search**:
+- **Text Search**: Link, media type, media name, status, priority, local status
+- **Type Filter**: Movie, Web-Series, Documentary  
+- **Status Filter**: Pending, Downloading, Downloaded, Completed, Error
+- **Priority Filter**: Low, Medium, High, Urgent
+- **Local Status Filter**: Available, Not Available, Local, Processing
+- **Complete Coverage**: All 6 table columns fully searchable and filterable
+
+#### **Upload Management Search**:
+- **Text Search**: Source link, media name, source data, status, media format
+- **Status Filter**: Pending, New Content, Completed, Downloaded, In Progress, Blocked, Ready to Upload, Uploaded
+- **Media Type Filter**: Movie, Web-Series, Documentary (smart detection across multiple columns)
+- **Format Filter**: HD Video, 4K Video, Full HD, Web-DL, BluRay, TV-Rip, Web-Rip
+- **Intelligent Matching**: Media type detection across both media name and source data columns
+
+### 🔗 **Multi-Media Support System**
+- **Comma-Separated Entries**: Handle multiple media names in single form entry (e.g., "Movie A, Movie B, Movie C")
+- **Automatic Media Creation**: Creates new media entries with default values for non-existing names
+- **Duplicate Prevention**: Smart deduplication using synchronized blocks and unique constraints
+- **Many-to-Many Relationships**: Enhanced entity relationships supporting multiple media per content/upload
+- **Order Preservation**: Maintains input order using LinkedHashSet
+
+### 🔄 **Bi-directional Synchronization**
+- **Content-to-Upload Auto-Sync**: Adding content automatically creates corresponding upload entry
+- **"New Content" Status**: Auto-generated uploads receive special "New Content" status
+- **Intelligent Linking**: Automatic mapping between content links and upload source links
+- **Cross-Service Communication**: Seamless data flow between ContentCatalogService and UploadCatalogService
+- **Metadata Propagation**: Automatic transfer of media information and metadata
+
+### 📝 **Enhanced Form Handling**
+- **Optional Fields**: All form fields support empty values without forced defaults
+- **Character Limits**: 9000-character metadata field with real-time character counter
+- **Smart Validation**: Form validation that doesn't block empty optional fields
+- **Dropdown Enhancements**: Pre-selected default values for better user experience
+- **Error Resilience**: Graceful handling of empty inputs across all forms
+
+### 🔄 **Data Persistence & Integrity**
 - **File-based H2 Database**: Data persists across server restarts
 - **Database Location**: `./data/cinemitr-db.mv.db`
 - **Schema Management**: Uses `update` strategy to preserve existing data
 - **Automatic Timestamps**: All entities support automatic created_at/updated_at
+- **Enhanced Relationships**: Proper Many-to-Many mappings with junction tables
 
-### 🔒 **Data Integrity**
-- **Unique Media Constraint**: Prevents duplicate media with same name and type
+### 🔒 **Advanced Data Integrity**
+- **Unique Media Constraint**: Prevents duplicate media with same name and type combination
 - **PathCategory Enum**: Enforces valid path categories in MetadataStatus
 - **Enhanced Validation**: Service-layer validation with descriptive error messages
+- **Thread-Safe Operations**: Synchronized media creation prevents race conditions
+- **Constraint Violation Handling**: Graceful error recovery with user-friendly messages
 
-### 🔗 **Improved Relationships**
-- **Metadata Integration**: MediaCatalog properly manages MetadataStatus relationships
-- **ID-based Updates**: Handles existing metadata updates via ID mapping
-- **Cascading Operations**: Proper foreign key relationships with cascading
+### 🎨 **Modern UI/UX Enhancements**
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Search Containers**: Modern gray-themed search panels with proper spacing
+- **Interactive Elements**: Hover states, focus rings, and smooth transitions
+- **Loading States**: Professional loading indicators and empty states
+- **Character Counters**: Real-time feedback with color-coded warnings
+- **Grid Layouts**: Responsive grid systems adapting to different screen sizes
 
 ## API Endpoints
 

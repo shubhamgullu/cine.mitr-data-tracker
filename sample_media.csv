@@ -2,3 +2,5 @@ media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_pat
 "The Matrix","Movie","English","Action","Sci-Fi, Cyberpunk","Yes","/media/movies/matrix.mp4","Netflix, Prime Video"
 "Stranger Things","Web-Series","English","Drama","Thriller, Supernatural","No","","Netflix"
 "Free Solo","Documentary","English","Documentary","Adventure, Sports","Yes","/media/docs/free_solo.mp4","Disney+, Hulu"
+"Avatar: The Last Airbender","Web-Series","English","Adventure","Fantasy, Animation","No","","Netflix"
+"Planet Earth","Documentary","English","Documentary","Nature, Wildlife","Yes","/media/docs/planet_earth.mp4","BBC iPlayer, Netflix"

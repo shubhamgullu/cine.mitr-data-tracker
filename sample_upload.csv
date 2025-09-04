@@ -1,0 +1,7 @@
+source_link,media_names,media_type,source_data,status,media_format,metadata
+"https://example.com/movies/matrix_download","The Matrix","Movie","Uploaded via bulk import system","completed","HD Video","Matrix movie uploaded successfully with HD quality"
+"https://example.com/series/stranger_things_s4","Stranger Things","Web-Series","Season 4 complete episodes","new-content","4K Video","All episodes of Stranger Things Season 4"
+"","Free Solo Documentary","Documentary","Direct upload without source link","pending","Full HD","High-quality documentary about rock climbing"
+"https://torrent.example.com/avatar_complete","Avatar: The Last Airbender","Web-Series","Complete series torrent","in-progress","Web-DL","Avatar complete series download in progress"
+"https://streaming.example.com/planet_earth","Planet Earth","Documentary","Nature documentary series","uploaded","BluRay","Planet Earth documentary series in BluRay quality"
+"https://example.com/multi_content","The Matrix, Free Solo, Planet Earth","Movie","Multi-media content package","ready-to-upload","HD Video","Package containing multiple high-quality media files"

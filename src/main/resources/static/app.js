@@ -20,6 +20,37 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData('media');
     updateDashboard();
     initializeCharacterCounters();
+    
+    // Set up event listeners for search functionality
+    const mediaSearch = document.getElementById('mediaSearch');
+    if (mediaSearch) {
+        // Add debounce to search input to improve performance
+        let searchTimeout;
+        mediaSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(filterMediaTable, 300);
+        });
+    }
+    
+    const contentSearch = document.getElementById('contentSearch');
+    if (contentSearch) {
+        // Add debounce to search input to improve performance
+        let contentSearchTimeout;
+        contentSearch.addEventListener('input', function() {
+            clearTimeout(contentSearchTimeout);
+            contentSearchTimeout = setTimeout(filterContentTable, 300);
+        });
+    }
+    
+    const uploadSearch = document.getElementById('uploadSearch');
+    if (uploadSearch) {
+        // Add debounce to search input to improve performance
+        let uploadSearchTimeout;
+        uploadSearch.addEventListener('input', function() {
+            clearTimeout(uploadSearchTimeout);
+            uploadSearchTimeout = setTimeout(filterUploadTable, 300);
+        });
+    }
 });
 
 // Initialize character counters for metadata fields
@@ -688,3 +719,427 @@ function downloadTemplate() {
         URL.revokeObjectURL(url);
     }
 }
+
+// Search and Filter Functions for Media Management
+function filterMediaTable() {
+    const searchInput = document.getElementById('mediaSearch');
+    const typeFilter = document.getElementById('mediaTypeFilter');
+    const languageFilter = document.getElementById('mediaLanguageFilter');
+    const tbody = document.getElementById('media-table');
+    const rows = tbody.querySelectorAll('tr');
+    const resultsElement = document.getElementById('mediaSearchResults');
+    
+    if (!searchInput || !tbody || !rows.length) return;
+    
+    const searchText = searchInput.value.toLowerCase().trim();
+    const typeValue = typeFilter ? typeFilter.value.toLowerCase() : '';
+    const languageValue = languageFilter ? languageFilter.value.toLowerCase() : '';
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        if (row.classList.contains('no-results-row')) {
+            row.remove();
+            return;
+        }
+        
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 0) return;
+        
+        let shouldShow = true;
+        
+        // Apply search text filter (searches across all visible text in the row)
+        if (searchText) {
+            const rowText = Array.from(cells)
+                .slice(0, -1) // Exclude the actions column
+                .map(cell => cell.textContent.toLowerCase())
+                .join(' ');
+            
+            if (!rowText.includes(searchText)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply type filter (column 1 - Type)
+        if (shouldShow && typeValue && cells.length > 1) {
+            const typeText = cells[1].textContent.toLowerCase();
+            if (!typeText.includes(typeValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply language filter (column 2 - Language)
+        if (shouldShow && languageValue && cells.length > 2) {
+            const languageText = cells[2].textContent.toLowerCase();
+            if (!languageText.includes(languageValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Show/hide row
+        if (shouldShow) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update results counter
+    if (resultsElement) {
+        const totalRows = rows.length;
+        const hasFilters = searchText || typeValue || languageValue;
+        
+        if (hasFilters) {
+            resultsElement.textContent = `Showing ${visibleCount} of ${totalRows} results`;
+            
+            // Show "no results" message if needed
+            if (visibleCount === 0 && !document.querySelector('.no-results-row')) {
+                showNoResultsMessage(tbody);
+            }
+        } else {
+            resultsElement.textContent = `Showing all ${totalRows} results`;
+        }
+    }
+}
+
+function clearMediaFilters() {
+    // Clear all filter inputs
+    const searchInput = document.getElementById('mediaSearch');
+    const typeFilter = document.getElementById('mediaTypeFilter');
+    const languageFilter = document.getElementById('mediaLanguageFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (languageFilter) languageFilter.value = '';
+    
+    // Remove any "no results" rows
+    const noResultsRows = document.querySelectorAll('.no-results-row');
+    noResultsRows.forEach(row => row.remove());
+    
+    // Re-filter the table (which will show all rows)
+    filterMediaTable();
+}
+
+function showNoResultsMessage(tbody) {
+    // Remove any existing "no results" row
+    const existingNoResults = tbody.querySelector('.no-results-row');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
+    
+    // Create and add "no results" row
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.className = 'no-results-row';
+    noResultsRow.innerHTML = `
+        <td colspan="6" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center justify-center">
+                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h6 class="text-lg font-medium text-gray-900 mb-2">No results found</h6>
+                <p class="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onclick="clearMediaFilters()">
+                    Clear All Filters
+                </button>
+            </div>
+        </td>
+    `;
+    tbody.appendChild(noResultsRow);
+}
+
+// Search and Filter Functions for Content Management
+function filterContentTable() {
+    const searchInput = document.getElementById('contentSearch');
+    const typeFilter = document.getElementById('contentTypeFilter');
+    const statusFilter = document.getElementById('contentStatusFilter');
+    const priorityFilter = document.getElementById('contentPriorityFilter');
+    const localStatusFilter = document.getElementById('contentLocalStatusFilter');
+    const tbody = document.getElementById('content-table');
+    const rows = tbody.querySelectorAll('tr');
+    const resultsElement = document.getElementById('contentSearchResults');
+    
+    if (!searchInput || !tbody || !rows.length) return;
+    
+    const searchText = searchInput.value.toLowerCase().trim();
+    const typeValue = typeFilter ? typeFilter.value.toLowerCase() : '';
+    const statusValue = statusFilter ? statusFilter.value.toLowerCase() : '';
+    const priorityValue = priorityFilter ? priorityFilter.value.toLowerCase() : '';
+    const localStatusValue = localStatusFilter ? localStatusFilter.value.toLowerCase() : '';
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        if (row.classList.contains('no-results-row')) {
+            row.remove();
+            return;
+        }
+        
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 0) return;
+        
+        let shouldShow = true;
+        
+        // Apply search text filter (searches across all visible text in the row)
+        if (searchText) {
+            const rowText = Array.from(cells)
+                .slice(0, -1) // Exclude the actions column
+                .map(cell => cell.textContent.toLowerCase())
+                .join(' ');
+            
+            if (!rowText.includes(searchText)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply type filter (column 1 - Media Type)
+        if (shouldShow && typeValue && cells.length > 1) {
+            const typeText = cells[1].textContent.toLowerCase();
+            if (!typeText.includes(typeValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply status filter (column 3 - Status)
+        if (shouldShow && statusValue && cells.length > 3) {
+            const statusText = cells[3].textContent.toLowerCase();
+            if (!statusText.includes(statusValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply priority filter (column 4 - Priority)
+        if (shouldShow && priorityValue && cells.length > 4) {
+            const priorityText = cells[4].textContent.toLowerCase();
+            if (!priorityText.includes(priorityValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply local status filter (column 5 - Local Status)
+        if (shouldShow && localStatusValue && cells.length > 5) {
+            const localStatusText = cells[5].textContent.toLowerCase();
+            if (!localStatusText.includes(localStatusValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Show/hide row
+        if (shouldShow) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update results counter
+    if (resultsElement) {
+        const totalRows = rows.length;
+        const hasFilters = searchText || typeValue || statusValue || priorityValue || localStatusValue;
+        
+        if (hasFilters) {
+            resultsElement.textContent = `Showing ${visibleCount} of ${totalRows} results`;
+            
+            // Show "no results" message if needed
+            if (visibleCount === 0 && !document.querySelector('.no-results-row')) {
+                showNoContentResultsMessage(tbody);
+            }
+        } else {
+            resultsElement.textContent = `Showing all ${totalRows} results`;
+        }
+    }
+}
+
+function clearContentFilters() {
+    // Clear all filter inputs
+    const searchInput = document.getElementById('contentSearch');
+    const typeFilter = document.getElementById('contentTypeFilter');
+    const statusFilter = document.getElementById('contentStatusFilter');
+    const priorityFilter = document.getElementById('contentPriorityFilter');
+    const localStatusFilter = document.getElementById('contentLocalStatusFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
+    if (priorityFilter) priorityFilter.value = '';
+    if (localStatusFilter) localStatusFilter.value = '';
+    
+    // Remove any "no results" rows
+    const noResultsRows = document.querySelectorAll('.no-results-row');
+    noResultsRows.forEach(row => row.remove());
+    
+    // Re-filter the table (which will show all rows)
+    filterContentTable();
+}
+
+function showNoContentResultsMessage(tbody) {
+    // Remove any existing "no results" row
+    const existingNoResults = tbody.querySelector('.no-results-row');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
+    
+    // Create and add "no results" row
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.className = 'no-results-row';
+    noResultsRow.innerHTML = `
+        <td colspan="7" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center justify-center">
+                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h6 class="text-lg font-medium text-gray-900 mb-2">No content found</h6>
+                <p class="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onclick="clearContentFilters()">
+                    Clear All Filters
+                </button>
+            </div>
+        </td>
+    `;
+    tbody.appendChild(noResultsRow);
+}
+
+// Search and Filter Functions for Upload Management
+function filterUploadTable() {
+    const searchInput = document.getElementById('uploadSearch');
+    const statusFilter = document.getElementById('uploadStatusFilter');
+    const mediaTypeFilter = document.getElementById('uploadMediaTypeFilter');
+    const mediaFormatFilter = document.getElementById('uploadMediaFormatFilter');
+    const tbody = document.getElementById('upload-table');
+    const rows = tbody.querySelectorAll('tr');
+    const resultsElement = document.getElementById('uploadSearchResults');
+    
+    if (!searchInput || !tbody || !rows.length) return;
+    
+    const searchText = searchInput.value.toLowerCase().trim();
+    const statusValue = statusFilter ? statusFilter.value.toLowerCase() : '';
+    const mediaTypeValue = mediaTypeFilter ? mediaTypeFilter.value.toLowerCase() : '';
+    const mediaFormatValue = mediaFormatFilter ? mediaFormatFilter.value.toLowerCase() : '';
+    
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        if (row.classList.contains('no-results-row')) {
+            row.remove();
+            return;
+        }
+        
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 0) return;
+        
+        let shouldShow = true;
+        
+        // Apply search text filter (searches across all visible text in the row)
+        if (searchText) {
+            const rowText = Array.from(cells)
+                .slice(0, -1) // Exclude the actions column
+                .map(cell => cell.textContent.toLowerCase())
+                .join(' ');
+            
+            if (!rowText.includes(searchText)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply status filter (column 3 - Status)
+        if (shouldShow && statusValue && cells.length > 3) {
+            const statusText = cells[3].textContent.toLowerCase();
+            if (!statusText.includes(statusValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply media type filter (look in media name column and source data for type info)
+        if (shouldShow && mediaTypeValue) {
+            const mediaNameText = cells.length > 1 ? cells[1].textContent.toLowerCase() : '';
+            const sourceDataText = cells.length > 2 ? cells[2].textContent.toLowerCase() : '';
+            const rowText = `${mediaNameText} ${sourceDataText}`;
+            
+            if (!rowText.includes(mediaTypeValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Apply media format filter (column 4 - Media Data)
+        if (shouldShow && mediaFormatValue && cells.length > 4) {
+            const mediaDataText = cells[4].textContent.toLowerCase();
+            if (!mediaDataText.includes(mediaFormatValue)) {
+                shouldShow = false;
+            }
+        }
+        
+        // Show/hide row
+        if (shouldShow) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update results counter
+    if (resultsElement) {
+        const totalRows = rows.length;
+        const hasFilters = searchText || statusValue || mediaTypeValue || mediaFormatValue;
+        
+        if (hasFilters) {
+            resultsElement.textContent = `Showing ${visibleCount} of ${totalRows} results`;
+            
+            // Show "no results" message if needed
+            if (visibleCount === 0 && !document.querySelector('.no-results-row')) {
+                showNoUploadResultsMessage(tbody);
+            }
+        } else {
+            resultsElement.textContent = `Showing all ${totalRows} results`;
+        }
+    }
+}
+
+function clearUploadFilters() {
+    // Clear all filter inputs
+    const searchInput = document.getElementById('uploadSearch');
+    const statusFilter = document.getElementById('uploadStatusFilter');
+    const mediaTypeFilter = document.getElementById('uploadMediaTypeFilter');
+    const mediaFormatFilter = document.getElementById('uploadMediaFormatFilter');
+    
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = '';
+    if (mediaTypeFilter) mediaTypeFilter.value = '';
+    if (mediaFormatFilter) mediaFormatFilter.value = '';
+    
+    // Remove any "no results" rows
+    const noResultsRows = document.querySelectorAll('.no-results-row');
+    noResultsRows.forEach(row => row.remove());
+    
+    // Re-filter the table (which will show all rows)
+    filterUploadTable();
+}
+
+function showNoUploadResultsMessage(tbody) {
+    // Remove any existing "no results" row
+    const existingNoResults = tbody.querySelector('.no-results-row');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
+    
+    // Create and add "no results" row
+    const noResultsRow = document.createElement('tr');
+    noResultsRow.className = 'no-results-row';
+    noResultsRow.innerHTML = `
+        <td colspan="6" class="px-6 py-12 text-center">
+            <div class="flex flex-col items-center justify-center">
+                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h6 class="text-lg font-medium text-gray-900 mb-2">No uploads found</h6>
+                <p class="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500" onclick="clearUploadFilters()">
+                    Clear All Filters
+                </button>
+            </div>
+        </td>
+    `;
+    tbody.appendChild(noResultsRow);
+}
+

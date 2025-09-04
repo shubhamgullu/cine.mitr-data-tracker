@@ -29,11 +29,30 @@ CREATE TABLE media_catalog (
 CREATE INDEX idx_media_type ON media_catalog(media_type);
 CREATE INDEX idx_language ON media_catalog(language);
 
+-- MANY-TO-MANY RELATIONSHIPS
+
+-- Content Media Junction Table
+CREATE TABLE content_media_mapping (
+    content_id BIGINT NOT NULL,
+    media_id BIGINT NOT NULL,
+    PRIMARY KEY (content_id, media_id),
+    CONSTRAINT fk_content_media_content FOREIGN KEY (content_id) REFERENCES content_catalog(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_content_media_media FOREIGN KEY (media_id) REFERENCES media_catalog(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- Upload Media Junction Table
+CREATE TABLE upload_media_mapping (
+    upload_id BIGINT NOT NULL,
+    media_id BIGINT NOT NULL,
+    PRIMARY KEY (upload_id, media_id),
+    CONSTRAINT fk_upload_media_upload FOREIGN KEY (upload_id) REFERENCES upload_catalog(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_upload_media_media FOREIGN KEY (media_id) REFERENCES media_catalog(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 -- CONTENT CATALOG
 CREATE TABLE content_catalog (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     link VARCHAR(255) NOT NULL,
-    media_id BIGINT,
     status VARCHAR(20) NOT NULL,
     priority VARCHAR(20) NOT NULL,
     local_status VARCHAR(20) NOT NULL,
@@ -41,9 +60,8 @@ CREATE TABLE content_catalog (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_content_status CHECK (UPPER(status) IN ('NEW','DOWNLOADED','ERROR')),
-    CONSTRAINT chk_content_priority CHECK (UPPER(priority) IN ('LOW','MEDIUM','HIGH')),
-    CONSTRAINT chk_content_local_status CHECK (UPPER(local_status) IN ('DOWNLOADED','ERROR','NA')),
-    CONSTRAINT fk_content_media FOREIGN KEY (media_id) REFERENCES media_catalog(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT chk_content_priority CHECK (UPPER(priority) IN ('LOW','MEDIUM','HIGH','URGENT')),
+    CONSTRAINT chk_content_local_status CHECK (UPPER(local_status) IN ('AVAILABLE','NOT-AVAILABLE','LOCAL','PROCESSING')),
     CONSTRAINT fk_content_local_file FOREIGN KEY (local_file_path) REFERENCES metadata_status(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
@@ -53,13 +71,13 @@ CREATE TABLE upload_catalog (
     source_link_id BIGINT,
     source_data BIGINT NOT NULL,
     status VARCHAR(30) NOT NULL,
-    media_id BIGINT,
+    media_format VARCHAR(255),
+    metadata CLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_upload_status CHECK (UPPER(status) IN ('COMPLETED','DOWNLOADED','IN-PROGRESS','BLOCKED','READY-TO-UPLOAD','UPLOADED')),
+    CONSTRAINT chk_upload_status CHECK (UPPER(status) IN ('PENDING','NEW-CONTENT','COMPLETED','DOWNLOADED','IN-PROGRESS','BLOCKED','READY-TO-UPLOAD','UPLOADED')),
     CONSTRAINT fk_upload_source_data FOREIGN KEY (source_data) REFERENCES metadata_status(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_upload_source_link FOREIGN KEY (source_link_id) REFERENCES content_catalog(id) ON UPDATE CASCADE ON DELETE SET NULL,
-    CONSTRAINT fk_upload_media FOREIGN KEY (media_id) REFERENCES media_catalog(id) ON UPDATE CASCADE ON DELETE SET NULL
+    CONSTRAINT fk_upload_source_link FOREIGN KEY (source_link_id) REFERENCES content_catalog(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 -- STATS CATALOG
