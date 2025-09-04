@@ -2,6 +2,8 @@ package com.cinemitr.datatracker.entity;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "upload_catalog")
@@ -20,10 +22,20 @@ public class UploadCatalog {
 
     @Column(name = "status", nullable = false)
     private String status;
+    
+    @Column(name = "media_format")
+    private String mediaFormat;
+    
+    @Column(name = "metadata", length = 9000)
+    private String metadata;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "media_id")
-    private MediaCatalog media;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "upload_media_mapping",
+        joinColumns = @JoinColumn(name = "upload_id"),
+        inverseJoinColumns = @JoinColumn(name = "media_id")
+    )
+    private Set<MediaCatalog> mediaList = new HashSet<>();
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
@@ -84,12 +96,36 @@ public class UploadCatalog {
         this.status = status;
     }
 
-    public MediaCatalog getMedia() {
-        return media;
+    public String getMediaFormat() {
+        return mediaFormat;
     }
 
-    public void setMedia(MediaCatalog media) {
-        this.media = media;
+    public void setMediaFormat(String mediaFormat) {
+        this.mediaFormat = mediaFormat;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
+    }
+
+    public Set<MediaCatalog> getMediaList() {
+        return mediaList;
+    }
+
+    public void setMediaList(Set<MediaCatalog> mediaList) {
+        this.mediaList = mediaList;
+    }
+    
+    public void addMedia(MediaCatalog media) {
+        this.mediaList.add(media);
+    }
+    
+    public void removeMedia(MediaCatalog media) {
+        this.mediaList.remove(media);
     }
 
     public Date getCreatedAt() {

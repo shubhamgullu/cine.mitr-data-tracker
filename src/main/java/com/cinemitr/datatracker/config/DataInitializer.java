@@ -88,7 +88,7 @@ public class DataInitializer implements CommandLineRunner {
             // Create ContentCatalog entries
             ContentCatalog content1 = new ContentCatalog();
             content1.setLink("https://example.com/video1");
-            content1.setMedia(media1);
+            content1.addMedia(media1);
             content1.setStatus("downloaded");
             content1.setPriority("high");
             content1.setLocalStatus("downloaded");
@@ -97,7 +97,7 @@ public class DataInitializer implements CommandLineRunner {
 
             ContentCatalog content2 = new ContentCatalog();
             content2.setLink("https://example.com/video2");
-            content2.setMedia(media2);
+            content2.addMedia(media2);
             content2.setStatus("new");
             content2.setPriority("medium");
             content2.setLocalStatus("na");
@@ -109,14 +109,14 @@ public class DataInitializer implements CommandLineRunner {
             upload1.setSourceLink(content1);
             upload1.setSourceData(metadata1);
             upload1.setStatus("completed");
-            upload1.setMedia(media1);
+            upload1.addMedia(media1);
             uploadCatalogRepository.save(upload1);
 
             UploadCatalog upload2 = new UploadCatalog();
             upload2.setSourceLink(content2);
             upload2.setSourceData(metadata2);
             upload2.setStatus("in-progress");
-            upload2.setMedia(media2);
+            upload2.addMedia(media2);
             uploadCatalogRepository.save(upload2);
 
             // Create StatsCatalog entries

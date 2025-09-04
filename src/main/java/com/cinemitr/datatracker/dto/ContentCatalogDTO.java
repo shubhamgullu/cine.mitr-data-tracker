@@ -12,6 +12,9 @@ public class ContentCatalogDTO {
     @JsonProperty("media_name")
     private String mediaName;
     
+    @JsonProperty("media_names_list")
+    private java.util.List<String> mediaNamesList;
+    
     private String status;
     private String priority;
     
@@ -66,6 +69,14 @@ public class ContentCatalogDTO {
 
     public void setMediaName(String mediaName) {
         this.mediaName = mediaName;
+    }
+
+    public java.util.List<String> getMediaNamesList() {
+        return mediaNamesList;
+    }
+
+    public void setMediaNamesList(java.util.List<String> mediaNamesList) {
+        this.mediaNamesList = mediaNamesList;
     }
 
     public String getStatus() {

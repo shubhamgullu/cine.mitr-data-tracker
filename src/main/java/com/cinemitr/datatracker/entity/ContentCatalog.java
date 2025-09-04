@@ -2,6 +2,8 @@ package com.cinemitr.datatracker.entity;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "content_catalog")
@@ -13,9 +15,13 @@ public class ContentCatalog {
     @Column(name = "link", nullable = false)
     private String link;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "media_id")
-    private MediaCatalog media;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "content_media_mapping",
+        joinColumns = @JoinColumn(name = "content_id"),
+        inverseJoinColumns = @JoinColumn(name = "media_id")
+    )
+    private Set<MediaCatalog> mediaList = new HashSet<>();
 
     @Column(name = "status", nullable = false)
     private String status;
@@ -76,12 +82,20 @@ public class ContentCatalog {
         this.link = link;
     }
 
-    public MediaCatalog getMedia() {
-        return media;
+    public Set<MediaCatalog> getMediaList() {
+        return mediaList;
     }
 
-    public void setMedia(MediaCatalog media) {
-        this.media = media;
+    public void setMediaList(Set<MediaCatalog> mediaList) {
+        this.mediaList = mediaList;
+    }
+    
+    public void addMedia(MediaCatalog media) {
+        this.mediaList.add(media);
+    }
+    
+    public void removeMedia(MediaCatalog media) {
+        this.mediaList.remove(media);
     }
 
     public String getStatus() {

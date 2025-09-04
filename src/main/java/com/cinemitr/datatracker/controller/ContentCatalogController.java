@@ -34,6 +34,7 @@ public class ContentCatalogController {
         ContentCatalogDTO savedContent = contentService.saveContent(contentDTO);
         return ResponseEntity.ok(savedContent);
     }
+    
 
     @PutMapping("/{id}")
     public ResponseEntity<ContentCatalogDTO> updateContent(@PathVariable Long id, @RequestBody ContentCatalogDTO contentDTO) {

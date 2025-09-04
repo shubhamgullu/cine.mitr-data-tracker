@@ -19,7 +19,45 @@ const endpoints = {
 document.addEventListener('DOMContentLoaded', function() {
     loadData('media');
     updateDashboard();
+    initializeCharacterCounters();
 });
+
+// Initialize character counters for metadata fields
+function initializeCharacterCounters() {
+    const metadataTextarea = document.querySelector('textarea[name="metadata"]');
+    const metadataCounter = document.getElementById('metadata-char-count');
+    
+    if (metadataTextarea && metadataCounter) {
+        // Set initial count
+        updateCharacterCount(metadataTextarea, metadataCounter, 9000);
+        
+        // Add event listeners for real-time updates
+        metadataTextarea.addEventListener('input', function() {
+            updateCharacterCount(this, metadataCounter, 9000);
+        });
+        
+        metadataTextarea.addEventListener('keyup', function() {
+            updateCharacterCount(this, metadataCounter, 9000);
+        });
+    }
+}
+
+// Update character count display
+function updateCharacterCount(textarea, counterElement, maxLength) {
+    const currentLength = textarea.value.length;
+    const remaining = maxLength - currentLength;
+    
+    counterElement.textContent = `${currentLength}/${maxLength}`;
+    
+    // Update color based on remaining characters
+    if (remaining < 100) {
+        counterElement.className = 'text-sm text-red-500 mt-1';
+    } else if (remaining < 500) {
+        counterElement.className = 'text-sm text-yellow-500 mt-1';
+    } else {
+        counterElement.className = 'text-sm text-gray-500 mt-1';
+    }
+}
 
 // Tab switching
 function switchTab(tabName) {
@@ -119,22 +157,56 @@ function generateTableRow(type, item, index) {
             `;
             break;
         case 'content':
+            // Handle multiple media names as a list
+            let mediaDisplay = '';
+            if (item.media_names_list && Array.isArray(item.media_names_list) && item.media_names_list.length > 0) {
+                if (item.media_names_list.length === 1) {
+                    mediaDisplay = item.media_names_list[0];
+                } else {
+                    const displayItems = item.media_names_list.slice(0, 2);
+                    const remaining = item.media_names_list.length - 2;
+                    mediaDisplay = displayItems.join(', ');
+                    if (remaining > 0) {
+                        mediaDisplay += ` +${remaining} more`;
+                    }
+                }
+            } else {
+                mediaDisplay = item.media_name || '';
+            }
+            
             cells = `
                 <td class="px-6 py-4 text-sm text-blue-600 truncate max-w-xs"><a href="${item.link}" target="_blank" title="${item.link}">${item.link || ''}</a></td>
                 <td class="px-6 py-4 text-sm text-gray-500">${item.media_type || ''}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">${item.media_name || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500" title="${item.media_names_list ? item.media_names_list.join(', ') : (item.media_name || '')}">${mediaDisplay}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.status)}">${item.status || ''}</td>
                 <td class="px-6 py-4 text-sm ${getPriorityColor(item.priority)}">${item.priority || ''}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.local_status)}">${item.local_status || ''}</td>
             `;
             break;
         case 'upload':
+            // Handle multiple media names as a list like content
+            let uploadMediaDisplay = '';
+            if (item.media_names_list && Array.isArray(item.media_names_list) && item.media_names_list.length > 0) {
+                if (item.media_names_list.length === 1) {
+                    uploadMediaDisplay = item.media_names_list[0];
+                } else {
+                    const displayItems = item.media_names_list.slice(0, 2);
+                    const remaining = item.media_names_list.length - 2;
+                    uploadMediaDisplay = displayItems.join(', ');
+                    if (remaining > 0) {
+                        uploadMediaDisplay += ` +${remaining} more`;
+                    }
+                }
+            } else {
+                uploadMediaDisplay = item.media_name || 'No media specified';
+            }
+            
             cells = `
                 <td class="px-6 py-4 text-sm text-blue-600 truncate max-w-xs"><a href="${item.source_link}" target="_blank" title="${item.source_link}">${item.source_link || ''}</a></td>
-                <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs"title="${item.media_id}">${item.media_id || ''}</td>
-                <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title="${item.source_data}">${item.source_data || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500" title="${item.media_names_list ? item.media_names_list.join(', ') : (item.media_name || 'No media specified')}">${uploadMediaDisplay}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title="${item.source_data}">${item.source_data || 'No data'}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.status)}">${item.status || ''}</td>
-                <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title="${item.media_data}">${item.media_data || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${item.media_type || 'N/A'}</td>
             `;
             break;
         case 'states':

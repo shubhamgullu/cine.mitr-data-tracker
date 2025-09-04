@@ -315,13 +315,19 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
-                    <input type="text" name="media_type" required placeholder="Movie, Web-Series, Documentary"
+                    <select name="media_type" required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name</label>
-                    <input type="text" name="media_name" required placeholder="Name of the media content"
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name(s)</label>
+                    <input type="text" name="media_name" required placeholder="Enter media names (comma-separated: Movie A, Movie B, Movie C)"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Tip: You can enter multiple media names separated by commas</div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -380,15 +386,33 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Source Data</label>
-                    <textarea name="source_data" required
+                    <textarea name="source_data" 
                         placeholder="Source metadata for the content and all details with location" rows="3"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <div class="text-xs text-gray-500 mt-1">Optional: Leave empty if no specific metadata available</div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Type</label>
+                    <select name="media_type"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Type (Optional)</option>
+                        <option value="Movie">Movie</option>
+                        <option value="Web-Series">Web-Series</option>
+                        <option value="Documentary">Documentary</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Name(s)</label>
+                    <input type="text" name="media_name" placeholder="Enter media names (comma-separated: Movie A, Movie B, Movie C)"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Optional: You can enter multiple media names separated by commas</div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select name="status" required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Select Status</option>
+                        <option value="new-content">New Content</option>
                         <option value="completed">Completed</option>
                         <option value="downloaded">Downloaded</option>
                         <option value="in-progress">In Progress</option>
@@ -397,11 +421,38 @@
                         <option value="uploaded">Uploaded</option>
                     </select>
                 </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Format</label>
+                    <select name="media_data" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Media Format</option>
+                        <option value="HD Video, 1080p, MP4">HD Video, 1080p, MP4</option>
+                        <option value="4K Video, 2160p, MP4">4K Video, 2160p, MP4</option>
+                        <option value="HD Video, 720p, MP4">HD Video, 720p, MP4</option>
+                        <option value="Full HD Video, 1080p, MKV">Full HD Video, 1080p, MKV</option>
+                        <option value="4K Video, 2160p, MKV">4K Video, 2160p, MKV</option>
+                        <option value="SD Video, 480p, MP4">SD Video, 480p, MP4</option>
+                        <option value="Web-DL, 1080p, MP4">Web-DL, 1080p, MP4</option>
+                        <option value="BluRay, 1080p, MKV">BluRay, 1080p, MKV</option>
+                        <option value="BluRay, 4K, 2160p, MKV">BluRay, 4K, 2160p, MKV</option>
+                        <option value="TV-Rip, 720p, MP4">TV-Rip, 720p, MP4</option>
+                        <option value="Web-Rip, 1080p, MP4">Web-Rip, 1080p, MP4</option>
+                        <option value="Documentary, HD, 1080p, MP4">Documentary, HD, 1080p, MP4</option>
+                    </select>
+                </div>
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Media Data</label>
-                    <textarea name="media_data" required placeholder="Media information (format, size, quality, etc.)"
-                        rows="2"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Metadata
+                        <span class="text-xs text-gray-500">(Max 9000 characters)</span>
+                    </label>
+                    <textarea name="metadata" maxlength="9000" 
+                        placeholder="Enter detailed metadata information (cast, crew, synopsis, technical details, etc.)" 
+                        rows="6"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"></textarea>
+                    <div class="flex justify-between items-center mt-1">
+                        <div class="text-xs text-gray-500">Optional: Detailed information about the media content</div>
+                        <div class="text-xs text-gray-400" id="metadata-counter">0/9000</div>
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('upload')"

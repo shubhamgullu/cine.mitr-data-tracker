@@ -13,17 +13,29 @@ public class UploadCatalogDTO {
     
     private String status;
     
-    @JsonProperty("media_id")
-    private String mediaId;
+    @JsonProperty("media_type")
+    private String mediaType;
+    
+    @JsonProperty("media_name")
+    private String mediaName;
+    
+    @JsonProperty("media_names_list")
+    private java.util.List<String> mediaNamesList;
+    
+    @JsonProperty("media_data")
+    private String mediaData;
+    
+    private String metadata;
 
     // Constructors
     public UploadCatalogDTO() {}
 
-    public UploadCatalogDTO(String sourceLink, String sourceData, String status, String mediaId) {
+    public UploadCatalogDTO(String sourceLink, String sourceData, String status, String mediaType, String mediaName) {
         this.sourceLink = sourceLink;
         this.sourceData = sourceData;
         this.status = status;
-        this.mediaId = mediaId;
+        this.mediaType = mediaType;
+        this.mediaName = mediaName;
     }
 
     // Getters and Setters
@@ -59,11 +71,43 @@ public class UploadCatalogDTO {
         this.status = status;
     }
 
-    public String getMediaId() {
-        return mediaId;
+    public String getMediaType() {
+        return mediaType;
     }
 
-    public void setMediaId(String mediaId) {
-        this.mediaId = mediaId;
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+
+    public String getMediaName() {
+        return mediaName;
+    }
+
+    public void setMediaName(String mediaName) {
+        this.mediaName = mediaName;
+    }
+
+    public java.util.List<String> getMediaNamesList() {
+        return mediaNamesList;
+    }
+
+    public void setMediaNamesList(java.util.List<String> mediaNamesList) {
+        this.mediaNamesList = mediaNamesList;
+    }
+
+    public String getMediaData() {
+        return mediaData;
+    }
+
+    public void setMediaData(String mediaData) {
+        this.mediaData = mediaData;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 }
