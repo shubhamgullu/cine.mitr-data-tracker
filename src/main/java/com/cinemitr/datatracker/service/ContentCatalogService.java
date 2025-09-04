@@ -209,7 +209,7 @@ public class ContentCatalogService {
             UploadCatalog upload = new UploadCatalog();
             upload.setSourceLink(savedContent); // Set the actual ContentCatalog entity
             upload.setStatus("new-content"); // Use 'New Content' status for newly added content
-            upload.setMediaFormat("HD Video, 1080p, MP4"); // Set default media format
+            upload.setMediaFormat(null); // Allow empty media format for auto-generated uploads
             upload.setMetadata("Auto-generated upload entry from content: " + savedContent.getLink());
             
             // Create MetadataStatus for source data

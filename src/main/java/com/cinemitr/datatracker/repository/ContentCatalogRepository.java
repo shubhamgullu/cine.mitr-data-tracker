@@ -13,6 +13,7 @@ public interface ContentCatalogRepository extends JpaRepository<ContentCatalog, 
     List<ContentCatalog> findByStatus(String status);
     List<ContentCatalog> findByPriority(String priority);
     List<ContentCatalog> findByLocalStatus(String localStatus);
+    ContentCatalog findByLink(String link);
     @Query("SELECT c FROM ContentCatalog c JOIN c.mediaList m WHERE m.id = :mediaId")
     List<ContentCatalog> findByMediaId(@Param("mediaId") Long mediaId);
 }

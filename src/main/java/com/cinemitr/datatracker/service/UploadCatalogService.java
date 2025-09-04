@@ -1,10 +1,12 @@
 package com.cinemitr.datatracker.service;
 
 import com.cinemitr.datatracker.dto.UploadCatalogDTO;
+import com.cinemitr.datatracker.entity.ContentCatalog;
 import com.cinemitr.datatracker.entity.MediaCatalog;
 import com.cinemitr.datatracker.entity.MetadataStatus;
 import com.cinemitr.datatracker.entity.UploadCatalog;
 import com.cinemitr.datatracker.enums.PathCategory;
+import com.cinemitr.datatracker.repository.ContentCatalogRepository;
 import com.cinemitr.datatracker.repository.MediaCatalogRepository;
 import com.cinemitr.datatracker.repository.MetadataStatusRepository;
 import com.cinemitr.datatracker.repository.UploadCatalogRepository;
@@ -25,6 +27,9 @@ public class UploadCatalogService {
     
     @Autowired
     private MetadataStatusRepository metadataStatusRepository;
+    
+    @Autowired
+    private ContentCatalogRepository contentRepository;
 
     public List<UploadCatalogDTO> getAllUploads() {
         return uploadRepository.findAll().stream()
@@ -44,15 +49,31 @@ public class UploadCatalogService {
     public UploadCatalogDTO saveUpload(UploadCatalogDTO uploadDTO) {
         UploadCatalog upload = new UploadCatalog();
         
-        // Set required fields with proper null handling
-        upload.setStatus(uploadDTO.getStatus());
-        upload.setMediaFormat(uploadDTO.getMediaData() != null ? uploadDTO.getMediaData() : "HD Video, 1080p, MP4");
-        upload.setMetadata(uploadDTO.getMetadata());
+        // Set required fields with proper null handling - allow empty strings
+        upload.setStatus(uploadDTO.getStatus() != null ? uploadDTO.getStatus() : "pending");
+        upload.setMediaFormat(uploadDTO.getMediaData()); // Allow null/empty media format
+        upload.setMetadata(uploadDTO.getMetadata()); // Allow null/empty metadata
         
-        // Handle source data - ensure it's never null due to NOT NULL constraint
+        // Handle source link - check if it matches content table or create new content entry
+        String sourceLink = uploadDTO.getSourceLink();
+        if (sourceLink != null && !sourceLink.trim().isEmpty()) {
+            // Try to find matching content by link
+            ContentCatalog matchingContent = contentRepository.findByLink(sourceLink.trim());
+            if (matchingContent != null) {
+                upload.setSourceLink(matchingContent); // Map to existing content
+            } else {
+                // Create new content entry for the new link
+                ContentCatalog newContent = createContentFromUpload(sourceLink.trim(), uploadDTO);
+                upload.setSourceLink(newContent); // Map to newly created content
+            }
+        } else {
+            upload.setSourceLink(null); // No link provided, create as new item without content mapping
+        }
+        
+        // Handle source data - ensure it's never null due to NOT NULL constraint, allow empty strings
         String sourceDataValue = uploadDTO.getSourceData();
-        if (sourceDataValue == null || sourceDataValue.trim().isEmpty()) {
-            sourceDataValue = "No source data provided"; // Default value to avoid constraint violation
+        if (sourceDataValue == null) {
+            sourceDataValue = ""; // Allow empty string instead of default message
         }
         
         // Create MetadataStatus for source data
@@ -144,14 +165,30 @@ public class UploadCatalogService {
     }
 
     private void updateEntityFromDTO(UploadCatalog upload, UploadCatalogDTO dto) {
-        upload.setStatus(dto.getStatus());
-        upload.setMediaFormat(dto.getMediaData() != null ? dto.getMediaData() : "HD Video, 1080p, MP4");
-        upload.setMetadata(dto.getMetadata());
+        upload.setStatus(dto.getStatus() != null ? dto.getStatus() : "pending");
+        upload.setMediaFormat(dto.getMediaData()); // Allow null/empty media format
+        upload.setMetadata(dto.getMetadata()); // Allow null/empty metadata
         
-        // Handle source data - ensure it's never null due to NOT NULL constraint
+        // Handle source link - check if it matches content table or create new content entry
+        String sourceLink = dto.getSourceLink();
+        if (sourceLink != null && !sourceLink.trim().isEmpty()) {
+            // Try to find matching content by link
+            ContentCatalog matchingContent = contentRepository.findByLink(sourceLink.trim());
+            if (matchingContent != null) {
+                upload.setSourceLink(matchingContent); // Map to existing content
+            } else {
+                // Create new content entry for the new link
+                ContentCatalog newContent = createContentFromUpload(sourceLink.trim(), dto);
+                upload.setSourceLink(newContent); // Map to newly created content
+            }
+        } else {
+            upload.setSourceLink(null); // No link provided, keep as new item without content mapping
+        }
+        
+        // Handle source data - ensure it's never null due to NOT NULL constraint, allow empty strings
         String sourceDataValue = dto.getSourceData();
-        if (sourceDataValue == null || sourceDataValue.trim().isEmpty()) {
-            sourceDataValue = "No source data provided";
+        if (sourceDataValue == null) {
+            sourceDataValue = ""; // Allow empty string instead of default message
         }
         
         // Update or create MetadataStatus for source data
@@ -228,6 +265,47 @@ public class UploadCatalogService {
                 }
                 throw new RuntimeException("Failed to create or find media: " + mediaName + " of type: " + actualMediaType, e);
             }
+        }
+    }
+    
+    private ContentCatalog createContentFromUpload(String link, UploadCatalogDTO uploadDTO) {
+        try {
+            ContentCatalog content = new ContentCatalog();
+            content.setLink(link);
+            
+            // Set default values for auto-created content from upload
+            content.setStatus("pending");
+            content.setPriority("medium");
+            content.setLocalStatus("not-available");
+            content.setLocalFilePath(null);
+            
+            // Handle media from upload DTO
+            Set<MediaCatalog> mediaSet = new HashSet<>();
+            if (uploadDTO.getMediaName() != null && !uploadDTO.getMediaName().trim().isEmpty()) {
+                String[] mediaNames = uploadDTO.getMediaName().split(",");
+                
+                Set<String> uniqueMediaNames = new LinkedHashSet<>();
+                for (String mediaName : mediaNames) {
+                    String trimmedMediaName = mediaName.trim();
+                    if (!trimmedMediaName.isEmpty()) {
+                        uniqueMediaNames.add(trimmedMediaName);
+                    }
+                }
+                
+                for (String uniqueMediaName : uniqueMediaNames) {
+                    String mediaType = uploadDTO.getMediaType() != null && !uploadDTO.getMediaType().trim().isEmpty() 
+                        ? uploadDTO.getMediaType() : "Movie";
+                    MediaCatalog media = findOrCreateMediaByName(uniqueMediaName, mediaType);
+                    mediaSet.add(media);
+                }
+            }
+            content.setMediaList(mediaSet);
+            
+            // Save the content
+            return contentRepository.save(content);
+        } catch (Exception e) {
+            System.err.println("Failed to create content from upload: " + e.getMessage());
+            throw new RuntimeException("Failed to create content entry for link: " + link, e);
         }
     }
 }

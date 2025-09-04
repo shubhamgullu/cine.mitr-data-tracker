@@ -12,7 +12,8 @@
       "Bash(node:*)",
       "Bash(./mvnw:*)",
       "Bash(mvn:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(del \"D:\\CineMitr\\CodeBase\\Cine Mitra Codebase UI Pivot\\cine.mitr-data-tracker\\test_media_api.py\")"
     ],
     "deny": [],
     "ask": []

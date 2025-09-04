@@ -381,8 +381,9 @@
             <form id="upload-form" onsubmit="submitForm(event, 'upload')">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Source Link</label>
-                    <input type="url" name="source_link" required placeholder="https://source.com/content"
+                    <input type="url" name="source_link" placeholder="https://source.com/content"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="text-xs text-gray-500 mt-1">Optional: If provided, will check for existing content mapping. Leave empty for new upload without content link.</div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Source Data</label>
@@ -411,7 +412,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select name="status" required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Status</option>
+                        <option value="pending" selected>Pending (Default)</option>
                         <option value="new-content">New Content</option>
                         <option value="completed">Completed</option>
                         <option value="downloaded">Downloaded</option>
@@ -423,9 +424,9 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Media Format</label>
-                    <select name="media_data" required
+                    <select name="media_data"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Media Format</option>
+                        <option value="" selected>No Format Selected (Optional)</option>
                         <option value="HD Video, 1080p, MP4">HD Video, 1080p, MP4</option>
                         <option value="4K Video, 2160p, MP4">4K Video, 2160p, MP4</option>
                         <option value="HD Video, 720p, MP4">HD Video, 720p, MP4</option>
@@ -439,6 +440,7 @@
                         <option value="Web-Rip, 1080p, MP4">Web-Rip, 1080p, MP4</option>
                         <option value="Documentary, HD, 1080p, MP4">Documentary, HD, 1080p, MP4</option>
                     </select>
+                    <div class="text-xs text-gray-500 mt-1">Optional: Leave as "No Format Selected" if media format is unknown or not applicable.</div>
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
