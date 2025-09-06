@@ -106,7 +106,7 @@ The application uses 5 main tables with enhanced relationships:
 - Upload process management
 - Enhanced relationships with content and media catalogs
 
-### 5. **stats_catalog**
+### 5. **states_catalog**
 - Analytics and statistics data
 - Daily metrics with page-wise tracking
 

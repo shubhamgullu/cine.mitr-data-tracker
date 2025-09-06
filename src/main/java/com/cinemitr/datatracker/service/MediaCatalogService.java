@@ -22,6 +22,30 @@ public class MediaCatalogService {
     @Autowired
     private MetadataStatusRepository metadataStatusRepository;
 
+    private String toTitleCase(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return input;
+        }
+
+        String[] words = input.trim().toLowerCase().split("\\s+");
+        StringBuilder titleCase = new StringBuilder();
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (word.isEmpty()) continue;
+
+            // Capitalize first letter if it's a letter
+            titleCase.append(Character.toUpperCase(word.charAt(0)))
+                    .append(word.substring(1));
+
+            if (i < words.length - 1) {
+                titleCase.append(" ");
+            }
+        }
+
+        return titleCase.toString().trim();
+    }
+
     public List<MediaCatalogDTO> getAllMedia() {
         return mediaRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -34,14 +58,20 @@ public class MediaCatalogService {
     }
 
     public MediaCatalogDTO saveMedia(MediaCatalogDTO mediaDTO) {
+        // Convert media name to camelCase
+        String camelCaseName = toTitleCase(mediaDTO.getMediaName());
+        
         // Check if media with same name and type already exists
         MediaCatalog existingMedia = mediaRepository.findByMediaNameAndMediaType(
-                mediaDTO.getMediaName(), mediaDTO.getMediaType());
+                camelCaseName, mediaDTO.getMediaType());
         if (existingMedia != null) {
             throw new IllegalArgumentException(
-                    "Media with name '" + mediaDTO.getMediaName() + 
+                    "Media with name '" + camelCaseName + 
                     "' and type '" + mediaDTO.getMediaType() + "' already exists");
         }
+        
+        // Set the camelCase name in the DTO
+        mediaDTO.setMediaName(camelCaseName);
         
         MediaCatalog media = convertToEntity(mediaDTO);
         MediaCatalog savedMedia = mediaRepository.save(media);
@@ -52,14 +82,20 @@ public class MediaCatalogService {
         MediaCatalog media = mediaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Media not found with id: " + id));
         
+        // Convert media name to camelCase
+        String camelCaseName = toTitleCase(mediaDTO.getMediaName());
+        
         // Check if media with same name and type already exists (excluding current record)
         MediaCatalog existingMedia = mediaRepository.findByMediaNameAndMediaType(
-                mediaDTO.getMediaName(), mediaDTO.getMediaType());
+                camelCaseName, mediaDTO.getMediaType());
         if (existingMedia != null && !existingMedia.getId().equals(id)) {
             throw new IllegalArgumentException(
-                    "Media with name '" + mediaDTO.getMediaName() + 
+                    "Media with name '" + camelCaseName + 
                     "' and type '" + mediaDTO.getMediaType() + "' already exists");
         }
+        
+        // Set the camelCase name in the DTO
+        mediaDTO.setMediaName(camelCaseName);
         
         updateEntityFromDTO(media, mediaDTO);
         MediaCatalog updatedMedia = mediaRepository.save(media);
@@ -68,6 +104,15 @@ public class MediaCatalogService {
 
     public void deleteMedia(Long id) {
         mediaRepository.deleteById(id);
+    }
+
+    public List<String> getUniqueMainGenres() {
+        return mediaRepository.findAll().stream()
+                .map(MediaCatalog::getMainGenres)
+                .filter(genre -> genre != null && !genre.trim().isEmpty())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     private MediaCatalogDTO convertToDTO(MediaCatalog media) {
@@ -123,7 +168,6 @@ public class MediaCatalogService {
                 mediaDownloadPath.setPath(dto.getDownloadPath());
                 mediaDownloadPath.setIsAvailable(true);
                 mediaDownloadPath.setMetaData("");
-                mediaDownloadPath = metadataStatusRepository.save(mediaDownloadPath);
             }else{
                 // Get existing MediaCatalog to find current MetadataStatus ID
                 MediaCatalog existingMedia = mediaRepository.findById(dto.getId()).orElse(null);
@@ -133,7 +177,6 @@ public class MediaCatalogService {
                     mediaDownloadPath.setPath(dto.getDownloadPath());
                     mediaDownloadPath.setIsAvailable(true);
                     // Save the updated MetadataStatus
-                    mediaDownloadPath = metadataStatusRepository.save(mediaDownloadPath);
                 } else {
                     // Create new MetadataStatus if none exists
                     mediaDownloadPath = new MetadataStatus();
@@ -141,9 +184,9 @@ public class MediaCatalogService {
                     mediaDownloadPath.setPath(dto.getDownloadPath());
                     mediaDownloadPath.setIsAvailable(true);
                     mediaDownloadPath.setMetaData("");
-                    mediaDownloadPath = metadataStatusRepository.save(mediaDownloadPath);
                 }
             }
+            mediaDownloadPath = metadataStatusRepository.save(mediaDownloadPath);
             media.setDownloadPath(mediaDownloadPath);
         }catch (Exception e){
             // Log error and set download path to null if metadata handling fails

@@ -13,7 +13,8 @@
       "Bash(./mvnw:*)",
       "Bash(mvn:*)",
       "Bash(python:*)",
-      "Bash(del \"D:\\CineMitr\\CodeBase\\Cine Mitra Codebase UI Pivot\\cine.mitr-data-tracker\\test_media_api.py\")"
+      "Bash(del \"D:\\CineMitr\\CodeBase\\Cine Mitra Codebase UI Pivot\\cine.mitr-data-tracker\\test_media_api.py\")",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

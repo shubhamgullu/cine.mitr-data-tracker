@@ -4,7 +4,7 @@ import com.cinemitr.datatracker.entity.MediaCatalog;
 import com.cinemitr.datatracker.entity.MetadataStatus;
 import com.cinemitr.datatracker.entity.ContentCatalog;
 import com.cinemitr.datatracker.entity.UploadCatalog;
-import com.cinemitr.datatracker.entity.StatsCatalog;
+import com.cinemitr.datatracker.entity.StatesCatalog;
 import com.cinemitr.datatracker.enums.PathCategory;
 import com.cinemitr.datatracker.repository.MediaCatalogRepository;
 import com.cinemitr.datatracker.repository.MetadataStatusRepository;
@@ -120,7 +120,7 @@ public class DataInitializer implements CommandLineRunner {
             uploadCatalogRepository.save(upload2);
 
             // Create StatsCatalog entries
-            StatsCatalog stats1 = new StatsCatalog();
+            StatesCatalog stats1 = new StatesCatalog();
             stats1.setDate(Date.from(LocalDate.of(2024, 1, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()));
             stats1.setTotalViews(15420.0);
             stats1.setSubscribers(1250.0);
@@ -129,7 +129,7 @@ public class DataInitializer implements CommandLineRunner {
             stats1.setPage("CINE.MITR");
             statsCatalogRepository.save(stats1);
 
-            StatsCatalog stats2 = new StatsCatalog();
+            StatesCatalog stats2 = new StatesCatalog();
             stats2.setDate(Date.from(LocalDate.of(2024, 1, 16).atStartOfDay(ZoneId.systemDefault()).toInstant()));
             stats2.setTotalViews(16800.0);
             stats2.setSubscribers(1275.0);

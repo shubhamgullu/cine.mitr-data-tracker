@@ -1,14 +1,13 @@
 package com.cinemitr.datatracker.service;
 
 import com.cinemitr.datatracker.dto.StatsCatalogDTO;
-import com.cinemitr.datatracker.entity.StatsCatalog;
+import com.cinemitr.datatracker.entity.StatesCatalog;
 import com.cinemitr.datatracker.repository.StatsCatalogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,17 +32,17 @@ public class StatsCatalogService {
     }
 
     public StatsCatalogDTO saveStats(StatsCatalogDTO statsDTO) {
-        StatsCatalog stats = convertToEntity(statsDTO);
-        StatsCatalog savedStats = statsRepository.save(stats);
+        StatesCatalog stats = convertToEntity(statsDTO);
+        StatesCatalog savedStats = statsRepository.save(stats);
         return convertToDTO(savedStats);
     }
 
     public StatsCatalogDTO updateStats(Long id, StatsCatalogDTO statsDTO) {
-        StatsCatalog stats = statsRepository.findById(id)
+        StatesCatalog stats = statsRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Stats not found with id: " + id));
         
         updateEntityFromDTO(stats, statsDTO);
-        StatsCatalog updatedStats = statsRepository.save(stats);
+        StatesCatalog updatedStats = statsRepository.save(stats);
         return convertToDTO(updatedStats);
     }
 
@@ -51,7 +50,7 @@ public class StatsCatalogService {
         statsRepository.deleteById(id);
     }
 
-    private StatsCatalogDTO convertToDTO(StatsCatalog stats) {
+    private StatsCatalogDTO convertToDTO(StatesCatalog stats) {
         StatsCatalogDTO dto = new StatsCatalogDTO();
         dto.setId(stats.getId());
         dto.setDate(dateFormat.format(stats.getDate()));
@@ -63,13 +62,13 @@ public class StatsCatalogService {
         return dto;
     }
 
-    private StatsCatalog convertToEntity(StatsCatalogDTO dto) {
-        StatsCatalog stats = new StatsCatalog();
+    private StatesCatalog convertToEntity(StatsCatalogDTO dto) {
+        StatesCatalog stats = new StatesCatalog();
         updateEntityFromDTO(stats, dto);
         return stats;
     }
 
-    private void updateEntityFromDTO(StatsCatalog stats, StatsCatalogDTO dto) {
+    private void updateEntityFromDTO(StatesCatalog stats, StatsCatalogDTO dto) {
         try {
             stats.setDate(dateFormat.parse(dto.getDate()));
         } catch (ParseException e) {

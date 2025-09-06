@@ -4,8 +4,8 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "stats_catalog")
-public class StatsCatalog {
+@Table(name = "states_catalog")
+public class StatesCatalog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -50,9 +50,9 @@ public class StatsCatalog {
     }
 
     // Constructors
-    public StatsCatalog() {}
+    public StatesCatalog() {}
 
-    public StatsCatalog(Date date, Double totalViews, Double subscribers, Double interaction, String page) {
+    public StatesCatalog(Date date, Double totalViews, Double subscribers, Double interaction, String page) {
         this.date = date;
         this.totalViews = totalViews;
         this.subscribers = subscribers;

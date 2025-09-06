@@ -35,6 +35,8 @@ media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_pat
 - `priority` - Priority level: low, medium, high, urgent (String, required)
 - `local_status` - Local file status: available, not-available, local, processing (String, required)
 - `local_file_path` - Path to local file (String, optional)
+- `content_type` - Type of content: Video, Audio, Document, etc. (String, optional)
+- `content_metadata` - Additional metadata about the content (String, optional)
 
 **Multi-Media Support**: Use comma-separated values in `media_names` column:
 ```csv

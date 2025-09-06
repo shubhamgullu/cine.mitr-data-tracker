@@ -30,6 +30,6 @@ INSERT INTO upload_media_mapping (upload_id, media_id) VALUES
 (2, 2);  -- Second upload linked to Sample Movie
 
 -- Insert sample stats catalog
-INSERT INTO stats_catalog (date, total_views, subscribers, interaction, content_id, page) VALUES
+INSERT INTO states_catalog (date, total_views, subscribers, interaction, content_id, page) VALUES
 ('2024-01-15', 15420, 1250, 850, 1, 'CINE.MITR'),
 ('2024-01-16', 16800, 1275, 920, 2, 'CINE.MITR.MUSIC');

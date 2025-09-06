@@ -62,7 +62,7 @@ CREATE TABLE upload_catalog (
 );
 
 -- STATS CATALOG
-CREATE TABLE stats_catalog (
+CREATE TABLE states_catalog (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     date DATE NOT NULL,
     total_views DOUBLE NOT NULL,

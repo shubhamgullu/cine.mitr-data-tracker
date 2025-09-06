@@ -15,6 +15,12 @@ public class ContentCatalog {
     @Column(name = "link", nullable = false)
     private String link;
 
+    @Column(name = "content_type")
+    private String contentType;
+
+    @Column(name = "content_metadata", columnDefinition = "TEXT")
+    private String contentMetadata;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "content_media_mapping",
@@ -80,6 +86,22 @@ public class ContentCatalog {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentMetadata() {
+        return contentMetadata;
+    }
+
+    public void setContentMetadata(String contentMetadata) {
+        this.contentMetadata = contentMetadata;
     }
 
     public Set<MediaCatalog> getMediaList() {

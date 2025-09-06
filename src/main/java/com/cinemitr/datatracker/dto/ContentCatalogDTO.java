@@ -6,6 +6,12 @@ public class ContentCatalogDTO {
     private Long id;
     private String link;
     
+    @JsonProperty("content_type")
+    private String contentType;
+    
+    @JsonProperty("content_metadata")
+    private String contentMetadata;
+    
     @JsonProperty("media_type")
     private String mediaType;
     
@@ -53,6 +59,22 @@ public class ContentCatalogDTO {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentMetadata() {
+        return contentMetadata;
+    }
+
+    public void setContentMetadata(String contentMetadata) {
+        this.contentMetadata = contentMetadata;
     }
 
     public String getMediaType() {

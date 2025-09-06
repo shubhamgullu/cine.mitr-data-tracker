@@ -495,7 +495,7 @@ function showErrorMessage(message) {
 // CSV format templates for each tab
 const csvFormats = {
     media: 'media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on\n"Movie Title","Movie","English","Action","Superhero","Yes","/path/to/file","Netflix"',
-    content: 'link,media_type,media_name,status,priority,local_status,local_file_path\n"https://example.com","Movie","Title","new","high","downloaded","/path/file"',
+    content: 'link,media_names,status,priority,local_status,local_file_path,content_type,content_metadata\n"https://example.com","Movie Title","new","high","downloaded","/path/file","Video","Content metadata description"',
     upload: 'source_link,source_data,status,media_data\n"https://source.com","Metadata info","completed","HD Video, 2GB"',
     states: 'date,total_views,subscribers,interaction,content,page\n"2024-01-15","15420","1250","850","Content desc","cine.mitr"'
 };

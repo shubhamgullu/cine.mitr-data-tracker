@@ -30,6 +30,31 @@ public class ContentCatalogService {
     
     @Autowired
     private UploadCatalogService uploadService;
+    
+    private String toTitleCase(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return input;
+        }
+
+        String[] words = input.trim().toLowerCase().split("\\s+");
+        StringBuilder titleCase = new StringBuilder();
+
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (word.isEmpty()) continue;
+
+            // Capitalize first letter if it's a letter
+            titleCase.append(Character.toUpperCase(word.charAt(0)))
+                    .append(word.substring(1));
+
+            if (i < words.length - 1) {
+                titleCase.append(" ");
+            }
+        }
+
+        return titleCase.toString();
+    }
+
 
     public List<ContentCatalogDTO> getAllContent() {
         return contentRepository.findAll().stream()
@@ -45,7 +70,12 @@ public class ContentCatalogService {
     public ContentCatalogDTO saveContent(ContentCatalogDTO contentDTO) {
         ContentCatalog content = new ContentCatalog();
         content.setLink(contentDTO.getLink());
+        content.setContentType(contentDTO.getContentType());
+        content.setContentMetadata(contentDTO.getContentMetadata());
         content.setStatus(contentDTO.getStatus());
+        if (contentDTO.getPriority()==null || contentDTO.getPriority().isEmpty())
+            content.setPriority("low");
+        else
         content.setPriority(contentDTO.getPriority());
         content.setLocalStatus(contentDTO.getLocalStatus());
         
@@ -65,7 +95,8 @@ public class ContentCatalogService {
             
             // Process each unique media name
             for (String uniqueMediaName : uniqueMediaNames) {
-                MediaCatalog media = findOrCreateMediaByName(uniqueMediaName, contentDTO.getMediaType());
+                String camelCaseName = toTitleCase(uniqueMediaName);
+                MediaCatalog media = findOrCreateMediaByName(camelCaseName, contentDTO.getMediaType());
                 mediaSet.add(media);
             }
         }
@@ -138,6 +169,8 @@ public class ContentCatalogService {
         ContentCatalogDTO dto = new ContentCatalogDTO();
         dto.setId(content.getId());
         dto.setLink(content.getLink());
+        dto.setContentType(content.getContentType());
+        dto.setContentMetadata(content.getContentMetadata());
         
         // Handle multiple media
         if (content.getMediaList() != null && !content.getMediaList().isEmpty()) {
@@ -175,6 +208,8 @@ public class ContentCatalogService {
 
     private void updateEntityFromDTO(ContentCatalog content, ContentCatalogDTO dto) {
         content.setLink(dto.getLink());
+        content.setContentType(dto.getContentType());
+        content.setContentMetadata(dto.getContentMetadata());
         content.setStatus(dto.getStatus());
         content.setPriority(dto.getPriority());
         content.setLocalStatus(dto.getLocalStatus());
@@ -195,7 +230,8 @@ public class ContentCatalogService {
             
             // Process each unique media name
             for (String uniqueMediaName : uniqueMediaNames) {
-                MediaCatalog media = findOrCreateMediaByName(uniqueMediaName, dto.getMediaType());
+                String camelCaseName = toTitleCase(uniqueMediaName);
+                MediaCatalog media = findOrCreateMediaByName(camelCaseName, dto.getMediaType());
                 mediaSet.add(media);
             }
         }
@@ -235,7 +271,8 @@ public class ContentCatalogService {
                 }
                 
                 for (String uniqueMediaName : uniqueMediaNames) {
-                    MediaCatalog media = findOrCreateMediaByName(uniqueMediaName, contentDTO.getMediaType());
+                    String camelCaseName = toTitleCase(uniqueMediaName);
+                    MediaCatalog media = findOrCreateMediaByName(camelCaseName, contentDTO.getMediaType());
                     mediaSet.add(media);
                 }
                 upload.setMediaList(mediaSet);

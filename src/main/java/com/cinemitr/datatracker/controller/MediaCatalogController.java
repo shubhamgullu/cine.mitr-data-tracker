@@ -69,4 +69,10 @@ public class MediaCatalogController {
         List<MediaCatalogDTO> media = mediaService.getAllMedia();
         return ResponseEntity.ok((long) media.size());
     }
+
+    @GetMapping("/genres")
+    public ResponseEntity<List<String>> getUniqueGenres() {
+        List<String> genres = mediaService.getUniqueMainGenres();
+        return ResponseEntity.ok(genres);
+    }
 }
