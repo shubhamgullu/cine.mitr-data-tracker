@@ -22,6 +22,108 @@
         .modal.active {
             display: flex;
         }
+
+        /* Responsive Design Enhancements */
+        @media (max-width: 768px) {
+            /* Mobile-first approach for tables */
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .table-responsive th,
+            .table-responsive td {
+                padding: 0.5rem 0.75rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+            }
+            
+            /* Stack pagination controls vertically on mobile */
+            .pagination-controls {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .pagination-controls > div {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            /* Adjust modal sizing for mobile */
+            .modal .bg-white {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+                width: calc(100% - 2rem);
+            }
+            
+            /* Make buttons stack on mobile */
+            .button-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .button-group button {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            /* Extra small screens */
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            /* Hide less important columns on very small screens */
+            .hide-on-mobile {
+                display: none !important;
+            }
+            
+            /* Adjust search filters for mobile */
+            .search-filters {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .search-filters .md\\:col-span-2,
+            .search-filters .md\\:col-span-3 {
+                grid-column: span 1;
+            }
+        }
+        
+        /* Improved responsive table scrolling */
+        .table-container {
+            position: relative;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Pagination button responsiveness */
+        @media (max-width: 480px) {
+            .pagination-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.25rem;
+            }
+            
+            .pagination-buttons button {
+                min-width: 32px;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Dashboard card improvements */
+        .dashboard-card {
+            transition: transform 0.2s ease-in-out, shadow 0.2s ease-in-out;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
@@ -58,9 +160,9 @@
 
         <!-- Media Tab -->
         <div id="media" class="tab-content active">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-gray-900">Media Management</h2>
-                <div class="flex space-x-3">
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 button-group w-full sm:w-auto">
                     <button onclick="refreshData('media')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
                     <button onclick="triggerBulkUpload('media')"
@@ -75,7 +177,7 @@
             <!-- Search Container for Media -->
             <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
                 <div class="p-6 border-b border-gray-200">
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 search-filters">
                         <div class="md:col-span-3">
                             <input type="text" 
                                    id="mediaSearch" 
@@ -121,29 +223,72 @@
             </div>
             
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Main Genre</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downloaded</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="media-table" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be loaded via API -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Main Genre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downloaded</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="media-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded via API -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center pagination-controls">
+                    <div class="flex items-center space-x-2 mb-3 sm:mb-0">
+                        <span class="text-sm text-gray-700">Show</span>
+                        <select id="media-page-size" onchange="changePageSize('media')" 
+                                class="border border-gray-300 rounded text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-sm text-gray-700">entries per page</span>
+                    </div>
+                    
+                    <div class="text-sm text-gray-700" id="media-pagination-info">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 pagination-buttons">
+                        <button onclick="goToPage('media', 1)" id="media-first-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ⇤ First
+                        </button>
+                        <button onclick="previousPage('media')" id="media-prev-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ← Prev
+                        </button>
+                        <span id="media-page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be generated dynamically -->
+                        </span>
+                        <button onclick="nextPage('media')" id="media-next-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next →
+                        </button>
+                        <button onclick="goToPage('media', 'last')" id="media-last-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Last ⇥
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Content Tab -->
         <div id="content" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-gray-900">Content Management</h2>
-                <div class="flex space-x-3">
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 button-group w-full sm:w-auto">
                     <button onclick="refreshData('content')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
                     <button onclick="triggerBulkUpload('content')"
@@ -158,7 +303,7 @@
             <!-- Search Container for Content -->
             <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
                 <div class="p-6 border-b border-gray-200">
-                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4 search-filters">
                         <div class="md:col-span-2">
                             <input type="text" 
                                    id="contentSearch" 
@@ -222,32 +367,75 @@
             </div>
             
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Metadata</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Local Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="content-table" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be loaded via API -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Content Metadata</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Local Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="content-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded via API -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center pagination-controls">
+                    <div class="flex items-center space-x-2 mb-3 sm:mb-0">
+                        <span class="text-sm text-gray-700">Show</span>
+                        <select id="content-page-size" onchange="changePageSize('content')" 
+                                class="border border-gray-300 rounded text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-sm text-gray-700">entries per page</span>
+                    </div>
+                    
+                    <div class="text-sm text-gray-700" id="content-pagination-info">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 pagination-buttons">
+                        <button onclick="goToPage('content', 1)" id="content-first-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ⇤ First
+                        </button>
+                        <button onclick="previousPage('content')" id="content-prev-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ← Prev
+                        </button>
+                        <span id="content-page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be generated dynamically -->
+                        </span>
+                        <button onclick="nextPage('content')" id="content-next-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next →
+                        </button>
+                        <button onclick="goToPage('content', 'last')" id="content-last-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Last ⇥
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Upload Tab -->
         <div id="upload" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-gray-900">Upload Management</h2>
-                <div class="flex space-x-3">
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 button-group w-full sm:w-auto">
                     <button onclick="refreshData('upload')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
                     <button onclick="triggerBulkUpload('upload')"
@@ -262,7 +450,7 @@
             <!-- Search Container for Upload -->
             <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
                 <div class="p-6 border-b border-gray-200">
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 search-filters">
                         <div class="md:col-span-2">
                             <input type="text" 
                                    id="uploadSearch" 
@@ -324,29 +512,72 @@
             </div>
             
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Link</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Data</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Data</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="upload-table" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be loaded via API -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Link</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source Data</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Media Data</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upload-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded via API -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center pagination-controls">
+                    <div class="flex items-center space-x-2 mb-3 sm:mb-0">
+                        <span class="text-sm text-gray-700">Show</span>
+                        <select id="upload-page-size" onchange="changePageSize('upload')" 
+                                class="border border-gray-300 rounded text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-sm text-gray-700">entries per page</span>
+                    </div>
+                    
+                    <div class="text-sm text-gray-700" id="upload-pagination-info">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 pagination-buttons">
+                        <button onclick="goToPage('upload', 1)" id="upload-first-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ⇤ First
+                        </button>
+                        <button onclick="previousPage('upload')" id="upload-prev-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ← Prev
+                        </button>
+                        <span id="upload-page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be generated dynamically -->
+                        </span>
+                        <button onclick="nextPage('upload')" id="upload-next-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next →
+                        </button>
+                        <button onclick="goToPage('upload', 'last')" id="upload-last-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Last ⇥
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- States Tab -->
         <div id="states" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-gray-900">States Management</h2>
-                <div class="flex space-x-3">
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 button-group w-full sm:w-auto">
                     <button onclick="refreshData('states')"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
                     <button onclick="triggerBulkUpload('states')"
@@ -358,41 +589,84 @@
                 </div>
             </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Views</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subscribers</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interaction</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Page</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="states-table" class="bg-white divide-y divide-gray-200">
-                        <!-- Data will be loaded via API -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Views</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subscribers</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interaction</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Page</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="states-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be loaded via API -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center pagination-controls">
+                    <div class="flex items-center space-x-2 mb-3 sm:mb-0">
+                        <span class="text-sm text-gray-700">Show</span>
+                        <select id="states-page-size" onchange="changePageSize('states')" 
+                                class="border border-gray-300 rounded text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-sm text-gray-700">entries per page</span>
+                    </div>
+                    
+                    <div class="text-sm text-gray-700" id="states-pagination-info">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 pagination-buttons">
+                        <button onclick="goToPage('states', 1)" id="states-first-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ⇤ First
+                        </button>
+                        <button onclick="previousPage('states')" id="states-prev-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ← Prev
+                        </button>
+                        <span id="states-page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be generated dynamically -->
+                        </span>
+                        <button onclick="nextPage('states')" id="states-next-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next →
+                        </button>
+                        <button onclick="goToPage('states', 'last')" id="states-last-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Last ⇥
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content">
             <h2 class="text-xl font-semibold text-gray-900 mb-6">Dashboard Overview</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 dashboard-grid">
+                <div class="bg-white p-6 rounded-lg shadow dashboard-card">
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Total Media</h3>
                     <p class="text-3xl font-bold text-blue-600" id="media-count">Loading...</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow dashboard-card">
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Total Content</h3>
                     <p class="text-3xl font-bold text-green-600" id="content-count">Loading...</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow dashboard-card">
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Total Uploads</h3>
                     <p class="text-3xl font-bold text-purple-600" id="upload-count">Loading...</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow dashboard-card">
                     <h3 class="text-lg font-medium text-gray-900 mb-2">Total States</h3>
                     <p class="text-3xl font-bold text-orange-600" id="states-count">Loading...</p>
                 </div>
@@ -402,7 +676,7 @@
 
     <!-- Media Modal -->
     <div id="media-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg lg:max-w-xl mx-4 max-h-screen overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4" id="media-modal-title">Add Media</h3>
             <form id="media-form" onsubmit="submitForm(event, 'media')">
                 <div class="mb-4">
@@ -488,7 +762,7 @@
 
     <!-- Content Modal -->
     <div id="content-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg lg:max-w-xl mx-4 max-h-screen overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4" id="content-modal-title">Add Content</h3>
             <form id="content-form" onsubmit="submitForm(event, 'content')">
                 <div class="mb-4">
@@ -579,7 +853,7 @@
 
     <!-- Upload Modal -->
     <div id="upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg lg:max-w-xl mx-4 max-h-screen overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4" id="upload-modal-title">Add Upload</h3>
             <form id="upload-form" onsubmit="submitForm(event, 'upload')">
                 <div class="mb-4">
@@ -671,7 +945,7 @@
 
     <!-- States Modal -->
     <div id="states-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg lg:max-w-xl mx-4 max-h-screen overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4" id="states-modal-title">Add State</h3>
             <form id="states-form" onsubmit="submitForm(event, 'states')">
                 <div class="mb-4">
@@ -720,7 +994,7 @@
 
     <!-- Bulk Upload Modal -->
     <div id="bulk-upload-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+        <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-lg sm:max-w-2xl lg:max-w-3xl mx-4 max-h-screen overflow-y-auto">
             <h3 class="text-lg font-semibold mb-4" id="bulk-upload-title">Bulk Upload</h3>
             <div class="mb-6">
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">

@@ -7,6 +7,14 @@ let editingIndex = -1;
 let currentBulkType = '';
 let selectedFile = null;
 
+// Pagination variables
+let paginationData = {
+    media: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
+    content: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
+    upload: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
+    states: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] }
+};
+
 // API endpoints
 const endpoints = {
     media: `${API_BASE_URL}/media`,
@@ -132,7 +140,11 @@ async function loadData(type) {
         }
         
         const data = await response.json();
-        renderTable(type, data);
+        
+        // Update pagination data and render paginated table
+        updatePaginationData(type, data);
+        renderPaginatedTable(type);
+        updatePaginationControls(type);
     } catch (error) {
         console.error(`Error loading ${type} data:`, error);
         showErrorMessage(type, `Failed to load ${type} data: ${error.message}`);
@@ -1141,5 +1153,145 @@ function showNoUploadResultsMessage(tbody) {
         </td>
     `;
     tbody.appendChild(noResultsRow);
+}
+
+// ==================== PAGINATION FUNCTIONALITY ====================
+
+// Update pagination data when data is loaded
+function updatePaginationData(type, data) {
+    paginationData[type].allData = data || [];
+    paginationData[type].totalItems = data ? data.length : 0;
+    paginationData[type].currentPage = 1; // Reset to first page when data is reloaded
+}
+
+// Get paginated data for current page
+function getPaginatedData(type) {
+    const pageData = paginationData[type];
+    const startIndex = (pageData.currentPage - 1) * pageData.pageSize;
+    const endIndex = startIndex + pageData.pageSize;
+    return pageData.allData.slice(startIndex, endIndex);
+}
+
+// Update pagination controls UI
+function updatePaginationControls(type) {
+    const pageData = paginationData[type];
+    const totalPages = Math.ceil(pageData.totalItems / pageData.pageSize);
+    
+    // Update pagination info text
+    const startItem = pageData.totalItems === 0 ? 0 : ((pageData.currentPage - 1) * pageData.pageSize) + 1;
+    const endItem = Math.min(pageData.currentPage * pageData.pageSize, pageData.totalItems);
+    document.getElementById(`${type}-pagination-info`).textContent = 
+        `Showing ${startItem} to ${endItem} of ${pageData.totalItems} entries`;
+    
+    // Update button states
+    const firstBtn = document.getElementById(`${type}-first-btn`);
+    const prevBtn = document.getElementById(`${type}-prev-btn`);
+    const nextBtn = document.getElementById(`${type}-next-btn`);
+    const lastBtn = document.getElementById(`${type}-last-btn`);
+    
+    if (firstBtn && prevBtn && nextBtn && lastBtn) {
+        firstBtn.disabled = pageData.currentPage === 1;
+        prevBtn.disabled = pageData.currentPage === 1;
+        nextBtn.disabled = pageData.currentPage === totalPages || totalPages === 0;
+        lastBtn.disabled = pageData.currentPage === totalPages || totalPages === 0;
+    }
+    
+    // Update page numbers
+    updatePageNumbers(type, totalPages);
+}
+
+// Update page number buttons
+function updatePageNumbers(type, totalPages) {
+    const pageNumbersContainer = document.getElementById(`${type}-page-numbers`);
+    if (!pageNumbersContainer) return;
+    
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    const currentPage = paginationData[type].currentPage;
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = i === currentPage 
+            ? 'px-3 py-1 text-sm bg-blue-600 text-white border border-blue-600 rounded'
+            : 'px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50';
+        pageBtn.onclick = () => goToPage(type, i);
+        pageNumbersContainer.appendChild(pageBtn);
+    }
+}
+
+// Navigation functions
+function goToPage(type, page) {
+    const totalPages = Math.ceil(paginationData[type].totalItems / paginationData[type].pageSize);
+    
+    if (page === 'last') {
+        page = totalPages;
+    }
+    
+    if (page >= 1 && page <= totalPages) {
+        paginationData[type].currentPage = page;
+        renderPaginatedTable(type);
+        updatePaginationControls(type);
+    }
+}
+
+function previousPage(type) {
+    if (paginationData[type].currentPage > 1) {
+        paginationData[type].currentPage--;
+        renderPaginatedTable(type);
+        updatePaginationControls(type);
+    }
+}
+
+function nextPage(type) {
+    const totalPages = Math.ceil(paginationData[type].totalItems / paginationData[type].pageSize);
+    if (paginationData[type].currentPage < totalPages) {
+        paginationData[type].currentPage++;
+        renderPaginatedTable(type);
+        updatePaginationControls(type);
+    }
+}
+
+function changePageSize(type) {
+    const pageSizeSelect = document.getElementById(`${type}-page-size`);
+    if (pageSizeSelect) {
+        paginationData[type].pageSize = parseInt(pageSizeSelect.value);
+        paginationData[type].currentPage = 1; // Reset to first page
+        renderPaginatedTable(type);
+        updatePaginationControls(type);
+    }
+}
+
+// Render table with pagination
+function renderPaginatedTable(type) {
+    const paginatedData = getPaginatedData(type);
+    renderTable(type, paginatedData);
+}
+
+// ==================== RESPONSIVE DESIGN ENHANCEMENTS ====================
+
+// Handle window resize for responsive design
+window.addEventListener('resize', function() {
+    // Update pagination controls layout on resize
+    updateAllPaginationControls();
+});
+
+function updateAllPaginationControls() {
+    ['media', 'content', 'upload', 'states'].forEach(type => {
+        if (paginationData[type].totalItems > 0) {
+            updatePaginationControls(type);
+        }
+    });
 }
 
