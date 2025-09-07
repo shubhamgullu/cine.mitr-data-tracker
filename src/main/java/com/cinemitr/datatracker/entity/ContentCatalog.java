@@ -6,13 +6,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "content_catalog")
+@Table(name = "content_catalog", uniqueConstraints = @UniqueConstraint(columnNames = "link"))
 public class ContentCatalog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "link", nullable = false)
+    @Column(name = "link", nullable = false,unique = true)
     private String link;
 
     @Column(name = "content_type")

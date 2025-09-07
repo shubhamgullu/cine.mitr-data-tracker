@@ -30,17 +30,24 @@ media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_pat
 
 **Required Columns**:
 - `link` - Download URL (String, required)
-- `media_names` - Associated media names, comma-separated for multiple (String, optional)
+- `content_type` - Type of content: Video, Audio, Document, Movie, Music, Image, Web-Series, Documentary (String, optional)
+- `content_metadata` - Additional metadata, description, or information about the content (String, optional)
+- `media_type` - Media type: Movie, Web-Series, Documentary (String, required)
+- `media_name` - Associated media names, comma-separated for multiple (String, required)
 - `status` - Download status: new, downloaded, error (String, required)
 - `priority` - Priority level: low, medium, high, urgent (String, required)
 - `local_status` - Local file status: available, not-available, local, processing (String, required)
 - `local_file_path` - Path to local file (String, optional)
-- `content_type` - Type of content: Video, Audio, Document, etc. (String, optional)
-- `content_metadata` - Additional metadata about the content (String, optional)
 
-**Multi-Media Support**: Use comma-separated values in `media_names` column:
+**Multi-Media Support**: Use comma-separated values in `media_name` column:
 ```csv
-"https://example.com/multi_media","The Matrix, Free Solo","new","urgent","not-available",""
+"https://example.com/multi_media","Video","Multi-content package","Movie","The Matrix, Free Solo","new","urgent","not-available",""
+```
+
+**Example CSV Format**:
+```csv
+link,content_type,content_metadata,media_type,media_name,status,priority,local_status,local_file_path
+"https://example.com/video","Video","High-quality movie content","Movie","The Matrix","new","high","downloaded","/path/file"
 ```
 
 ### 3. Upload Catalog Template (`sample_upload.csv`)

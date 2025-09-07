@@ -1,7 +1,7 @@
-link,media_names,status,priority,local_status,local_file_path,content_type,content_metadata
-"https://example.com/movies/matrix_download","The Matrix","downloaded","high","available","/local/storage/matrix.mp4","Video","High-quality Matrix download link with local backup"
-"https://example.com/series/stranger_things_s4","Stranger Things","new","medium","not-available","","Video","Stranger Things Season 4 streaming content"
-"https://torrent.example.com/free_solo_4k","Free Solo","downloaded","high","local","/downloads/free_solo_4k.mkv","Video","4K documentary torrent download"
-"https://direct.example.com/avatar_complete","Avatar: The Last Airbender","new","medium","processing","","Video","Complete Avatar series direct download"
-"https://streaming.example.com/planet_earth_hd","Planet Earth","error","low","not-available","","Video","Planet Earth HD streaming with connection issues"
-"https://example.com/multi_media","The Matrix, Free Solo","new","urgent","not-available","","Video","Multi-media package with popular content"
+link,content_type,content_metadata,media_type,media_name,status,priority,local_status,local_file_path
+"https://example.com/movies/matrix_download","Video","High-quality Matrix download link with local backup","Movie","The Matrix","downloaded","high","available","/local/storage/matrix.mp4"
+"https://example.com/series/stranger_things_s4","Video","Stranger Things Season 4 streaming content","Web-Series","Stranger Things","new","medium","not-available",""
+"https://torrent.example.com/free_solo_4k","Video","4K documentary torrent download","Documentary","Free Solo","downloaded","high","local","/downloads/free_solo_4k.mkv"
+"https://direct.example.com/avatar_complete","Video","Complete Avatar series direct download","Web-Series","Avatar: The Last Airbender","new","medium","processing",""
+"https://streaming.example.com/planet_earth_hd","Video","Planet Earth HD streaming with connection issues","Documentary","Planet Earth","error","low","not-available",""
+"https://example.com/multi_media","Video","Multi-media package with popular content","Movie","The Matrix, Free Solo","new","urgent","not-available",""

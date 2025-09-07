@@ -40,9 +40,9 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Only initialize data if the database is empty
-        if (mediaCatalogRepository.count() == 0) {
-            initializeSampleData();
-        }
+//        if (mediaCatalogRepository.count() == 0) {
+//            initializeSampleData();
+//        }
     }
 
     private void initializeSampleData() {

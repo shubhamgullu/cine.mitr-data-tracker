@@ -154,13 +154,25 @@ async function loadData(type) {
 // Show loading message
 function showLoadingMessage(type) {
     const tbody = document.getElementById(`${type}-table`);
-    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>';
+    let colspan = '6';
+    if (type === 'content') {
+        colspan = '8';
+    } else if (type === 'states') {
+        colspan = '6';
+    }
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>`;
 }
 
 // Show error message
 function showErrorMessage(type, message) {
     const tbody = document.getElementById(`${type}-table`);
-    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">${message}</td></tr>`;
+    let colspan = '6';
+    if (type === 'content') {
+        colspan = '8';
+    } else if (type === 'states') {
+        colspan = '6';
+    }
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">${message}</td></tr>`;
 }
 
 // Refresh data
@@ -174,7 +186,13 @@ function renderTable(type, data) {
     tbody.innerHTML = '';
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No ${type} records found</td></tr>`;
+        let colspan = '6';
+        if (type === 'content') {
+            colspan = '8';
+        } else if (type === 'states') {
+            colspan = '6';
+        }
+        tbody.innerHTML = `<tr><td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">No ${type} records found</td></tr>`;
         return;
     }
 
@@ -219,6 +237,7 @@ function generateTableRow(type, item, index) {
             
             cells = `
                 <td class="px-6 py-4 text-sm text-blue-600 truncate max-w-xs"><a href="${item.link}" target="_blank" title="${item.link}">${item.link || ''}</a></td>
+                <td class="px-6 py-4 text-sm text-gray-500">${item.content_type || ''}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">${item.media_type || ''}</td>
                 <td class="px-6 py-4 text-sm text-gray-500" title="${item.media_names_list ? item.media_names_list.join(', ') : (item.media_name || '')}">${mediaDisplay}</td>
                 <td class="px-6 py-4 text-sm ${getStatusColor(item.status)}">${item.status || ''}</td>
@@ -507,38 +526,12 @@ function showErrorMessage(message) {
 // CSV format templates for each tab
 const csvFormats = {
     media: 'media_name,media_type,language,main_genres,sub_genres,is_downloaded,download_path,available_on\n"Movie Title","Movie","English","Action","Superhero","Yes","/path/to/file","Netflix"',
-    content: 'link,media_names,status,priority,local_status,local_file_path,content_type,content_metadata\n"https://example.com","Movie Title","new","high","downloaded","/path/file","Video","Content metadata description"',
+    content: 'link,content_type,content_metadata,media_type,media_name,status,priority,local_status,local_file_path\n"https://example.com/video","Video","High-quality movie content with excellent metadata","Movie","The Matrix","new","high","downloaded","/path/file"',
     upload: 'source_link,source_data,status,media_data\n"https://source.com","Metadata info","completed","HD Video, 2GB"',
     states: 'date,total_views,subscribers,interaction,content,page\n"2024-01-15","15420","1250","850","Content desc","cine.mitr"'
 };
 
-// Template data with sample rows for each tab
-const templateData = {
-    media: [
-        ['media_name', 'media_type', 'language', 'main_genres', 'sub_genres', 'is_downloaded', 'download_path', 'available_on'],
-        ['The Avengers', 'Movie', 'English', 'Action', 'Superhero, Adventure', 'Yes', '/media/movies/avengers.mp4', 'Disney+, Netflix'],
-        ['Breaking Bad', 'Web-Series', 'English', 'Drama', 'Crime, Thriller', 'No', '', 'Netflix, Amazon Prime'],
-        ['Planet Earth', 'Documentary', 'English', 'Documentary', 'Nature, Wildlife', 'Yes', '/media/docs/planet_earth.mp4', 'BBC iPlayer']
-    ],
-    content: [
-        ['link', 'media_type', 'media_name', 'status', 'priority', 'local_status', 'local_file_path'],
-        ['https://example.com/movie1', 'Movie', 'Sample Movie 1', 'new', 'high', 'na', ''],
-        ['https://example.com/series1', 'Web-Series', 'Sample Series 1', 'downloaded', 'medium', 'downloaded', '/local/series1.mp4'],
-        ['https://example.com/doc1', 'Documentary', 'Sample Doc 1', 'error', 'low', 'error', '']
-    ],
-    upload: [
-        ['source_link', 'source_data', 'status', 'media_data'],
-        ['https://source1.com/content', 'Movie metadata with HD quality and location details', 'completed', 'HD Video, 2.5GB, MP4 format'],
-        ['https://source2.com/series', 'Web series metadata with episode information', 'in-progress', '4K Video, 8.2GB, MKV format'],
-        ['https://source3.com/doc', 'Documentary metadata with subtitles', 'ready-to-upload', 'FHD Video, 1.8GB, MP4 format']
-    ],
-    states: [
-        ['date', 'total_views', 'subscribers', 'interaction', 'content', 'page'],
-        ['2024-01-15', '15420', '1250', '850', 'Daily analytics report', 'cine.mitr'],
-        ['2024-01-16', '16800', '1275', '920', 'Weekly content summary', 'cine.mitr.music'],
-        ['2024-01-17', '14200', '1290', '780', 'Monthly performance data', 'cine.mitr']
-    ]
-};
+// CSV format templates are now defined in the csvFormats object above
 
 // Bulk upload functions
 function triggerBulkUpload(type) {
@@ -712,14 +705,18 @@ function parseCSV(text) {
 
 // Download template function
 function downloadTemplate() {
-    const data = templateData[currentBulkType];
-    const csvContent = data.map(row =>
-        row.map(cell => `"${cell}"`).join(',')
-    ).join('\n');
-
+    if (!currentBulkType || !csvFormats[currentBulkType]) {
+        console.error('No bulk type selected or template not found');
+        return;
+    }
+    
+    // Get the CSV content from the csvFormats object
+    const csvContent = csvFormats[currentBulkType];
+    
+    // Create and download the file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-
+    
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -728,8 +725,13 @@ function downloadTemplate() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url); // Clean up the URL object
+    } else {
+        // Fallback for older browsers
+        window.open('data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent));
     }
+    
+    console.log(`Downloaded ${currentBulkType} template`);
 }
 
 // Search and Filter Functions for Media Management
@@ -996,7 +998,7 @@ function showNoContentResultsMessage(tbody) {
     const noResultsRow = document.createElement('tr');
     noResultsRow.className = 'no-results-row';
     noResultsRow.innerHTML = `
-        <td colspan="7" class="px-6 py-12 text-center">
+        <td colspan="8" class="px-6 py-12 text-center">
             <div class="flex flex-col items-center justify-center">
                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>

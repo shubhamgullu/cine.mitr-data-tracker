@@ -76,7 +76,7 @@ public class ContentCatalogService {
         if (contentDTO.getPriority()==null || contentDTO.getPriority().isEmpty())
             content.setPriority("low");
         else
-        content.setPriority(contentDTO.getPriority());
+            content.setPriority(contentDTO.getPriority());
         content.setLocalStatus(contentDTO.getLocalStatus());
         
         // Handle multiple media names
