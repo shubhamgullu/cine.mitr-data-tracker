@@ -152,6 +152,9 @@
                 <button onclick="switchTab('states')"
                     class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
                     data-tab="states">States</button>
+                <button onclick="switchTab('errors')"
+                    class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
+                    data-tab="errors">Bulk Upload Errors</button>
                 <button onclick="switchTab('dashboard')"
                     class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700"
                     data-tab="dashboard">Dashboard</button>
@@ -641,6 +644,135 @@
                             Next →
                         </button>
                         <button onclick="goToPage('states', 'last')" id="states-last-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Last ⇥
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Upload Errors Tab -->
+        <div id="errors" class="tab-content">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h2 class="text-xl font-semibold text-gray-900">Bulk Upload Errors</h2>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 button-group w-full sm:w-auto">
+                    <button onclick="refreshData('errors')"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">Refresh</button>
+                    <button onclick="showErrorStatistics()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">View Statistics</button>
+                    <button onclick="clearResolvedErrors()"
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium">Clear Resolved</button>
+                </div>
+            </div>
+
+            <!-- Error Filters -->
+            <div class="bg-gray-50 rounded-lg border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 search-filters">
+                        <div class="md:col-span-1">
+                            <select id="errorUploadTypeFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterErrorTable()">
+                                <option value="">All Types</option>
+                                <option value="MEDIA">Media</option>
+                                <option value="CONTENT">Content</option>
+                                <option value="UPLOAD">Upload</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="errorTypeFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterErrorTable()">
+                                <option value="">All Error Types</option>
+                                <option value="VALIDATION_ERROR">Validation Error</option>
+                                <option value="DUPLICATE_ERROR">Duplicate Error</option>
+                                <option value="CONSTRAINT_ERROR">Constraint Error</option>
+                                <option value="PROCESSING_ERROR">Processing Error</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <select id="errorStatusFilter" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="filterErrorTable()">
+                                <option value="">All Status</option>
+                                <option value="false">Unresolved</option>
+                                <option value="true">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <input type="text" 
+                                   id="errorBatchFilter" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   placeholder="Filter by Batch ID..." 
+                                   onkeyup="filterErrorTable()">
+                        </div>
+                        <div class="md:col-span-1">
+                            <button onclick="clearErrorFilters()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto table-container">
+                    <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Upload Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Row #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error Message</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="errors-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Error data will be loaded via API -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div class="bg-white px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center pagination-controls">
+                    <div class="flex items-center space-x-2 mb-3 sm:mb-0">
+                        <span class="text-sm text-gray-700">Show</span>
+                        <select id="errors-page-size" onchange="changePageSize('errors')" 
+                                class="border border-gray-300 rounded text-sm px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="text-sm text-gray-700">entries per page</span>
+                    </div>
+                    
+                    <div class="text-sm text-gray-700" id="errors-pagination-info">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    
+                    <div class="flex items-center space-x-1 pagination-buttons">
+                        <button onclick="goToPage('errors', 1)" id="errors-first-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ⇤ First
+                        </button>
+                        <button onclick="previousPage('errors')" id="errors-prev-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ← Prev
+                        </button>
+                        <span id="errors-page-numbers" class="flex space-x-1">
+                            <!-- Page numbers will be generated dynamically -->
+                        </span>
+                        <button onclick="nextPage('errors')" id="errors-next-btn" 
+                                class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Next →
+                        </button>
+                        <button onclick="goToPage('errors', 'last')" id="errors-last-btn" 
                                 class="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                             Last ⇥
                         </button>

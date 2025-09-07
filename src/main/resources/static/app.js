@@ -12,7 +12,8 @@ let paginationData = {
     media: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
     content: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
     upload: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
-    states: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] }
+    states: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] },
+    errors: { currentPage: 1, pageSize: 25, totalItems: 0, allData: [] }
 };
 
 // API endpoints
@@ -20,7 +21,8 @@ const endpoints = {
     media: `${API_BASE_URL}/media`,
     content: `${API_BASE_URL}/content`,
     upload: `${API_BASE_URL}/upload`,
-    states: `${API_BASE_URL}/states`
+    states: `${API_BASE_URL}/states`,
+    errors: `${API_BASE_URL}/bulk-errors`
 };
 
 // Initialize the application
@@ -157,6 +159,8 @@ function showLoadingMessage(type) {
     let colspan = '6';
     if (type === 'content') {
         colspan = '8';
+    } else if (type === 'errors') {
+        colspan = '8';
     } else if (type === 'states') {
         colspan = '6';
     }
@@ -168,6 +172,8 @@ function showErrorMessage(type, message) {
     const tbody = document.getElementById(`${type}-table`);
     let colspan = '6';
     if (type === 'content') {
+        colspan = '8';
+    } else if (type === 'errors') {
         colspan = '8';
     } else if (type === 'states') {
         colspan = '6';
@@ -188,6 +194,8 @@ function renderTable(type, data) {
     if (!data || data.length === 0) {
         let colspan = '6';
         if (type === 'content') {
+            colspan = '8';
+        } else if (type === 'errors') {
             colspan = '8';
         } else if (type === 'states') {
             colspan = '6';
@@ -280,14 +288,58 @@ function generateTableRow(type, item, index) {
                 <td class="px-6 py-4 text-sm text-gray-500">${item.page || ''}</td>
             `;
             break;
+        case 'errors':
+            const formattedDate = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+            const statusBadge = item.is_resolved ? 
+                '<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Resolved</span>' : 
+                '<span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Unresolved</span>';
+            
+            cells = `
+                <td class="px-6 py-4 text-sm text-gray-900">
+                    <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">${item.upload_type || ''}</span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500 font-mono">${item.batch_id || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${item.row_number || ''}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                    <span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">${item.error_type || ''}</span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="${item.error_message || ''}">${item.error_message || ''}</td>
+                <td class="px-6 py-4 text-sm">${statusBadge}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
+            `;
+            break;
     }
 
+    let actions = '';
+    if (type === 'errors') {
+        if (item.is_resolved) {
+            actions = `
+                <td class="px-6 py-4 text-sm space-x-2">
+                    <button onclick="viewErrorDetails(${item.id})" class="text-blue-600 hover:text-blue-800">View</button>
+                    <button onclick="deleteError(${item.id})" class="text-red-600 hover:text-red-800">Delete</button>
+                </td>
+            `;
+        } else {
+            actions = `
+                <td class="px-6 py-4 text-sm space-x-2">
+                    <button onclick="viewErrorDetails(${item.id})" class="text-blue-600 hover:text-blue-800">View</button>
+                    <button onclick="resolveError(${item.id})" class="text-green-600 hover:text-green-800">Resolve</button>
+                    <button onclick="deleteError(${item.id})" class="text-red-600 hover:text-red-800">Delete</button>
+                </td>
+            `;
+        }
+    } else {
+        actions = `
+            <td class="px-6 py-4 text-sm space-x-2">
+                <button onclick="editItem('${type}', ${item.id})" class="text-blue-600 hover:text-blue-800">Edit</button>
+                <button onclick="deleteItem('${type}', ${item.id})" class="text-red-600 hover:text-red-800">Delete</button>
+            </td>
+        `;
+    }
+    
     return `
         ${cells}
-        <td class="px-6 py-4 text-sm space-x-2">
-            <button onclick="editItem('${type}', ${item.id})" class="text-blue-600 hover:text-blue-800">Edit</button>
-            <button onclick="deleteItem('${type}', ${item.id})" class="text-red-600 hover:text-red-800">Delete</button>
-        </td>
+        ${actions}
     `;
 }
 
@@ -594,6 +646,8 @@ function processBulkUpload() {
 }
 
 async function processCSVFile(file) {
+    const batchId = await generateBatchId();
+    
     try {
         const text = await readFileAsText(file);
         const rows = parseCSV(text);
@@ -603,19 +657,30 @@ async function processCSVFile(file) {
             const dataRows = rows.slice(1);
 
             // Convert rows to objects
-            const newItems = dataRows.map(row => {
+            const newItems = dataRows.map((row, index) => {
                 const item = {};
-                headers.forEach((header, index) => {
-                    item[header.trim()] = row[index] ? row[index].trim() : '';
+                headers.forEach((header, headerIndex) => {
+                    item[header.trim()] = row[headerIndex] ? row[headerIndex].trim() : '';
                 });
+                item._rowNumber = index + 2; // +2 because index starts at 0 and we skip header row
+                item._rawData = row.join(',');
                 return item;
             });
 
-            // Send each item to the backend API
+            // Send each item to the backend API with error tracking
             let successCount = 0;
             let errorCount = 0;
+            const errorDetails = [];
 
-            for (const item of newItems) {
+            for (let i = 0; i < newItems.length; i++) {
+                const item = newItems[i];
+                const rowNumber = item._rowNumber;
+                const rawData = item._rawData;
+                
+                // Remove metadata before sending to API
+                delete item._rowNumber;
+                delete item._rawData;
+
                 try {
                     const response = await fetch(endpoints[currentBulkType], {
                         method: 'POST',
@@ -629,11 +694,33 @@ async function processCSVFile(file) {
                         successCount++;
                     } else {
                         errorCount++;
-                        console.error(`Failed to create ${currentBulkType}:`, await response.text());
+                        const errorText = await response.text();
+                        
+                        // Log error to backend error tracking system
+                        logBulkUploadError(currentBulkType, batchId, rowNumber, rawData, errorText);
+                        
+                        errorDetails.push({
+                            row: rowNumber,
+                            error: errorText,
+                            data: rawData
+                        });
+                        
+                        console.error(`Failed to create ${currentBulkType} at row ${rowNumber}:`, errorText);
                     }
                 } catch (error) {
                     errorCount++;
-                    console.error(`Error creating ${currentBulkType}:`, error);
+                    const errorMessage = error.message || 'Unknown error occurred';
+                    
+                    // Log error to backend error tracking system
+                    logBulkUploadError(currentBulkType, batchId, rowNumber, rawData, errorMessage);
+                    
+                    errorDetails.push({
+                        row: rowNumber,
+                        error: errorMessage,
+                        data: rawData
+                    });
+                    
+                    console.error(`Error creating ${currentBulkType} at row ${rowNumber}:`, error);
                 }
             }
 
@@ -646,7 +733,8 @@ async function processCSVFile(file) {
                 if (errorCount === 0) {
                     showSuccessMessage(`Successfully imported ${successCount} records!`);
                 } else {
-                    showSuccessMessage(`Imported ${successCount} records. ${errorCount} failed.`);
+                    const message = `Imported ${successCount} records. ${errorCount} failed. <a href="javascript:void(0)" onclick="showBulkUploadErrors('${batchId}')" class="underline text-blue-600 hover:text-blue-800">View Details</a>`;
+                    showSuccessMessage(message);
                 }
             }, 500);
         } else {
@@ -655,9 +743,59 @@ async function processCSVFile(file) {
         }
     } catch (error) {
         console.error('Error processing file:', error);
+        logBulkUploadError(currentBulkType, batchId, 1, 'File processing error', error.message);
         showErrorMessage('Error processing file: ' + error.message);
         document.getElementById('process-btn').disabled = false;
     }
+}
+
+// Generate batch ID for error tracking
+async function generateBatchId() {
+    return 'BATCH_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+// Log bulk upload error to backend
+async function logBulkUploadError(uploadType, batchId, rowNumber, rawData, errorMessage) {
+    try {
+        const response = await fetch('/api/bulk-errors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                upload_type: uploadType.toUpperCase(),
+                batch_id: batchId,
+                row_number: rowNumber,
+                raw_data: rawData,
+                error_type: 'PROCESSING_ERROR',
+                error_message: errorMessage,
+                field_name: null,
+                attempted_value: null,
+                suggestions: null,
+                is_resolved: false
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to log bulk upload error:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Failed to log bulk upload error:', error);
+    }
+}
+
+// Show bulk upload errors modal
+function showBulkUploadErrors(batchId) {
+    // This will be implemented when we add the UI components
+    fetch(`/api/bulk-errors/batch/${batchId}`)
+        .then(response => response.json())
+        .then(errors => {
+            displayBulkUploadErrorsModal(errors);
+        })
+        .catch(error => {
+            console.error('Error fetching bulk upload errors:', error);
+            showErrorMessage('Failed to load error details');
+        });
 }
 
 function readFileAsText(file) {
@@ -1290,10 +1428,353 @@ window.addEventListener('resize', function() {
 });
 
 function updateAllPaginationControls() {
-    ['media', 'content', 'upload', 'states'].forEach(type => {
+    ['media', 'content', 'upload', 'states', 'errors'].forEach(type => {
         if (paginationData[type].totalItems > 0) {
             updatePaginationControls(type);
         }
     });
+}
+
+// ==================== BULK UPLOAD ERROR FUNCTIONS ====================
+
+// View error details
+function viewErrorDetails(errorId) {
+    fetch(`/api/bulk-errors/${errorId}`)
+        .then(response => response.json())
+        .then(error => {
+            displayErrorDetailsModal(error);
+        })
+        .catch(err => {
+            console.error('Error fetching error details:', err);
+            showErrorMessage('Failed to load error details');
+        });
+}
+
+// Resolve an error
+function resolveError(errorId) {
+    const resolutionNotes = prompt('Enter resolution notes (optional):');
+    if (resolutionNotes !== null) { // User didn't cancel
+        fetch(`/api/bulk-errors/${errorId}/resolve`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resolution_notes: resolutionNotes || 'Marked as resolved'
+            })
+        })
+        .then(response => response.json())
+        .then(() => {
+            showSuccessMessage('Error marked as resolved');
+            loadData('errors');
+        })
+        .catch(err => {
+            console.error('Error resolving error:', err);
+            showErrorMessage('Failed to resolve error');
+        });
+    }
+}
+
+// Delete an error
+function deleteError(errorId) {
+    if (confirm('Are you sure you want to delete this error record?')) {
+        fetch(`/api/bulk-errors/${errorId}`, {
+            method: 'DELETE'
+        })
+        .then(() => {
+            showSuccessMessage('Error deleted successfully');
+            loadData('errors');
+        })
+        .catch(err => {
+            console.error('Error deleting error:', err);
+            showErrorMessage('Failed to delete error');
+        });
+    }
+}
+
+// Display error details modal
+function displayErrorDetailsModal(error) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Error Details</h3>
+                    <button onclick="closeErrorModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Upload Type</label>
+                            <p class="mt-1 text-sm text-gray-900">${error.upload_type || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Batch ID</label>
+                            <p class="mt-1 text-sm text-gray-900 font-mono">${error.batch_id || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Row Number</label>
+                            <p class="mt-1 text-sm text-gray-900">${error.row_number || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Error Type</label>
+                            <p class="mt-1 text-sm text-gray-900">${error.error_type || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Error Message</label>
+                        <p class="mt-1 text-sm text-gray-900 bg-red-50 p-3 rounded-lg border border-red-200">${error.error_message || 'N/A'}</p>
+                    </div>
+                    
+                    ${error.field_name ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Field Name</label>
+                            <p class="mt-1 text-sm text-gray-900">${error.field_name}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${error.attempted_value ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Attempted Value</label>
+                            <p class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded border">${error.attempted_value}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Raw Data</label>
+                        <pre class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border overflow-x-auto">${error.raw_data || 'N/A'}</pre>
+                    </div>
+                    
+                    ${error.suggestions ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Suggestions</label>
+                            <p class="mt-1 text-sm text-gray-900 bg-blue-50 p-3 rounded-lg border border-blue-200">${error.suggestions}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <p class="mt-1">
+                                ${error.is_resolved ? 
+                                    '<span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Resolved</span>' : 
+                                    '<span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Unresolved</span>'
+                                }
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Created At</label>
+                            <p class="mt-1 text-sm text-gray-900">${error.created_at ? new Date(error.created_at).toLocaleString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    ${error.resolution_notes ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Resolution Notes</label>
+                            <p class="mt-1 text-sm text-gray-900 bg-green-50 p-3 rounded-lg border border-green-200">${error.resolution_notes}</p>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    ${!error.is_resolved ? `
+                        <button onclick="resolveError(${error.id}); closeErrorModal();" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium">
+                            Mark as Resolved
+                        </button>
+                    ` : ''}
+                    <button onclick="closeErrorModal()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Close error modal
+function closeErrorModal() {
+    const modal = document.querySelector('.modal.active');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+}
+
+// Show bulk upload errors modal from batch
+function displayBulkUploadErrorsModal(errors) {
+    if (!errors || errors.length === 0) {
+        showErrorMessage('No errors found for this batch');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal active fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    
+    const errorRows = errors.map(error => `
+        <tr class="border-b">
+            <td class="px-4 py-3 text-sm">${error.row_number}</td>
+            <td class="px-4 py-3 text-sm">${error.error_type}</td>
+            <td class="px-4 py-3 text-sm max-w-xs truncate" title="${error.error_message}">${error.error_message}</td>
+            <td class="px-4 py-3 text-sm">
+                <button onclick="viewErrorDetails(${error.id})" class="text-blue-600 hover:text-blue-800">View</button>
+            </td>
+        </tr>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Bulk Upload Errors - Batch: ${errors[0].batch_id}</h3>
+                    <button onclick="closeErrorModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h4 class="text-red-800 font-medium">Found ${errors.length} error(s) in this batch</h4>
+                    <p class="text-red-700 text-sm mt-1">Review each error and take appropriate action.</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Row #</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Error Message</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${errorRows}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeErrorModal()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Show error statistics
+function showErrorStatistics() {
+    fetch('/api/bulk-errors/statistics')
+        .then(response => response.json())
+        .then(stats => {
+            displayErrorStatisticsModal(stats);
+        })
+        .catch(err => {
+            console.error('Error fetching statistics:', err);
+            showErrorMessage('Failed to load error statistics');
+        });
+}
+
+// Display error statistics modal
+function displayErrorStatisticsModal(stats) {
+    const modal = document.createElement('div');
+    modal.className = 'modal active fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Bulk Upload Error Statistics</h3>
+                    <button onclick="closeErrorModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="text-blue-800 font-medium mb-3">Overall Statistics</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">Total Errors:</span>
+                                <span class="font-medium">${stats.totalErrors || 0}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-red-700">Unresolved:</span>
+                                <span class="font-medium text-red-600">${stats.unresolvedErrors || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="text-green-800 font-medium mb-3">By Upload Type</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-green-700">Media Errors:</span>
+                                <span class="font-medium">${stats.mediaErrors || 0} (${stats.unresolvedMediaErrors || 0} unresolved)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-green-700">Content Errors:</span>
+                                <span class="font-medium">${stats.contentErrors || 0} (${stats.unresolvedContentErrors || 0} unresolved)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-green-700">Upload Errors:</span>
+                                <span class="font-medium">${stats.uploadErrors || 0} (${stats.unresolvedUploadErrors || 0} unresolved)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeErrorModal()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Clear resolved errors
+function clearResolvedErrors() {
+    if (confirm('Are you sure you want to delete all resolved errors? This action cannot be undone.')) {
+        // Since we don't have a bulk delete endpoint, we'll need to add one or delete individually
+        showErrorMessage('Bulk delete feature not yet implemented');
+    }
+}
+
+// Filter error table (placeholder - you can implement filtering logic)
+function filterErrorTable() {
+    // Implement filtering logic similar to other tables
+    console.log('Error table filtering not yet implemented');
+}
+
+// Clear error filters (placeholder)
+function clearErrorFilters() {
+    document.getElementById('errorUploadTypeFilter').value = '';
+    document.getElementById('errorTypeFilter').value = '';
+    document.getElementById('errorStatusFilter').value = '';
+    document.getElementById('errorBatchFilter').value = '';
+    
+    // Reload data
+    loadData('errors');
 }
 

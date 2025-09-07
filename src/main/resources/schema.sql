@@ -2,6 +2,7 @@
 -- Generated from Entity POJOs on 2025-09-07
 
 -- Drop all tables if they exist (in correct order to handle foreign key dependencies)
+DROP TABLE IF EXISTS bulk_upload_errors;
 DROP TABLE IF EXISTS content_media_mapping;
 DROP TABLE IF EXISTS upload_media_mapping;
 DROP TABLE IF EXISTS states_catalog;
@@ -111,6 +112,32 @@ CREATE INDEX idx_states_date ON states_catalog(date);
 CREATE INDEX idx_metadata_category ON metadata_status(path_category);
 CREATE INDEX idx_metadata_available ON metadata_status(is_available);
 
+-- Create bulk upload errors table
+CREATE TABLE bulk_upload_errors (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    upload_type VARCHAR(50) NOT NULL,
+    batch_id VARCHAR(100) NOT NULL,
+    row_number INTEGER NOT NULL,
+    raw_data TEXT,
+    error_type VARCHAR(50) NOT NULL,
+    error_message TEXT NOT NULL,
+    field_name VARCHAR(100),
+    attempted_value TEXT,
+    suggestions TEXT,
+    is_resolved BOOLEAN NOT NULL DEFAULT FALSE,
+    resolution_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT chk_upload_type CHECK (upload_type IN ('MEDIA', 'CONTENT', 'UPLOAD')),
+    CONSTRAINT chk_error_type CHECK (error_type IN ('VALIDATION_ERROR', 'DUPLICATE_ERROR', 'CONSTRAINT_ERROR', 'PROCESSING_ERROR'))
+);
+
+-- Create indexes for bulk upload errors
+CREATE INDEX idx_bulk_errors_batch ON bulk_upload_errors(batch_id);
+CREATE INDEX idx_bulk_errors_type ON bulk_upload_errors(upload_type);
+CREATE INDEX idx_bulk_errors_resolved ON bulk_upload_errors(is_resolved);
+CREATE INDEX idx_bulk_errors_created ON bulk_upload_errors(created_at);
+
 -- Add comments for documentation
 COMMENT ON TABLE metadata_status IS 'Stores file paths and metadata information for various system components';
 COMMENT ON TABLE media_catalog IS 'Stores media information including movies, web series, and documentaries';
@@ -119,3 +146,4 @@ COMMENT ON TABLE upload_catalog IS 'Stores upload information and status for con
 COMMENT ON TABLE states_catalog IS 'Stores analytics and statistics data';
 COMMENT ON TABLE content_media_mapping IS 'Many-to-many mapping between content and media items';
 COMMENT ON TABLE upload_media_mapping IS 'Many-to-many mapping between upload entries and media items';
+COMMENT ON TABLE bulk_upload_errors IS 'Tracks errors that occur during bulk upload operations for debugging and resolution';

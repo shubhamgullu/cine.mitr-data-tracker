@@ -59,3 +59,11 @@ INSERT INTO states_catalog (date, total_views, subscribers, interaction, content
 ('2024-01-19', 25600.0, 1320.0, 1280.0, 5, 'cine.mitr'),
 ('2024-01-20', 28400.0, 1340.0, 1420.0, 1, 'cine.mitr.music'),
 ('2024-01-21', 31200.0, 1365.0, 1580.0, 2, 'cine.mitr.music');
+
+-- Insert sample bulk upload errors for testing
+INSERT INTO bulk_upload_errors (upload_type, batch_id, row_number, raw_data, error_type, error_message, field_name, attempted_value, suggestions, is_resolved, resolution_notes) VALUES
+('MEDIA', 'BATCH_ABC123', 3, 'Movie,The Avengers,English,true,Action,Superhero', 'DUPLICATE_ERROR', 'Duplicate entry for media name "The Avengers" with type "Movie"', 'media_name', 'The Avengers', 'Please check for existing records or modify the name to make it unique', false, null),
+('CONTENT', 'BATCH_DEF456', 5, 'https://youtube.com/invalid-url,Video,Sample content,downloaded,high,available', 'VALIDATION_ERROR', 'Invalid URL format provided', 'link', 'https://youtube.com/invalid-url', 'Please provide a valid URL format starting with http:// or https://', false, null),
+('MEDIA', 'BATCH_ABC123', 7, 'Web-Series,Breaking Bad Season 6,English,false,Crime', 'CONSTRAINT_ERROR', 'Required field "main_genres" is missing or empty', 'main_genres', '', 'Please provide at least one main genre for the media item', false, null),
+('UPLOAD', 'BATCH_GHI789', 2, '1,1,completed,Invalid Format,Test metadata', 'PROCESSING_ERROR', 'Failed to process upload due to invalid media format', 'media_format', 'Invalid Format', 'Please use valid media formats like HD Video, 4K Video, Full HD, etc.', true, 'Fixed by updating media format to HD Video'),
+('CONTENT', 'BATCH_DEF456', 8, 'https://example.com/video,Invalid Type,Content metadata,new,invalid-priority,available', 'VALIDATION_ERROR', 'Invalid priority value provided', 'priority', 'invalid-priority', 'Priority must be one of: low, medium, high, urgent', false, null);
